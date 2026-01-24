@@ -278,6 +278,98 @@ export function HomePage() {
           </div>
         </div>
       )}
+
+      {/* Quick Links */}
+      <div className="quick-links" style={{
+        margin: '2rem 0',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '1rem'
+      }}>
+        <Link
+          to="/products"
+          style={{
+            display: 'block',
+            padding: '2rem',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            color: 'white',
+            textAlign: 'center',
+            fontWeight: 'bold',
+            fontSize: '1.2rem',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            transition: 'transform 0.2s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+        >
+          📦 מוצרים
+        </Link>
+
+        <Link
+          to="/items-management"
+          style={{
+            display: 'block',
+            padding: '2rem',
+            background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            color: 'white',
+            textAlign: 'center',
+            fontWeight: 'bold',
+            fontSize: '1.2rem',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            transition: 'transform 0.2s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+        >
+          ⚙️ ניהול מוצרים
+        </Link>
+
+        <Link
+          to="/orders"
+          style={{
+            display: 'block',
+            padding: '2rem',
+            background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            color: 'white',
+            textAlign: 'center',
+            fontWeight: 'bold',
+            fontSize: '1.2rem',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            transition: 'transform 0.2s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+        >
+          📋 הזמנות
+        </Link>
+
+        <Link
+          to="/order"
+          style={{
+            display: 'block',
+            padding: '2rem',
+            background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            color: 'white',
+            textAlign: 'center',
+            fontWeight: 'bold',
+            fontSize: '1.2rem',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            transition: 'transform 0.2s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+        >
+          🛒 עגלת קניות
+        </Link>
+      </div>
     </section>
   )
 }

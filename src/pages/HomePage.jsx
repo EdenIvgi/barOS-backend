@@ -190,6 +190,94 @@ export function HomePage() {
           )}
         </div>
       )}
+
+      {/* Recent Orders */}
+      {orders && orders.length > 0 && (
+        <div className="recent-orders" style={{
+          margin: '2rem 0',
+          padding: '1.5rem',
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2 style={{ margin: 0, color: '#2c3e50' }}>הזמנות אחרונות</h2>
+            <Link
+              to="/orders"
+              style={{
+                color: '#007bff',
+                textDecoration: 'none',
+                fontWeight: 'bold'
+              }}
+            >
+              צפה בהכל →
+            </Link>
+          </div>
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            {orders
+              .slice(0, 5)
+              .map(order => (
+                <Link
+                  key={order._id}
+                  to="/orders"
+                  style={{
+                    display: 'block',
+                    padding: '1rem',
+                    background: '#f8f9fa',
+                    borderRadius: '6px',
+                    textDecoration: 'none',
+                    color: 'inherit',
+                    border: '1px solid #dee2e6',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateX(-5px)'
+                    e.currentTarget.style.borderColor = '#007bff'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateX(0)'
+                    e.currentTarget.style.borderColor = '#dee2e6'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
+                        הזמנה #{order._id?.toString().slice(-6) || 'N/A'}
+                      </div>
+                      <div style={{ fontSize: '0.9rem', color: '#666' }}>
+                        {order.createdAt && new Date(order.createdAt).toLocaleDateString('he-IL', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                      {order.items && order.items.length > 0 && (
+                        <div style={{ fontSize: '0.85rem', color: '#999', marginTop: '0.25rem' }}>
+                          {order.items.length} פריטים
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '4px',
+                        backgroundColor: order.status === 'pending' ? '#ffc107' : '#28a745',
+                        color: order.status === 'pending' ? '#856404' : 'white',
+                        fontSize: '0.85rem',
+                        fontWeight: 'bold',
+                        display: 'inline-block'
+                      }}>
+                        {order.status || 'pending'}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+          </div>
+        </div>
+      )}
     </section>
   )
 }

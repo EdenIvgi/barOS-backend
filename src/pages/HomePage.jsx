@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useSelector } from 'react-redux'
+import { Link } from 'react-router-dom'
 import { loadItems } from '../store/actions/item.actions'
 import { loadOrders } from '../store/actions/order.actions'
 
@@ -122,6 +123,73 @@ export function HomePage() {
           <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>הכנסות היום</p>
         </div>
       </div>
+
+      {/* Low Stock Alerts */}
+      {stats.lowStockItems > 0 && (
+        <div className="low-stock-alerts" style={{
+          margin: '2rem 0',
+          padding: '1.5rem',
+          backgroundColor: '#fff3cd',
+          borderRadius: '8px',
+          border: '2px solid #ffc107'
+        }}>
+          <h2 style={{ margin: '0 0 1rem 0', color: '#856404', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            ⚠️ התראות מלאי נמוך ({stats.lowStockItems})
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
+            {items
+              .filter(item => {
+                const stock = item.stockQuantity || 0
+                const minLevel = item.minStockLevel || 0
+                return stock <= minLevel && stock > 0
+              })
+              .slice(0, 6)
+              .map(item => (
+                <Link
+                  key={item._id}
+                  to="/items-management"
+                  style={{
+                    display: 'block',
+                    padding: '1rem',
+                    background: 'white',
+                    borderRadius: '6px',
+                    textDecoration: 'none',
+                    color: 'inherit',
+                    border: '1px solid #ffc107',
+                    transition: 'transform 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  <div style={{ fontWeight: 'bold', marginBottom: '0.5rem', color: '#856404' }}>
+                    {item.name}
+                  </div>
+                  <div style={{ fontSize: '0.9rem', color: '#666' }}>
+                    מלאי: {item.stockQuantity || 0} | רף התראה: {item.minStockLevel || 0}
+                  </div>
+                </Link>
+              ))}
+          </div>
+          {stats.lowStockItems > 6 && (
+            <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+              <Link
+                to="/items-management"
+                style={{
+                  display: 'inline-block',
+                  padding: '0.5rem 1rem',
+                  background: '#ffc107',
+                  color: '#856404',
+                  borderRadius: '4px',
+                  textDecoration: 'none',
+                  fontWeight: 'bold'
+                }}
+              >
+                צפה בכל המוצרים עם מלאי נמוך ({stats.lowStockItems})
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
     </section>
   )
 }

@@ -16,6 +16,11 @@ export function ItemsManagementPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   const [showForm, setShowForm] = useState(false)
+  const [filters, setFilters] = useState({
+    category: '',
+    supplier: '',
+    isAvailable: ''
+  })
 
   useEffect(() => {
     loadItems()
@@ -151,6 +156,23 @@ export function ItemsManagementPage() {
 
   const uniqueCategories = getUniqueCategoriesFromItems()
 
+  // Extract unique supplier values from items
+  const getUniqueSuppliersFromItems = () => {
+    if (!items || !Array.isArray(items)) return []
+    
+    const supplierSet = new Set()
+    items.forEach((item) => {
+      if (item.supplier && item.supplier.trim()) {
+        supplierSet.add(item.supplier.trim())
+      }
+    })
+    
+    return Array.from(supplierSet).sort()
+  }
+
+  const uniqueSuppliers = getUniqueSuppliersFromItems()
+
+  // Helper function to get category name from item
   const getCategoryName = (item) => {
     // First try to get category from embedded category object
     if (item?.category?.name) {
@@ -176,6 +198,46 @@ export function ItemsManagementPage() {
     }
     
     return 'ללא קטגוריה'
+  }
+
+  // Filter items based on filters
+  const filteredItems = items?.filter((item) => {
+    // Category filter
+    if (filters.category) {
+      const categoryName = getCategoryName(item)
+      if (categoryName !== filters.category) return false
+    }
+
+    // Supplier filter
+    if (filters.supplier) {
+      if (!item.supplier || item.supplier !== filters.supplier) {
+        return false
+      }
+    }
+
+    // Availability filter
+    if (filters.isAvailable !== '') {
+      const isAvailableFilter = filters.isAvailable === 'true'
+      if (item.isAvailable !== isAvailableFilter) return false
+    }
+
+    return true
+  }) || []
+
+  function handleFilterChange(ev) {
+    const { name, value } = ev.target
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  function handleClearFilters() {
+    setFilters({
+      category: '',
+      supplier: '',
+      isAvailable: ''
+    })
   }
 
   return (
@@ -333,8 +395,95 @@ export function ItemsManagementPage() {
       {!items || items.length === 0 ? (
         <p className="empty-message">אין מוצרים במערכת</p>
       ) : (
-        <div className="table-container">
-          <table className="items-table">
+        <>
+          <div className="filters-container" style={{ 
+            marginBottom: '20px', 
+            padding: '15px', 
+            backgroundColor: '#f5f5f5', 
+            borderRadius: '8px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '15px',
+            alignItems: 'flex-end'
+          }}>
+            <div style={{ flex: '1 1 150px', minWidth: '150px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9em' }}>
+                קטגוריה:
+              </label>
+              <select
+                name="category"
+                value={filters.category}
+                onChange={handleFilterChange}
+                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+              >
+                <option value="">כל הקטגוריות</option>
+                {uniqueCategories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ flex: '1 1 150px', minWidth: '150px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9em' }}>
+                ספק:
+              </label>
+              <select
+                name="supplier"
+                value={filters.supplier}
+                onChange={handleFilterChange}
+                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+              >
+                <option value="">כל הספקים</option>
+                {uniqueSuppliers.map((supplier) => (
+                  <option key={supplier} value={supplier}>
+                    {supplier}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ flex: '1 1 120px', minWidth: '120px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9em' }}>
+                זמינות:
+              </label>
+              <select
+                name="isAvailable"
+                value={filters.isAvailable}
+                onChange={handleFilterChange}
+                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+              >
+                <option value="">הכל</option>
+                <option value="true">זמין</option>
+                <option value="false">לא זמין</option>
+              </select>
+            </div>
+
+            <div style={{ flex: '0 0 auto' }}>
+              <button
+                onClick={handleClearFilters}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                נקה פילטרים
+              </button>
+            </div>
+
+            <div style={{ flex: '1 1 100%', marginTop: '10px', fontSize: '0.9em', color: '#666' }}>
+              מציג {filteredItems.length} מתוך {items.length} מוצרים
+            </div>
+          </div>
+
+          <div className="table-container">
+            <table className="items-table">
             <thead>
               <tr>
                 <th>שם</th>
@@ -348,7 +497,14 @@ export function ItemsManagementPage() {
               </tr>
             </thead>
             <tbody>
-              {items.map((item) => (
+              {filteredItems.length === 0 ? (
+                <tr>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                    לא נמצאו מוצרים התואמים לפילטרים שנבחרו
+                  </td>
+                </tr>
+              ) : (
+                filteredItems.map((item) => (
                 <tr key={item._id}>
                   <td>
                     <div className="item-name-cell">
@@ -369,14 +525,12 @@ export function ItemsManagementPage() {
                   <td>
                     <span
                       className={`stock-badge ${
-                        item.stockQuantity === 0
-                          ? 'unlimited'
-                          : item.stockQuantity <= item.minStockLevel
+                        item.stockQuantity <= (item.minStockLevel || 0)
                           ? 'low'
                           : 'ok'
                       }`}
                     >
-                      {item.stockQuantity === 0 ? 'ללא הגבלה' : item.stockQuantity}
+                      {item.stockQuantity ?? 0}
                     </span>
                   </td>
                   <td>{item.minStockLevel || '-'}</td>
@@ -404,10 +558,12 @@ export function ItemsManagementPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>
+        </>
       )}
     </div>
   )

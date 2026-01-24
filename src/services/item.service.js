@@ -59,6 +59,7 @@ function getEmptyItem() {
     isAvailable: true,
     stockQuantity: 0,
     minStockLevel: 0,
+    optimalStockLevel: 0,
     tags: [],
   }
 }

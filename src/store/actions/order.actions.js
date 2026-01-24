@@ -10,6 +10,7 @@ import {
 } from '../reducers/order.reducer'
 import { store } from '../store'
 import { asyncStorageService } from '../../services/async-storage.service'
+import { orderService } from '../../services/order.service'
 
 const STORAGE_KEY = 'cart'
 
@@ -51,16 +52,52 @@ function saveCartToStorage() {
   }
 }
 
-export async function loadOrders(filterBy) {
+export async function loadOrders(filterBy = {}) {
   try {
     store.dispatch({ type: SET_IS_LOADING, isLoading: true })
-    // TODO: Implement order service
-    // const orders = await orderService.query(filterBy)
-    // store.dispatch({ type: SET_ORDERS, orders })
+    const orders = await orderService.query(filterBy)
+    store.dispatch({ type: SET_ORDERS, orders })
   } catch (error) {
     store.dispatch({ type: SET_ERROR, error: 'Failed to load orders' })
     throw error
   } finally {
     store.dispatch({ type: SET_IS_LOADING, isLoading: false })
+  }
+}
+
+export async function removeOrder(orderId) {
+  try {
+    await orderService.remove(orderId)
+    const orders = store.getState().orderModule.orders
+    const updatedOrders = orders.filter(order => order._id !== orderId)
+    store.dispatch({ type: SET_ORDERS, orders: updatedOrders })
+  } catch (error) {
+    store.dispatch({ type: SET_ERROR, error: 'Failed to remove order' })
+    throw error
+  }
+}
+
+export async function updateOrder(order) {
+  try {
+    const updatedOrder = await orderService.save(order)
+    if (!updatedOrder) {
+      // If update failed, reload all orders
+      await loadOrders()
+      return null
+    }
+    const orders = store.getState().orderModule.orders
+    const updatedOrders = orders.map(o => {
+      if (o._id === order._id) {
+        return updatedOrder
+      }
+      return o
+    }).filter(o => o !== null && o !== undefined) // Filter out null/undefined orders
+    store.dispatch({ type: SET_ORDERS, orders: updatedOrders })
+    return updatedOrder
+  } catch (error) {
+    store.dispatch({ type: SET_ERROR, error: 'Failed to update order' })
+    // Reload orders on error
+    await loadOrders()
+    throw error
   }
 }

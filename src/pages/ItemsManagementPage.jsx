@@ -1,17 +1,21 @@
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import { loadItems, removeItem } from '../store/actions/item.actions'
 // Categories are now loaded from items, so we don't need to load from backend
 // import { loadCategories } from '../store/actions/category.actions'
 import { itemService } from '../services/item.service'
+import { orderService } from '../services/order.service'
 import { Loader } from '../cmps/Loader'
 import { showSuccessMsg, showErrorMsg } from '../services/event-bus.service'
 
 export function ItemsManagementPage() {
   const items = useSelector((storeState) => storeState.itemModule.items)
+  const user = useSelector((storeState) => storeState.userModule.loggedInUser)
   // Categories are now loaded from items, so we don't need categories from store
   // const categories = useSelector((storeState) => storeState.categoryModule.categories)
   const isLoading = useSelector((storeState) => storeState.itemModule.flag.isLoading)
+  const navigate = useNavigate()
 
   const [isEditing, setIsEditing] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
@@ -19,8 +23,9 @@ export function ItemsManagementPage() {
   const [filters, setFilters] = useState({
     category: '',
     supplier: '',
-    isAvailable: ''
+    stockStatus: ''
   })
+  const [editingToOrder, setEditingToOrder] = useState({}) // Track which items are being edited
 
   useEffect(() => {
     loadItems()
@@ -215,10 +220,11 @@ export function ItemsManagementPage() {
       }
     }
 
-    // Availability filter
-    if (filters.isAvailable !== '') {
-      const isAvailableFilter = filters.isAvailable === 'true'
-      if (item.isAvailable !== isAvailableFilter) return false
+    // Stock status filter (in stock / out of stock)
+    if (filters.stockStatus !== '') {
+      const stockQuantity = item.stockQuantity ?? 0
+      if (filters.stockStatus === 'inStock' && stockQuantity <= 0) return false
+      if (filters.stockStatus === 'outOfStock' && stockQuantity > 0) return false
     }
 
     return true
@@ -236,17 +242,110 @@ export function ItemsManagementPage() {
     setFilters({
       category: '',
       supplier: '',
-      isAvailable: ''
+      stockStatus: ''
     })
   }
+
+  async function handleToOrderChange(item, newToOrderValue) {
+    try {
+      const newToOrder = Math.max(0, Number(newToOrderValue) || 0)
+      const currentStock = item.stockQuantity || 0
+      const newOptimalStock = currentStock + newToOrder
+      
+      // Update the item's optimalStockLevel
+      const updatedItem = {
+        ...item,
+        optimalStockLevel: newOptimalStock
+      }
+      
+      await itemService.save(updatedItem)
+      await loadItems()
+      showSuccessMsg('כמות אופטימלית עודכנה')
+    } catch (error) {
+      showErrorMsg('שגיאה בעדכון הכמות האופטימלית')
+    }
+  }
+
+  async function handleCreateOrder() {
+    try {
+      // Collect all items that need to be ordered (toOrder > 0)
+      const itemsToOrder = filteredItems
+        .map((item) => {
+          const optimalStock = item.optimalStockLevel || 0
+          const currentStock = item.stockQuantity || 0
+          const toOrder = Math.max(0, optimalStock - currentStock)
+          
+          if (toOrder > 0) {
+            return {
+              itemId: item._id,
+              name: item.name,
+              quantity: toOrder,
+              price: item.price || 0,
+              subtotal: (item.price || 0) * toOrder
+            }
+          }
+          return null
+        })
+        .filter(item => item !== null)
+
+      if (itemsToOrder.length === 0) {
+        showErrorMsg('אין מוצרים להזמין')
+        return
+      }
+
+      // Create order
+      const order = {
+        items: itemsToOrder,
+        userId: user?._id || null,
+        status: 'pending',
+        type: 'stock_order' // Mark as stock order
+      }
+
+      await orderService.save(order)
+      showSuccessMsg(`הזמנה נוצרה בהצלחה עם ${itemsToOrder.length} מוצרים`)
+      
+      // Navigate to orders page
+      navigate('/orders')
+    } catch (error) {
+      showErrorMsg('שגיאה ביצירת ההזמנה')
+    }
+  }
+
+  // Calculate total items to order
+  const totalItemsToOrder = filteredItems.reduce((sum, item) => {
+    const optimalStock = item.optimalStockLevel || 0
+    const currentStock = item.stockQuantity || 0
+    const toOrder = Math.max(0, optimalStock - currentStock)
+    return sum + (toOrder > 0 ? 1 : 0)
+  }, 0)
 
   return (
     <div className="items-management-page">
       <div className="page-header">
         <h1>ניהול מוצרים</h1>
-        <button className="btn-add" onClick={handleAdd}>
-          + הוסף מוצר חדש
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {totalItemsToOrder > 0 && (
+            <button 
+              className="btn-create-order" 
+              onClick={handleCreateOrder}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#28a745',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '1em'
+              }}
+            >
+              📦 צור הזמנה ({totalItemsToOrder} מוצרים)
+            </button>
+          )}
+          <button className="btn-add" onClick={handleAdd}>
+            + הוסף מוצר חדש
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -355,6 +454,18 @@ export function ItemsManagementPage() {
                     min="0"
                   />
                 </div>
+
+                <div className="form-group">
+                  <label>כמות אופטימלית למלאי:</label>
+                  <input
+                    type="number"
+                    name="optimalStockLevel"
+                    value={editingItem?.optimalStockLevel || 0}
+                    onChange={handleChange}
+                    min="0"
+                    required
+                  />
+                </div>
               </div>
 
               <div className="form-group">
@@ -446,17 +557,17 @@ export function ItemsManagementPage() {
 
             <div style={{ flex: '1 1 120px', minWidth: '120px' }}>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9em' }}>
-                זמינות:
+                מלאי:
               </label>
               <select
-                name="isAvailable"
-                value={filters.isAvailable}
+                name="stockStatus"
+                value={filters.stockStatus}
                 onChange={handleFilterChange}
                 style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
               >
                 <option value="">הכל</option>
-                <option value="true">זמין</option>
-                <option value="false">לא זמין</option>
+                <option value="inStock">במלאי</option>
+                <option value="outOfStock">לא במלאי</option>
               </select>
             </div>
 
@@ -491,15 +602,14 @@ export function ItemsManagementPage() {
                 <th>ספק</th>
                 <th>מחיר</th>
                 <th>מלאי</th>
-                <th>רף התראה</th>
-                <th>זמין</th>
+                <th>כמה להזמין</th>
                 <th>פעולות</th>
               </tr>
             </thead>
             <tbody>
               {filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
                     לא נמצאו מוצרים התואמים לפילטרים שנבחרו
                   </td>
                 </tr>
@@ -533,11 +643,80 @@ export function ItemsManagementPage() {
                       {item.stockQuantity ?? 0}
                     </span>
                   </td>
-                  <td>{item.minStockLevel || '-'}</td>
                   <td>
-                    <span className={`status-badge ${item.isAvailable ? 'available' : 'unavailable'}`}>
-                      {item.isAvailable ? '✓ זמין' : '✗ לא זמין'}
-                    </span>
+                    {(() => {
+                      const optimalStock = item.optimalStockLevel || 0
+                      const currentStock = item.stockQuantity || 0
+                      const toOrder = Math.max(0, optimalStock - currentStock)
+                      const itemId = item._id
+                      const isEditing = editingToOrder[itemId]
+                      
+                      if (isEditing) {
+                        return (
+                          <input
+                            type="number"
+                            min="0"
+                            defaultValue={toOrder}
+                            onBlur={(e) => {
+                              const newValue = e.target.value
+                              handleToOrderChange(item, newValue)
+                              setEditingToOrder(prev => {
+                                const newState = { ...prev }
+                                delete newState[itemId]
+                                return newState
+                              })
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.target.blur()
+                              } else if (e.key === 'Escape') {
+                                setEditingToOrder(prev => {
+                                  const newState = { ...prev }
+                                  delete newState[itemId]
+                                  return newState
+                                })
+                                e.target.blur()
+                              }
+                            }}
+                            autoFocus
+                            style={{
+                              width: '80px',
+                              padding: '4px 8px',
+                              borderRadius: '4px',
+                              border: '2px solid #007bff',
+                              textAlign: 'center',
+                              fontWeight: 'bold',
+                              fontSize: '1em'
+                            }}
+                          />
+                        )
+                      }
+                      
+                      return (
+                        <span
+                          className={`order-badge ${
+                            toOrder > 0 ? 'needs-order' : 'ok'
+                          }`}
+                          onClick={() => {
+                            setEditingToOrder(prev => ({ ...prev, [itemId]: true }))
+                          }}
+                          style={{
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontWeight: 'bold',
+                            backgroundColor: toOrder > 0 ? '#fff3cd' : '#d4edda',
+                            color: toOrder > 0 ? '#856404' : '#155724',
+                            cursor: 'pointer',
+                            display: 'inline-block',
+                            minWidth: '40px',
+                            textAlign: 'center'
+                          }}
+                          title="לחץ לעריכה"
+                        >
+                          {toOrder}
+                        </span>
+                      )
+                    })()}
                   </td>
                   <td>
                     <div className="action-buttons">

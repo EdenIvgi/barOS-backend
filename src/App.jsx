@@ -8,7 +8,6 @@ import { AppHeader } from './cmps/AppHeader'
 import { UserMsg } from './cmps/UserMsg'
 import { About } from './pages/About'
 import { HomePage } from './pages/HomePage'
-import { ReviewIndex } from './pages/ReviewIndex'
 import { UserDetails } from './pages/UserDetails'
 import { MenuPage } from './pages/MenuPage'
 import { ItemDetails } from './pages/ItemDetails'
@@ -17,9 +16,12 @@ import { OrdersListPage } from './pages/OrdersListPage'
 import { ItemsManagementPage } from './pages/ItemsManagementPage'
 import { store } from './store/store'
 import { loadCartFromStorage } from './store/actions/order.actions'
+import { initLocalData } from './services/localData'
 
 export function App() {
   useEffect(() => {
+    // Initialize demo data in localStorage if empty
+    initLocalData()
     // Load cart from localStorage on app start
     loadCartFromStorage()
   }, [])
@@ -33,7 +35,6 @@ export function App() {
             <Routes>
               <Route element={<HomePage />} path="/" />
               <Route element={<About />} path="/about" />
-              <Route element={<ReviewIndex />} path="/review" />
               <Route element={<UserDetails />} path="/user" />
               <Route element={<MenuPage />} path="/menu" />
               <Route element={<ItemDetails />} path="/menu/:itemId" />

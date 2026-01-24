@@ -16,10 +16,18 @@ export async function loadItems(filterBy) {
   try {
     store.dispatch({ type: SET_IS_LOADING, isLoading: true })
     const result = await itemService.query(filter)
-    store.dispatch({ type: SET_ITEMS, items: result.items })
-    store.dispatch({ type: SET_MAX_PAGE, maxPage: result.maxPage })
+    // Backend may return { items: [], maxPage: 0 } or just an array
+    if (Array.isArray(result)) {
+      store.dispatch({ type: SET_ITEMS, items: result })
+      store.dispatch({ type: SET_MAX_PAGE, maxPage: 0 })
+    } else {
+      store.dispatch({ type: SET_ITEMS, items: result.items || [] })
+      store.dispatch({ type: SET_MAX_PAGE, maxPage: result.maxPage || 0 })
+    }
   } catch (error) {
     store.dispatch({ type: SET_ERROR, error: 'Failed to load items' })
+    // Set empty array on error to prevent undefined
+    store.dispatch({ type: SET_ITEMS, items: [] })
     throw error
   } finally {
     setTimeout(() => {

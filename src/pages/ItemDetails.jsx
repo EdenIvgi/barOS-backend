@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { useDispatch } from 'react-redux'
 import { itemService } from '../services/item.service'
 import { Loader } from '../cmps/Loader'
 import { showErrorMsg } from '../services/event-bus.service'
@@ -8,7 +7,6 @@ import { addToCart } from '../store/actions/order.actions'
 
 export function ItemDetails() {
   const { itemId } = useParams()
-  const dispatch = useDispatch()
   const [item, setItem] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
@@ -32,7 +30,7 @@ export function ItemDetails() {
   if (isLoading) return <Loader />
 
   function handleAddToCart() {
-    dispatch(addToCart(item, quantity))
+    addToCart(item, quantity)
   }
 
   if (!item) {

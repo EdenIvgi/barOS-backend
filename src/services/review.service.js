@@ -1,4 +1,5 @@
 import { httpService } from './http.service'
+import { userService } from './user.service'
 
 const BASE_URL = 'review/'
 
@@ -17,5 +18,10 @@ async function remove(reviewId) {
 }
 
 async function add({ txt, aboutItemId }) {
-  return await httpService.post(BASE_URL, { txt, aboutItemId })
+  const user = userService.getLoggedInUser()
+  const reviewData = { txt, aboutItemId }
+  if (user && user._id) {
+    reviewData.byUserId = user._id
+  }
+  return await httpService.post(BASE_URL, reviewData)
 }

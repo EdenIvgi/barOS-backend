@@ -6,10 +6,7 @@ export function ReviewPreview({ review }) {
   return (
     <article className="preview review-preview">
       <p>
-        About:{' '}
-        <Link className="about" to={`/menu/${aboutItem?._id || ''}`}>
-          {aboutItem?.name || 'Item'}
-        </Link>
+        About: {aboutItem?.name || 'Item'}
       </p>
       <p className="review-by">By: {byUser?.fullname || 'Unknown'}</p>
       <pre className="review-txt">{review.txt}</pre>

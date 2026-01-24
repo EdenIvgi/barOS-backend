@@ -32,7 +32,6 @@ export function AppHeader() {
           <NavLink to="/menu">{t('menu')}</NavLink> |
           <NavLink to="/orders">Orders</NavLink> |
           <NavLink to="/items-management">Items Management</NavLink> |
-          <NavLink to="/review">{t('reveiws')}</NavLink> |
           <NavLink to="/user">{t('profile')}</NavLink> |
           <NavLink to="/about">{t('about')}</NavLink>
         </nav>

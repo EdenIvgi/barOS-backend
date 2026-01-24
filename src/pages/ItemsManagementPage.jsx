@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { loadItems, removeItem } from '../store/actions/item.actions'
-import { loadCategories } from '../store/actions/category.actions'
+// Categories are now loaded from items, so we don't need to load from backend
+// import { loadCategories } from '../store/actions/category.actions'
 import { itemService } from '../services/item.service'
-import { categoryService } from '../services/category.service'
 import { Loader } from '../cmps/Loader'
 import { showSuccessMsg, showErrorMsg } from '../services/event-bus.service'
 
 export function ItemsManagementPage() {
   const items = useSelector((storeState) => storeState.itemModule.items)
-  const categories = useSelector((storeState) => storeState.categoryModule.categories)
+  // Categories are now loaded from items, so we don't need categories from store
+  // const categories = useSelector((storeState) => storeState.categoryModule.categories)
   const isLoading = useSelector((storeState) => storeState.itemModule.flag.isLoading)
 
   const [isEditing, setIsEditing] = useState(false)
@@ -18,7 +19,11 @@ export function ItemsManagementPage() {
 
   useEffect(() => {
     loadItems()
-    loadCategories()
+    // Categories are now loaded from items, so we don't need to load from backend
+    // loadCategories().catch((error) => {
+    //   console.error('Failed to load categories:', error)
+    //   // Don't show error - categories are loaded from items
+    // })
   }, [])
 
   async function handleDelete(itemId) {
@@ -31,12 +36,36 @@ export function ItemsManagementPage() {
       showSuccessMsg('הפריט נמחק בהצלחה')
     } catch (error) {
       showErrorMsg('שגיאה במחיקת הפריט')
-      console.error('Delete error:', error)
     }
   }
 
   function handleEdit(item) {
-    setEditingItem({ ...item })
+    // Prepare item for editing
+    const itemToEdit = { ...item }
+    
+    // Handle category - prioritize category string from items
+    if (itemToEdit.category) {
+      if (typeof itemToEdit.category === 'string') {
+        // Use category string directly
+        itemToEdit.categoryId = itemToEdit.category
+      } else if (itemToEdit.category.name) {
+        // If category is an object with name, use the name
+        itemToEdit.categoryId = itemToEdit.category.name
+      }
+    } else if (itemToEdit.categoryId) {
+      // If only categoryId exists, check if it's a string (category name) or ObjectId
+      if (typeof itemToEdit.categoryId === 'object') {
+        // If it's an ObjectId object, convert to string
+        itemToEdit.categoryId = itemToEdit.categoryId.toString()
+      } else if (typeof itemToEdit.categoryId !== 'string') {
+        // If it's not a string, convert it
+        itemToEdit.categoryId = String(itemToEdit.categoryId)
+      }
+      // If categoryId is a short string (not ObjectId), it's likely a category name
+      // Keep it as is for the select
+    }
+    
+    setEditingItem(itemToEdit)
     setIsEditing(true)
     setShowForm(true)
   }
@@ -58,9 +87,18 @@ export function ItemsManagementPage() {
     try {
       const itemToSave = { ...editingItem }
       
-      // Convert categoryId to string if it's an object
-      if (itemToSave.categoryId && typeof itemToSave.categoryId === 'object') {
-        itemToSave.categoryId = itemToSave.categoryId._id || itemToSave.categoryId
+      // Handle category - if categoryId is selected, use it as category string
+      if (itemToSave.categoryId) {
+        // If categoryId is a string (category name from items), save it as category
+        if (typeof itemToSave.categoryId === 'string' && !itemToSave.categoryId.match(/^[0-9a-fA-F]{24}$/)) {
+          // It's a category name, not ObjectId - save as category string
+          itemToSave.category = itemToSave.categoryId
+          // Keep categoryId for backward compatibility, or remove it
+          // itemToSave.categoryId = undefined
+        } else if (typeof itemToSave.categoryId === 'object') {
+          // If it's an object, convert to string
+          itemToSave.categoryId = itemToSave.categoryId._id || itemToSave.categoryId.toString()
+        }
       }
 
       if (isEditing) {
@@ -75,7 +113,6 @@ export function ItemsManagementPage() {
       handleCancel()
     } catch (error) {
       showErrorMsg('שגיאה בשמירת הפריט')
-      console.error('Save error:', error)
     }
   }
 
@@ -89,10 +126,56 @@ export function ItemsManagementPage() {
 
   if (isLoading) return <Loader />
 
-  const getCategoryName = (categoryId) => {
-    if (!categoryId) return 'ללא קטגוריה'
-    const category = categories.find((cat) => cat._id === categoryId)
-    return category ? category.name : 'ללא קטגוריה'
+  // Extract unique category values from items
+  const getUniqueCategoriesFromItems = () => {
+    if (!items || !Array.isArray(items)) return []
+    
+    const categorySet = new Set()
+    items.forEach((item) => {
+      // Try to get category from different sources
+      if (item.category) {
+        if (typeof item.category === 'string') {
+          categorySet.add(item.category)
+        } else if (item.category.name) {
+          categorySet.add(item.category.name)
+        }
+      }
+      if (item.categoryId && typeof item.categoryId === 'string' && item.categoryId.length < 24) {
+        // If categoryId is a short string (not ObjectId), it might be a category name
+        categorySet.add(item.categoryId)
+      }
+    })
+    
+    return Array.from(categorySet).sort()
+  }
+
+  const uniqueCategories = getUniqueCategoriesFromItems()
+
+  const getCategoryName = (item) => {
+    // First try to get category from embedded category object
+    if (item?.category?.name) {
+      return item.category.name
+    }
+    
+    // If category is a string (from database), use it directly
+    if (item?.category && typeof item.category === 'string') {
+      return item.category
+    }
+    
+    // Fallback: use categoryId if it's a string (category name)
+    const categoryId = item?.categoryId
+    if (categoryId) {
+      if (typeof categoryId === 'string' && categoryId.length < 24) {
+        // If categoryId is a short string (not ObjectId), it's likely a category name
+        return categoryId
+      } else if (typeof categoryId === 'string') {
+        return categoryId
+      } else if (typeof categoryId === 'object') {
+        return categoryId.toString()
+      }
+    }
+    
+    return 'ללא קטגוריה'
   }
 
   return (
@@ -145,17 +228,33 @@ export function ItemsManagementPage() {
                 <label>קטגוריה:</label>
                 <select
                   name="categoryId"
-                  value={editingItem?.categoryId || ''}
+                  value={editingItem?.categoryId || editingItem?.category || ''}
                   onChange={handleChange}
                   required
                 >
                   <option value="">בחר קטגוריה</option>
-                  {categories.map((cat) => (
-                    <option key={cat._id} value={cat._id}>
-                      {cat.name}
+                  {uniqueCategories.length > 0 ? (
+                    uniqueCategories.map((categoryName) => (
+                      <option key={categoryName} value={categoryName}>
+                        {categoryName}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="" disabled>
+                      אין קטגוריות זמינות
                     </option>
-                  ))}
+                  )}
                 </select>
+                {uniqueCategories.length > 0 && (
+                  <div className="form-hint" style={{ color: '#666', fontSize: '0.85em', marginTop: '5px' }}>
+                    נמצאו {uniqueCategories.length} קטגוריות מהמוצרים הקיימים
+                  </div>
+                )}
+                {uniqueCategories.length === 0 && items && items.length > 0 && (
+                  <div className="form-hint" style={{ color: '#999', fontSize: '0.85em', marginTop: '5px' }}>
+                    לא נמצאו קטגוריות במוצרים הקיימים
+                  </div>
+                )}
               </div>
 
               <div className="form-row">
@@ -231,7 +330,7 @@ export function ItemsManagementPage() {
         </div>
       )}
 
-      {items.length === 0 ? (
+      {!items || items.length === 0 ? (
         <p className="empty-message">אין מוצרים במערכת</p>
       ) : (
         <div className="table-container">
@@ -240,6 +339,7 @@ export function ItemsManagementPage() {
               <tr>
                 <th>שם</th>
                 <th>קטגוריה</th>
+                <th>ספק</th>
                 <th>מחיר</th>
                 <th>מלאי</th>
                 <th>רף התראה</th>
@@ -263,7 +363,8 @@ export function ItemsManagementPage() {
                       </div>
                     </div>
                   </td>
-                  <td>{getCategoryName(item.categoryId)}</td>
+                  <td>{getCategoryName(item)}</td>
+                  <td>{item.supplier || '-'}</td>
                   <td>₪{item.price}</td>
                   <td>
                     <span

@@ -9,7 +9,7 @@ import {
   SET_ERROR,
 } from '../reducers/order.reducer'
 import { store } from '../store'
-import { asyncStorageService } from '../services/async-storage.service'
+import { asyncStorageService } from '../../services/async-storage.service'
 
 const STORAGE_KEY = 'cart'
 

@@ -1,14 +1,11 @@
 import { Link } from 'react-router-dom'
-import { useDispatch } from 'react-redux'
 import { addToCart } from '../store/actions/order.actions'
 
 export function ItemPreview({ item }) {
-  const dispatch = useDispatch()
-
   function handleAddToCart(ev) {
     ev.preventDefault()
     ev.stopPropagation()
-    dispatch(addToCart(item, 1))
+    addToCart(item, 1)
   }
 
   return (

@@ -6,6 +6,39 @@ export const storageService = {
   remove,
 }
 
+// Simple async storage service for cart and other simple key-value storage
+export const asyncStorageService = {
+  load,
+  save,
+  remove: removeItem,
+}
+
+function load(key) {
+  try {
+    const data = localStorage.getItem(key)
+    return data ? JSON.parse(data) : null
+  } catch (error) {
+    console.error(`Failed to load ${key} from storage:`, error)
+    return null
+  }
+}
+
+function save(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify(data))
+  } catch (error) {
+    console.error(`Failed to save ${key} to storage:`, error)
+  }
+}
+
+function removeItem(key) {
+  try {
+    localStorage.removeItem(key)
+  } catch (error) {
+    console.error(`Failed to remove ${key} from storage:`, error)
+  }
+}
+
 function query(entityType, delay = 700) {
   var entities = JSON.parse(localStorage.getItem(entityType)) || []
   return new Promise(resolve => setTimeout(() => resolve(entities), delay))
@@ -37,7 +70,7 @@ function put(entityType, updatedEntity) {
     const idx = entities.findIndex(entity => entity._id === updatedEntity._id)
     if (idx < 0)
       throw new Error(
-        `Update failed, cannot find entity with id: ${entityId} in: ${entityType}`
+        `Update failed, cannot find entity with id: ${updatedEntity._id} in: ${entityType}`
       )
     entities.splice(idx, 1, updatedEntity)
     _save(entityType, entities)

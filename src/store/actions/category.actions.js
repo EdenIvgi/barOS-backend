@@ -10,9 +10,12 @@ export async function loadCategories() {
   try {
     store.dispatch({ type: SET_IS_LOADING, isLoading: true })
     const categories = await categoryService.query()
-    store.dispatch({ type: SET_CATEGORIES, categories })
+    const categoriesArray = Array.isArray(categories) ? categories : []
+    store.dispatch({ type: SET_CATEGORIES, categories: categoriesArray })
+    return categoriesArray
   } catch (error) {
     store.dispatch({ type: SET_ERROR, error: 'Failed to load categories' })
+    store.dispatch({ type: SET_CATEGORIES, categories: [] })
     throw error
   } finally {
     setTimeout(() => {

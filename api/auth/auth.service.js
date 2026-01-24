@@ -43,7 +43,5 @@ async function signup(userData) {
 }
 
 async function logout() {
-    // In a stateless JWT system, logout is handled client-side
-    // If using sessions, you would invalidate the session here
     return Promise.resolve()
 }

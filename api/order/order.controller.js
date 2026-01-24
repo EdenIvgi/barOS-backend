@@ -3,7 +3,6 @@ import { orderService } from './order.service.js'
 export async function getOrders(req, res) {
     try {
         const orders = await orderService.query(req.query)
-        console.log(`[Controller] Retrieved ${orders.length} orders`)
         res.json(orders)
     } catch (error) {
         console.error('[Controller] Error getting orders:', error)
@@ -29,7 +28,6 @@ export async function addOrder(req, res) {
     try {
         const order = req.body
         const addedOrder = await orderService.add(order)
-        console.log('[Controller] Order added:', addedOrder._id)
         res.status(201).json(addedOrder)
     } catch (error) {
         console.error('[Controller] Error adding order:', error)
@@ -85,7 +83,6 @@ export async function updateOrderStatus(req, res) {
 export async function getActiveOrders(req, res) {
     try {
         const orders = await orderService.getActiveOrders()
-        console.log(`[Controller] Retrieved ${orders.length} active orders`)
         res.json(orders)
     } catch (error) {
         console.error('[Controller] Error getting active orders:', error)

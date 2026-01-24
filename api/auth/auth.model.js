@@ -6,8 +6,7 @@ const COLLECTION_NAME = 'user'
 
 export const authModel = {
     getByUsername,
-    create,
-    update
+    create
 }
 
 async function getByUsername(username) {
@@ -37,32 +36,11 @@ async function create(userData) {
 
         const result = await collection.insertOne(userToAdd)
         userToAdd._id = result.insertedId
-        delete userToAdd.password // Don't return password
+        delete userToAdd.password
 
         return userToAdd
     } catch (error) {
         console.error('[AuthModel] Error creating user:', error)
-        throw error
-    }
-}
-
-async function update(userId, updateData) {
-    try {
-        const collection = await dbService.getCollection(COLLECTION_NAME)
-        
-        if (updateData.password) {
-            const saltRounds = 10
-            updateData.password = await bcrypt.hash(updateData.password, saltRounds)
-        }
-        
-        const result = await collection.updateOne(
-            { _id: ObjectId.createFromHexString(userId) },
-            { $set: updateData }
-        )
-        
-        return result.modifiedCount
-    } catch (error) {
-        console.error('[AuthModel] Error updating user:', error)
         throw error
     }
 }

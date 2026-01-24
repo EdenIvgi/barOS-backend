@@ -1,8 +1,7 @@
 import { userModel } from './user.model.js'
 
 export const userService = {
-    query,
-    getById
+    query
 }
 
 async function query(filterBy = {}) {
@@ -11,16 +10,6 @@ async function query(filterBy = {}) {
         return users
     } catch (error) {
         console.error('[UserService] Error in query:', error)
-        throw error
-    }
-}
-
-async function getById(userId) {
-    try {
-        const user = await userModel.getById(userId)
-        return user
-    } catch (error) {
-        console.error('[UserService] Error in getById:', error)
         throw error
     }
 }

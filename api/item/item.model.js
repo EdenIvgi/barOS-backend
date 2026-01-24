@@ -191,6 +191,7 @@ async function create(itemData) {
             isAvailable: itemData.isAvailable !== undefined ? itemData.isAvailable : true,
             stockQuantity: itemData.stockQuantity !== undefined ? itemData.stockQuantity : (itemData.quantity || 0),
             minStockLevel: itemData.minStockLevel !== undefined ? itemData.minStockLevel : 0,
+            optimalStockLevel: itemData.optimalStockLevel !== undefined ? Number(itemData.optimalStockLevel) : 0,
             tags: itemData.tags || [],
             quantity: itemData.quantity !== undefined ? itemData.quantity : null,
             createdAt: Date.now(),
@@ -288,6 +289,7 @@ async function update(itemId, updateData) {
             isAvailable: updateData.isAvailable !== undefined ? updateData.isAvailable : true,
             stockQuantity: updateData.stockQuantity !== undefined ? updateData.stockQuantity : 0,
             minStockLevel: updateData.minStockLevel !== undefined ? updateData.minStockLevel : 0,
+            optimalStockLevel: updateData.optimalStockLevel !== undefined ? Number(updateData.optimalStockLevel) : 0,
             tags: updateData.tags || [],
             quantity: updateData.quantity !== undefined ? updateData.quantity : null,
             updatedAt: Date.now()

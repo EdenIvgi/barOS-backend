@@ -51,12 +51,14 @@ async function create(orderData) {
     try {
         const collection = await dbService.getCollection(COLLECTION_NAME)
         
-        const totalAmount = orderData.items.reduce((sum, item) => sum + item.subtotal, 0)
+        // Calculate total amount from items
+        const totalAmount = orderData.items.reduce((sum, item) => sum + (item.subtotal || 0), 0)
         
         const orderToAdd = {
-            items: orderData.items,
-            userId: orderData.userId,
+            items: orderData.items || [],
+            userId: orderData.userId || null,
             status: orderData.status || 'pending',
+            type: orderData.type || 'stock_order', // Mark order type
             totalAmount,
             createdAt: Date.now(),
             updatedAt: Date.now()
@@ -76,14 +78,17 @@ async function update(orderId, updateData) {
     try {
         const collection = await dbService.getCollection(COLLECTION_NAME)
         
-        if (updateData.items) {
-            updateData.totalAmount = updateData.items.reduce((sum, item) => sum + item.subtotal, 0)
+        // Don't update _id or createdAt
+        const { _id, createdAt, ...dataToUpdate } = updateData
+        
+        if (dataToUpdate.items) {
+            dataToUpdate.totalAmount = dataToUpdate.items.reduce((sum, item) => sum + (item.subtotal || 0), 0)
         }
-        updateData.updatedAt = Date.now()
+        dataToUpdate.updatedAt = Date.now()
         
         const result = await collection.updateOne(
             { _id: ObjectId.createFromHexString(orderId) },
-            { $set: updateData }
+            { $set: dataToUpdate }
         )
         
         if (result.matchedCount === 0) {

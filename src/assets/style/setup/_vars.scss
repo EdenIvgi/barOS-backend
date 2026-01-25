@@ -1,15 +1,45 @@
-// COLOR PALETTE
-$clr1: #ff6b6b;
-$clr2: #52b69a;
+// COLOR PALETTE - Black, White, Gray Theme
+$black: #000000;
+$black-dark: #1a1a1a;
+$black-light: #2a2a2a;
 
-$clr1bg: #f2f3f7;
-$clr1bg-light: #ffffff;
-$clr2bg: #ffd56b;
-$clr2bg-light: #f9f3e3;
+$white: #ffffff;
+$white-off: #fafafa;
 
-$gray1: rgb(240, 240, 240);
-$gray2: rgb(155, 155, 155);
-$gray3: rgb(44, 44, 44);
+$gray-50: #f9f9f9;
+$gray-100: #f5f5f5;
+$gray-200: #eeeeee;
+$gray-300: #e0e0e0;
+$gray-400: #bdbdbd;
+$gray-500: #9e9e9e;
+$gray-600: #757575;
+$gray-700: #616161;
+$gray-800: #424242;
+$gray-900: #212121;
+
+// Legacy support
+$clr1: $gray-800;
+$clr2: $gray-600;
+
+$clr1bg: $gray-100;
+$clr1bg-light: $white;
+$clr2bg: $gray-200;
+$clr2bg-light: $gray-50;
+
+$gray1: $gray-200;
+$gray2: $gray-500;
+$gray3: $gray-800;
 
 // LAYOUT
 $layoutPadding: 1.6rem;
+
+// Shadows
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 2px 4px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.15);
+$shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.2);
+
+// Borders
+$border-color: $gray-300;
+$border-radius: 8px;
+$border-radius-lg: 12px;

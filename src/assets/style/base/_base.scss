@@ -1,14 +1,19 @@
+@import '../setup/vars';
+
 * {
   box-sizing: border-box;
 }
 
 html {
-  color: $gray3;
+  color: $gray-800;
   font-family: roboto, sans-serif;
+  background: $white-off;
 }
 
 body {
   margin: 0;
+  background: $white-off;
+  color: $black-dark;
 }
 
 h1,
@@ -18,18 +23,26 @@ h4,
 h5,
 h6 {
   margin: 0.5em 0 0.5em;
+  color: $black-dark;
+  font-weight: 700;
 }
 
 p {
   margin: 0 0 1em;
+  color: $gray-700;
 }
 
 a {
   text-decoration: none;
   color: unset;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: $black-dark;
+  }
 }
 
-/* Dont stretch my Media */
+/* Dont stretch my Media */
 img,
 embed,
 video,
@@ -37,13 +50,15 @@ object {
   max-width: 100%;
 }
 
-/* Simple and useful CSS Debugging Technique */
+/* Simple and useful CSS Debugging Technique */
 .debug * {
   outline: 1px solid gold;
 }
 
 a.active {
   text-decoration: overline;
+  color: $black-dark;
+  font-weight: 600;
 }
 
 .popup-menu {
@@ -53,14 +68,17 @@ a.active {
   width: 40vw;
   align-items: center;
   height: auto;
-  background-color: rgb(248, 250, 247);
-  border: 1px solid #bebebe;
-  box-shadow: 1px 2px 16px #000000a6;
+  background-color: $white;
+  border: 1px solid $border-color;
+  box-shadow: $shadow-xl;
   display: flex;
   inset: 0;
   margin: auto;
   height: fit-content;
+  border-radius: $border-radius-lg;
 }
+
 .popup-menu h1 {
   font-size: 1.5em;
+  color: $black-dark;
 }

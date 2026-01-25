@@ -86,28 +86,10 @@ export function OrdersListPage() {
       ) : (
         <div className="orders-list">
           {orders.filter(order => order !== null && order !== undefined).map((order) => (
-            <div key={order._id} className="order-card" style={{
-              background: 'white',
-              padding: '1.5rem',
-              borderRadius: '8px',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-              marginBottom: '1.5rem'
-            }}>
-              <div style={{
-                marginBottom: '1rem',
-                paddingBottom: '1rem',
-                borderBottom: '2px solid #eee',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
+            <div key={order._id} className="order-card">
+              <div className="order-header">
                 {order && order.createdAt && (
-                  <h3 style={{
-                    margin: 0,
-                    fontSize: '1.1em',
-                    color: '#2c3e50',
-                    fontWeight: '600'
-                  }}>
+                  <h3>
                     תאריך: {new Date(order.createdAt).toLocaleDateString('he-IL', {
                       year: 'numeric',
                       month: 'long',
@@ -115,36 +97,18 @@ export function OrdersListPage() {
                     })}
                   </h3>
                 )}
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div className="order-actions">
                   {editingOrder === order._id ? (
                     <>
                       <button
                         onClick={() => handleSaveEdit(order)}
-                        style={{
-                          padding: '6px 12px',
-                          backgroundColor: '#28a745',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontWeight: 'bold',
-                          fontSize: '0.9em'
-                        }}
+                        className="btn-save"
                       >
                         שמור
                       </button>
                       <button
                         onClick={handleCancelEdit}
-                        style={{
-                          padding: '6px 12px',
-                          backgroundColor: '#6c757d',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontWeight: 'bold',
-                          fontSize: '0.9em'
-                        }}
+                        className="btn-cancel"
                       >
                         ביטול
                       </button>
@@ -153,33 +117,21 @@ export function OrdersListPage() {
                     <>
                       <button
                         onClick={() => handleEdit(order)}
-                        style={{
-                          padding: '6px 12px',
-                          backgroundColor: '#007bff',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontWeight: 'bold',
-                          fontSize: '0.9em'
-                        }}
+                        className="btn-edit"
                       >
-                        ✏️ ערוך
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M11.333 2.00001C11.5084 1.82445 11.7163 1.68506 11.9447 1.59123C12.1731 1.4974 12.4173 1.45117 12.6637 1.45534C12.9101 1.45951 13.1523 1.51398 13.3763 1.61538C13.6003 1.71678 13.8012 1.8628 13.9667 2.04445C14.1321 2.2261 14.2585 2.43937 14.3384 2.67091C14.4182 2.90245 14.4497 3.14762 14.4307 3.39068C14.4117 3.63374 14.3426 3.86975 14.2277 4.08334L6.12001 13.3333L2.00001 14L2.66668 9.88001L10.7733 0.63001C10.8882 0.416421 11.0439 0.228215 11.2313 0.0764062C11.4187 -0.0754026 11.6339 -0.188281 11.8637 -0.25534C12.0935 -0.322399 12.3333 -0.342399 12.57 -0.31423C12.8067 -0.286061 13.0353 -0.21023 13.24 -0.09134L11.333 2.00001Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        ערוך
                       </button>
                       <button
                         onClick={() => handleDelete(order._id)}
-                        style={{
-                          padding: '6px 12px',
-                          backgroundColor: '#dc3545',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontWeight: 'bold',
-                          fontSize: '0.9em'
-                        }}
+                        className="btn-delete"
                       >
-                        🗑️ מחק
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M2 4H14M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2761 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66667C4.31305 14.6667 3.97391 14.5262 3.72386 14.2761C3.47381 14.0261 3.33333 13.687 3.33333 13.3333V4M5.33333 4V2.66667C5.33333 2.31305 5.47381 1.97391 5.72386 1.72386C5.97391 1.47381 6.31305 1.33333 6.66667 1.33333H9.33333C9.68696 1.33333 10.0261 1.47381 10.2761 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4M6.66667 7.33333V11.3333M9.33333 7.33333V11.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        מחק
                       </button>
                     </>
                   )}
@@ -188,73 +140,26 @@ export function OrdersListPage() {
               
               {order.items && order.items.length > 0 ? (
                 <div className="order-items">
-                  <table style={{
-                    width: '100%',
-                    borderCollapse: 'collapse'
-                  }}>
+                  <table>
                     <thead>
-                      <tr style={{
-                        borderBottom: '2px solid #2c3e50'
-                      }}>
-                        <th style={{
-                          textAlign: 'right',
-                          padding: '0.75rem',
-                          fontWeight: 'bold',
-                          color: '#2c3e50',
-                          fontSize: '1em'
-                        }}>
-                          שם הפריט
-                        </th>
-                        <th style={{
-                          textAlign: 'center',
-                          padding: '0.75rem',
-                          fontWeight: 'bold',
-                          color: '#2c3e50',
-                          fontSize: '1em',
-                          width: '120px'
-                        }}>
-                          כמות
-                        </th>
+                      <tr>
+                        <th>שם הפריט</th>
+                        <th>כמות</th>
                       </tr>
                     </thead>
                     <tbody>
                       {order.items.map((item, index) => (
-                        <tr 
-                          key={index}
-                          style={{
-                            borderBottom: index < order.items.length - 1 ? '1px solid #f0f0f0' : 'none'
-                          }}
-                        >
-                          <td style={{
-                            textAlign: 'right',
-                            padding: '0.75rem',
-                            fontSize: '1em',
-                            color: '#333'
-                          }}>
+                        <tr key={index}>
+                          <td>
                             {item.name || `פריט ${index + 1}`}
                           </td>
-                          <td style={{
-                            textAlign: 'center',
-                            padding: '0.75rem',
-                            fontWeight: 'bold',
-                            color: '#2c3e50',
-                            fontSize: '1.1em'
-                          }}>
+                          <td>
                             {editingOrder === order._id ? (
                               <input
                                 type="number"
                                 min="0"
                                 value={editingQuantities[index] || 0}
                                 onChange={(e) => handleQuantityChange(index, e.target.value)}
-                                style={{
-                                  width: '80px',
-                                  padding: '4px 8px',
-                                  borderRadius: '4px',
-                                  border: '2px solid #007bff',
-                                  textAlign: 'center',
-                                  fontWeight: 'bold',
-                                  fontSize: '1em'
-                                }}
                               />
                             ) : (
                               item.quantity || 0
@@ -266,7 +171,7 @@ export function OrdersListPage() {
                   </table>
                 </div>
               ) : (
-                <p style={{ color: '#999', textAlign: 'center', padding: '1rem' }}>
+                <p className="empty-message">
                   אין פריטים בהזמנה זו
                 </p>
               )}

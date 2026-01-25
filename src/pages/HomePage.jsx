@@ -40,149 +40,78 @@ export function HomePage() {
     }).reduce((sum, order) => sum + (order.totalAmount || 0), 0) || 0
   }
 
+  const lowStockItems = items?.filter(item => {
+    const stock = item.stockQuantity || 0
+    const minLevel = item.minStockLevel || 0
+    return stock <= minLevel && stock > 0
+  }) || []
+
   return (
     <section className="home-page">
-      <div className="hero-section">
-        <h1>Welcome to Bar App</h1>
-        <p>Your favorite bar management system</p>
-      </div>
 
       {/* Dashboard Statistics */}
-      <div className="dashboard-stats" style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '1rem',
-        margin: '2rem 0',
-        padding: '1.5rem',
-        backgroundColor: '#f8f9fa',
-        borderRadius: '8px'
-      }}>
-        <div className="stat-card" style={{
-          background: 'white',
-          padding: '1.5rem',
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          textAlign: 'center'
-        }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', color: '#2c3e50', fontSize: '2rem' }}>{stats.totalItems}</h3>
-          <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>סה"כ מוצרים</p>
+      <div className="dashboard-stats">
+        <div className="stat-card">
+          <h3>{stats.totalItems}</h3>
+          <p>סה"כ מוצרים</p>
         </div>
 
-        <div className="stat-card" style={{
-          background: 'white',
-          padding: '1.5rem',
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          textAlign: 'center'
-        }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', color: '#28a745', fontSize: '2rem' }}>{stats.availableItems}</h3>
-          <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>מוצרים זמינים</p>
+        <div className="stat-card">
+          <h3>{stats.availableItems}</h3>
+          <p>מוצרים זמינים</p>
         </div>
 
-        <div className="stat-card" style={{
-          background: 'white',
-          padding: '1.5rem',
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          textAlign: 'center'
-        }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', color: '#dc3545', fontSize: '2rem' }}>{stats.lowStockItems}</h3>
-          <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>מלאי נמוך</p>
+        <div className="stat-card">
+          <h3>{stats.lowStockItems}</h3>
+          <p>מלאי נמוך</p>
         </div>
 
-        <div className="stat-card" style={{
-          background: 'white',
-          padding: '1.5rem',
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          textAlign: 'center'
-        }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', color: '#007bff', fontSize: '2rem' }}>{stats.totalOrders}</h3>
-          <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>סה"כ הזמנות</p>
+        <div className="stat-card">
+          <h3>{stats.totalOrders}</h3>
+          <p>סה"כ הזמנות</p>
         </div>
 
-        <div className="stat-card" style={{
-          background: 'white',
-          padding: '1.5rem',
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          textAlign: 'center'
-        }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', color: '#ffc107', fontSize: '2rem' }}>{stats.pendingOrders}</h3>
-          <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>הזמנות ממתינות</p>
+        <div className="stat-card">
+          <h3>{stats.pendingOrders}</h3>
+          <p>הזמנות ממתינות</p>
         </div>
 
-        <div className="stat-card" style={{
-          background: 'white',
-          padding: '1.5rem',
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          textAlign: 'center'
-        }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', color: '#17a2b8', fontSize: '2rem' }}>₪{stats.todayRevenue.toFixed(2)}</h3>
-          <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>הכנסות היום</p>
+        <div className="stat-card">
+          <h3>₪{stats.todayRevenue.toFixed(2)}</h3>
+          <p>הכנסות היום</p>
         </div>
       </div>
 
       {/* Low Stock Alerts */}
       {stats.lowStockItems > 0 && (
-        <div className="low-stock-alerts" style={{
-          margin: '2rem 0',
-          padding: '1.5rem',
-          backgroundColor: '#fff3cd',
-          borderRadius: '8px',
-          border: '2px solid #ffc107'
-        }}>
-          <h2 style={{ margin: '0 0 1rem 0', color: '#856404', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            ⚠️ התראות מלאי נמוך ({stats.lowStockItems})
+        <div className="low-stock-alerts">
+          <h2>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            התראות מלאי נמוך ({stats.lowStockItems})
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
-            {items
-              .filter(item => {
-                const stock = item.stockQuantity || 0
-                const minLevel = item.minStockLevel || 0
-                return stock <= minLevel && stock > 0
-              })
+          <div className="alerts-grid">
+            {lowStockItems
               .slice(0, 6)
               .map(item => (
                 <Link
                   key={item._id}
                   to="/items-management"
-                  style={{
-                    display: 'block',
-                    padding: '1rem',
-                    background: 'white',
-                    borderRadius: '6px',
-                    textDecoration: 'none',
-                    color: 'inherit',
-                    border: '1px solid #ffc107',
-                    transition: 'transform 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                  onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                  className="alert-item"
                 >
-                  <div style={{ fontWeight: 'bold', marginBottom: '0.5rem', color: '#856404' }}>
-                    {item.name}
-                  </div>
-                  <div style={{ fontSize: '0.9rem', color: '#666' }}>
+                  <div className="item-name">{item.name}</div>
+                  <div className="item-details">
                     מלאי: {item.stockQuantity || 0} | רף התראה: {item.minStockLevel || 0}
                   </div>
                 </Link>
               ))}
           </div>
           {stats.lowStockItems > 6 && (
-            <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+            <div style={{ textAlign: 'center' }}>
               <Link
                 to="/items-management"
-                style={{
-                  display: 'inline-block',
-                  padding: '0.5rem 1rem',
-                  background: '#ffc107',
-                  color: '#856404',
-                  borderRadius: '4px',
-                  textDecoration: 'none',
-                  fontWeight: 'bold'
-                }}
+                className="view-all-link"
               >
                 צפה בכל המוצרים עם מלאי נמוך ({stats.lowStockItems})
               </Link>
@@ -193,58 +122,31 @@ export function HomePage() {
 
       {/* Recent Orders */}
       {orders && orders.length > 0 && (
-        <div className="recent-orders" style={{
-          margin: '2rem 0',
-          padding: '1.5rem',
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h2 style={{ margin: 0, color: '#2c3e50' }}>הזמנות אחרונות</h2>
+        <div className="recent-orders">
+          <div className="section-header">
+            <h2>הזמנות אחרונות</h2>
             <Link
               to="/orders"
-              style={{
-                color: '#007bff',
-                textDecoration: 'none',
-                fontWeight: 'bold'
-              }}
+              className="view-all-link"
             >
               צפה בהכל →
             </Link>
           </div>
-          <div style={{ display: 'grid', gap: '1rem' }}>
+          <div className="orders-list">
             {orders
               .slice(0, 5)
               .map(order => (
                 <Link
                   key={order._id}
                   to="/orders"
-                  style={{
-                    display: 'block',
-                    padding: '1rem',
-                    background: '#f8f9fa',
-                    borderRadius: '6px',
-                    textDecoration: 'none',
-                    color: 'inherit',
-                    border: '1px solid #dee2e6',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateX(-5px)'
-                    e.currentTarget.style.borderColor = '#007bff'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateX(0)'
-                    e.currentTarget.style.borderColor = '#dee2e6'
-                  }}
+                  className="order-item"
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
+                  <div className="order-content">
+                    <div className="order-info">
+                      <div className="order-id">
                         הזמנה #{order._id?.toString().slice(-6) || 'N/A'}
                       </div>
-                      <div style={{ fontSize: '0.9rem', color: '#666' }}>
+                      <div className="order-date">
                         {order.createdAt && new Date(order.createdAt).toLocaleDateString('he-IL', {
                           year: 'numeric',
                           month: 'short',
@@ -254,23 +156,13 @@ export function HomePage() {
                         })}
                       </div>
                       {order.items && order.items.length > 0 && (
-                        <div style={{ fontSize: '0.85rem', color: '#999', marginTop: '0.25rem' }}>
+                        <div className="order-items-count">
                           {order.items.length} פריטים
                         </div>
                       )}
                     </div>
-                    <div style={{ textAlign: 'left' }}>
-                      <div style={{
-                        padding: '0.25rem 0.75rem',
-                        borderRadius: '4px',
-                        backgroundColor: order.status === 'pending' ? '#ffc107' : '#28a745',
-                        color: order.status === 'pending' ? '#856404' : 'white',
-                        fontSize: '0.85rem',
-                        fontWeight: 'bold',
-                        display: 'inline-block'
-                      }}>
-                        {order.status || 'pending'}
-                      </div>
+                    <div className={`order-status ${order.status || 'pending'}`}>
+                      {order.status || 'pending'}
                     </div>
                   </div>
                 </Link>
@@ -280,94 +172,48 @@ export function HomePage() {
       )}
 
       {/* Quick Links */}
-      <div className="quick-links" style={{
-        margin: '2rem 0',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '1rem'
-      }}>
+      <div className="quick-links">
         <Link
           to="/products"
-          style={{
-            display: 'block',
-            padding: '2rem',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            borderRadius: '8px',
-            textDecoration: 'none',
-            color: 'white',
-            textAlign: 'center',
-            fontWeight: 'bold',
-            fontSize: '1.2rem',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            transition: 'transform 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          className="quick-link"
         >
-          📦 מוצרים
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 7L12 3L4 7M20 7L12 11M20 7V17L12 21M12 11L4 7M12 11V21M4 7V17L12 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          מוצרים
         </Link>
 
         <Link
           to="/items-management"
-          style={{
-            display: 'block',
-            padding: '2rem',
-            background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-            borderRadius: '8px',
-            textDecoration: 'none',
-            color: 'white',
-            textAlign: 'center',
-            fontWeight: 'bold',
-            fontSize: '1.2rem',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            transition: 'transform 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          className="quick-link"
         >
-          ⚙️ ניהול מוצרים
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M19.6224 10.3954L18.5247 7.7448L20 6L18 4L16.2647 5.4829L13.5578 4.36974L12.9353 2H11.0647L10.4422 4.36974L7.73526 5.4829L6 4L4 6L5.47526 7.7448L4.37764 10.3954L2 11.2361L2 12.7639L4.37764 13.6046L5.47526 16.2552L4 18L6 20L7.73526 18.5171L10.4422 19.6303L11.0647 22H12.9353L13.5578 19.6303L16.2647 18.5171L18 20L20 18L18.5247 16.2552L19.6224 13.6046L22 12.7639V11.2361L19.6224 10.3954Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          ניהול מוצרים
         </Link>
 
         <Link
           to="/orders"
-          style={{
-            display: 'block',
-            padding: '2rem',
-            background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-            borderRadius: '8px',
-            textDecoration: 'none',
-            color: 'white',
-            textAlign: 'center',
-            fontWeight: 'bold',
-            fontSize: '1.2rem',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            transition: 'transform 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          className="quick-link"
         >
-          📋 הזמנות
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15M9 5C9 6.10457 9.89543 7 11 7H13C14.1046 7 15 6.10457 15 5M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5M12 12H15M12 16H15M9 12H9.01M9 16H9.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          הזמנות
         </Link>
 
         <Link
           to="/order"
-          style={{
-            display: 'block',
-            padding: '2rem',
-            background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-            borderRadius: '8px',
-            textDecoration: 'none',
-            color: 'white',
-            textAlign: 'center',
-            fontWeight: 'bold',
-            fontSize: '1.2rem',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            transition: 'transform 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          className="quick-link"
         >
-          🛒 עגלת קניות
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="9" cy="21" r="1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <circle cx="20" cy="21" r="1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M1 1H4L6.68 13.39C6.77144 13.8504 7.02191 14.264 7.38755 14.5583C7.75318 14.8526 8.2107 15.009 8.68 15H19C19.5304 15 20.0391 14.7893 20.4142 14.4142C20.7893 14.0391 21 13.5304 21 13H8.68" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          עגלת קניות
         </Link>
       </div>
     </section>

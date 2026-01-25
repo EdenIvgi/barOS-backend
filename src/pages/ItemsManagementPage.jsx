@@ -220,11 +220,14 @@ export function ItemsManagementPage() {
       }
     }
 
-    // Stock status filter (in stock / out of stock)
+    // Stock status filter (in stock / out of stock / low stock)
     if (filters.stockStatus !== '') {
       const stockQuantity = item.stockQuantity ?? 0
+      const minStockLevel = item.minStockLevel || 0
+      
       if (filters.stockStatus === 'inStock' && stockQuantity <= 0) return false
       if (filters.stockStatus === 'outOfStock' && stockQuantity > 0) return false
+      if (filters.stockStatus === 'lowStock' && stockQuantity > minStockLevel) return false
     }
 
     return true
@@ -321,32 +324,93 @@ export function ItemsManagementPage() {
 
   return (
     <div className="items-management-page">
-      <div className="page-header">
-        <h1>ניהול מוצרים</h1>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          {totalItemsToOrder > 0 && (
-            <button 
-              className="btn-create-order" 
-              onClick={handleCreateOrder}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                fontSize: '1em'
-              }}
-            >
-              📦 צור הזמנה ({totalItemsToOrder} מוצרים)
+      {!items || items.length === 0 ? (
+        <p className="empty-message">אין מוצרים במערכת</p>
+      ) : (
+        <>
+          <div className="filters-container">
+            <div>
+              <label>
+                קטגוריה
+              </label>
+              <select
+                name="category"
+                value={filters.category}
+                onChange={handleFilterChange}
+              >
+                <option value="">כל הקטגוריות</option>
+                {uniqueCategories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label>
+                ספק
+              </label>
+              <select
+                name="supplier"
+                value={filters.supplier}
+                onChange={handleFilterChange}
+              >
+                <option value="">כל הספקים</option>
+                {uniqueSuppliers.map((supplier) => (
+                  <option key={supplier} value={supplier}>
+                    {supplier}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label>
+                מלאי
+              </label>
+              <select
+                name="stockStatus"
+                value={filters.stockStatus}
+                onChange={handleFilterChange}
+              >
+                <option value="">הכל</option>
+                <option value="inStock">במלאי</option>
+                <option value="outOfStock">לא במלאי</option>
+                <option value="lowStock">מלאי נמוך</option>
+              </select>
+            </div>
+
+            <div className="filter-info">
+              מציג {filteredItems.length} מתוך {items.length} מוצרים
+            </div>
+
+            <div>
+              <button
+                onClick={handleClearFilters}
+                className="clear-filters-btn"
+              >
+                נקה פילטרים
+              </button>
+            </div>
+          </div>
+
+          <div className="header-actions">
+            {totalItemsToOrder > 0 && (
+              <button 
+                className="btn-create-order" 
+                onClick={handleCreateOrder}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 7L12 3L4 7M20 7L12 11M20 7V17L12 21M12 11L4 7M12 11V21M4 7V17L12 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                צור הזמנה ({totalItemsToOrder})
+              </button>
+            )}
+            <button className="btn-add" onClick={handleAdd}>
+              + הוסף מוצר
             </button>
-          )}
-          <button className="btn-add" onClick={handleAdd}>
-            + הוסף מוצר חדש
-          </button>
-        </div>
-      </div>
+          </div>
 
       {showForm && (
         <div className="form-overlay" onClick={handleCancel}>
@@ -503,96 +567,6 @@ export function ItemsManagementPage() {
         </div>
       )}
 
-      {!items || items.length === 0 ? (
-        <p className="empty-message">אין מוצרים במערכת</p>
-      ) : (
-        <>
-          <div className="filters-container" style={{ 
-            marginBottom: '20px', 
-            padding: '15px', 
-            backgroundColor: '#f5f5f5', 
-            borderRadius: '8px',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '15px',
-            alignItems: 'flex-end'
-          }}>
-            <div style={{ flex: '1 1 150px', minWidth: '150px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9em' }}>
-                קטגוריה:
-              </label>
-              <select
-                name="category"
-                value={filters.category}
-                onChange={handleFilterChange}
-                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-              >
-                <option value="">כל הקטגוריות</option>
-                {uniqueCategories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div style={{ flex: '1 1 150px', minWidth: '150px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9em' }}>
-                ספק:
-              </label>
-              <select
-                name="supplier"
-                value={filters.supplier}
-                onChange={handleFilterChange}
-                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-              >
-                <option value="">כל הספקים</option>
-                {uniqueSuppliers.map((supplier) => (
-                  <option key={supplier} value={supplier}>
-                    {supplier}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div style={{ flex: '1 1 120px', minWidth: '120px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9em' }}>
-                מלאי:
-              </label>
-              <select
-                name="stockStatus"
-                value={filters.stockStatus}
-                onChange={handleFilterChange}
-                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
-              >
-                <option value="">הכל</option>
-                <option value="inStock">במלאי</option>
-                <option value="outOfStock">לא במלאי</option>
-              </select>
-            </div>
-
-            <div style={{ flex: '0 0 auto' }}>
-              <button
-                onClick={handleClearFilters}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold'
-                }}
-              >
-                נקה פילטרים
-              </button>
-            </div>
-
-            <div style={{ flex: '1 1 100%', marginTop: '10px', fontSize: '0.9em', color: '#666' }}>
-              מציג {filteredItems.length} מתוך {items.length} מוצרים
-            </div>
-          </div>
-
           <div className="table-container">
             <table className="items-table">
             <thead>
@@ -609,7 +583,7 @@ export function ItemsManagementPage() {
             <tbody>
               {filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                  <td colSpan="7" className="empty-table-message">
                     לא נמצאו מוצרים התואמים לפילטרים שנבחרו
                   </td>
                 </tr>
@@ -679,15 +653,7 @@ export function ItemsManagementPage() {
                               }
                             }}
                             autoFocus
-                            style={{
-                              width: '80px',
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              border: '2px solid #007bff',
-                              textAlign: 'center',
-                              fontWeight: 'bold',
-                              fontSize: '1em'
-                            }}
+                            className="order-quantity-input"
                           />
                         )
                       }
@@ -699,17 +665,6 @@ export function ItemsManagementPage() {
                           }`}
                           onClick={() => {
                             setEditingToOrder(prev => ({ ...prev, [itemId]: true }))
-                          }}
-                          style={{
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            fontWeight: 'bold',
-                            backgroundColor: toOrder > 0 ? '#fff3cd' : '#d4edda',
-                            color: toOrder > 0 ? '#856404' : '#155724',
-                            cursor: 'pointer',
-                            display: 'inline-block',
-                            minWidth: '40px',
-                            textAlign: 'center'
                           }}
                           title="לחץ לעריכה"
                         >
@@ -725,14 +680,18 @@ export function ItemsManagementPage() {
                         onClick={() => handleEdit(item)}
                         title="ערוך"
                       >
-                        ✏️
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M11.333 2.00001C11.5084 1.82445 11.7163 1.68506 11.9447 1.59123C12.1731 1.4974 12.4173 1.45117 12.6637 1.45534C12.9101 1.45951 13.1523 1.51398 13.3763 1.61538C13.6003 1.71678 13.8012 1.8628 13.9667 2.04445C14.1321 2.2261 14.2585 2.43937 14.3384 2.67091C14.4182 2.90245 14.4497 3.14762 14.4307 3.39068C14.4117 3.63374 14.3426 3.86975 14.2277 4.08334L6.12001 13.3333L2.00001 14L2.66668 9.88001L10.7733 0.63001C10.8882 0.416421 11.0439 0.228215 11.2313 0.0764062C11.4187 -0.0754026 11.6339 -0.188281 11.8637 -0.25534C12.0935 -0.322399 12.3333 -0.342399 12.57 -0.31423C12.8067 -0.286061 13.0353 -0.21023 13.24 -0.09134L11.333 2.00001Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
                       </button>
                       <button
                         className="btn-delete"
                         onClick={() => handleDelete(item._id)}
                         title="מחק"
                       >
-                        🗑️
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M2 4H14M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2761 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66667C4.31305 14.6667 3.97391 14.5262 3.72386 14.2761C3.47381 14.0261 3.33333 13.687 3.33333 13.3333V4M5.33333 4V2.66667C5.33333 2.31305 5.47381 1.97391 5.72386 1.72386C5.97391 1.47381 6.31305 1.33333 6.66667 1.33333H9.33333C9.68696 1.33333 10.0261 1.47381 10.2761 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4M6.66667 7.33333V11.3333M9.33333 7.33333V11.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
                       </button>
                     </div>
                   </td>

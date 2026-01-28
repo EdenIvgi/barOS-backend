@@ -24,7 +24,7 @@ export function MenuPage() {
     try {
       await loadItems()
     } catch (error) {
-      showErrorMsg('Cannot load menu items')
+      showErrorMsg('Cannot load products')
     }
   }
 
@@ -40,8 +40,7 @@ export function MenuPage() {
   }
 
   return (
-    <section className="menu-page">
-      <h1 className="page-title">Menu</h1>
+    <section className="products-page">
       <ItemSearch filterBy={filterBy} onSetFilter={onSetFilter} />
       <CategoryFilter
         filterBy={filterBy}

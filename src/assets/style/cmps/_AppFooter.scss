@@ -1,10 +1,10 @@
 @import '../setup/vars';
 
 .app-footer {
-  background-color: $gray-800;
-  color: $white;
+  background-color: $white-off;
+  color: $black-dark;
   padding: 1rem calc(1rem + $layoutPadding);
   text-align: center;
-  box-shadow: $shadow-md;
-  border-top: 1px solid $gray-900;
+  box-shadow: $shadow-sm;
+  border-top: 1px solid $border-color;
 }

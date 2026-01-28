@@ -1,18 +1,24 @@
 @import '../setup/vars';
 
 .main-layout {
-  display: grid;
-  grid-template-columns: $layoutPadding 1fr $layoutPadding;
-  grid-template-rows: auto 1fr auto;
+  display: flex;
   min-height: 100vh;
   background: $white-off;
+  direction: rtl;
 
-  > *.full {
-    grid-column: 1 / -1;
-  }
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-left: 60px;
+    margin-top: 70px;
+    min-height: calc(100vh - 70px);
+    transition: margin-left 0.3s ease;
 
-  > *:not(.full) {
-    grid-column: 2;
+    main {
+      flex: 1;
+      padding: 0;
+    }
   }
 }
 

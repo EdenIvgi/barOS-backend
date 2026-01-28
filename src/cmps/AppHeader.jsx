@@ -1,6 +1,6 @@
-import { Trans, useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
-import { Link, NavLink } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { showErrorMsg, showSuccessMsg } from '../services/event-bus.service'
 import { logout } from '../store/actions/user.actions'
 import { LoginSignup } from './LoginSignup'
@@ -10,9 +10,17 @@ export function AppHeader() {
   const user = useSelector(storeState => storeState.userModule.loggedInUser)
   const { t, i18n } = useTranslation()
 
-  const lngs = {
-    en: { nativeName: 'English' },
-    es: { nativeName: 'Spanish' },
+  function toggleLanguage() {
+    const currentLang = i18n.resolvedLanguage || 'he'
+    const nextLang = currentLang === 'en' ? 'es' : currentLang === 'es' ? 'he' : 'en'
+    i18n.changeLanguage(nextLang)
+  }
+
+  function getLanguageLabel() {
+    const currentLang = i18n.resolvedLanguage || 'he'
+    if (currentLang === 'en') return 'EN'
+    if (currentLang === 'es') return 'ES'
+    return 'HE'
   }
 
   function onLogout() {
@@ -26,35 +34,17 @@ export function AppHeader() {
 
   return (
     <section className="app-header full">
-      <div className="flex justify-between">
-        <nav>
-          <NavLink to="/">{t('home')}</NavLink> |
-          <NavLink to="/menu">{t('menu')}</NavLink> |
-          <NavLink to="/orders">Orders</NavLink> |
-          <NavLink to="/items-management">Items Management</NavLink> |
-          <NavLink to="/user">{t('profile')}</NavLink> |
-          <NavLink to="/about">{t('about')}</NavLink>
-        </nav>
-        <div>
-          <Trans i18nKey="i18"></Trans>
-          {Object.keys(lngs).map(lng => (
-            <button
-              type="submit"
-              key={lng}
-              onClick={() => i18n.changeLanguage(lng)}
-              disabled={i18n.resolvedLanguage === lng}
-            >
-              {lngs[lng].nativeName}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="logo-login-container flex justify-between align-center">
-        <div className="logo">Bar App</div>
-        <div className="header-actions flex align-center">
-          <CartIcon />
+      <div className="header-content flex justify-between align-center">
+        <div className="header-actions flex align-center gap-1">
+          <button 
+            className="language-toggle-btn"
+            onClick={toggleLanguage}
+            title="Toggle Language"
+          >
+            {getLanguageLabel()}
+          </button>
           {user ? (
-            <section>
+            <section className="flex align-center gap-1">
               <Link to={'/user'}>Hello {user.fullname}</Link>
               <button onClick={onLogout}>Logout</button>
             </section>
@@ -63,7 +53,9 @@ export function AppHeader() {
               <LoginSignup />
             </section>
           )}
+          <CartIcon />
         </div>
+        <div className="logo">Bar App</div>
       </div>
     </section>
   )

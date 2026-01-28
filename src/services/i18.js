@@ -12,7 +12,7 @@ i18n
       en: {
         translation: {
           home: 'Home',
-          menu: 'Menu',
+          products: 'Products',
           reveiws: 'Reviews',
           profile: 'Profile',
           about: 'About',
@@ -22,7 +22,7 @@ i18n
       es: {
         translation: {
           home: 'Inicio',
-          menu: 'Menú',
+          products: 'Productos',
           reveiws: 'Reseñas',
           profile: 'Perfil',
           about: 'Acerca de',

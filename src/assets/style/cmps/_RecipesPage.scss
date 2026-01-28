@@ -1,0 +1,33 @@
+@import '../setup/vars';
+
+.recipes-page {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: $white-off;
+  min-height: calc(100vh - 200px);
+
+  .page-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin: 0 0 2rem 0;
+    color: $black-dark;
+    font-weight: 700;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid $gray-200;
+  }
+
+  .recipes-content {
+    background: $white;
+    padding: 3rem;
+    border-radius: $border-radius-lg;
+    box-shadow: $shadow-sm;
+    border: 1px solid $border-color;
+    text-align: center;
+
+    p {
+      color: $gray-600;
+      font-size: 1.1rem;
+    }
+  }
+}

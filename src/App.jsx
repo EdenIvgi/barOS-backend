@@ -5,6 +5,7 @@ import './assets/style/main.scss'
 
 import { AppFooter } from './cmps/AppFooter'
 import { AppHeader } from './cmps/AppHeader'
+import { Sidebar } from './cmps/Sidebar'
 import { UserMsg } from './cmps/UserMsg'
 import { About } from './pages/About'
 import { HomePage } from './pages/HomePage'
@@ -14,6 +15,7 @@ import { ItemDetails } from './pages/ItemDetails'
 import { OrderPage } from './pages/OrderPage'
 import { OrdersListPage } from './pages/OrdersListPage'
 import { ItemsManagementPage } from './pages/ItemsManagementPage'
+import { RecipesPage } from './pages/RecipesPage'
 import { store } from './store/store'
 import { loadCartFromStorage } from './store/actions/order.actions'
 import { initLocalData } from './services/localData'
@@ -30,20 +32,24 @@ export function App() {
     <Provider store={store}>
       <Router>
         <section className="main-layout app">
-          <AppHeader />
-          <main>
-            <Routes>
-              <Route element={<HomePage />} path="/" />
-              <Route element={<About />} path="/about" />
-              <Route element={<UserDetails />} path="/user" />
-              <Route element={<MenuPage />} path="/menu" />
-              <Route element={<ItemDetails />} path="/menu/:itemId" />
-              <Route element={<OrderPage />} path="/order" />
-              <Route element={<OrdersListPage />} path="/orders" />
-              <Route element={<ItemsManagementPage />} path="/items-management" />
-            </Routes>
-          </main>
-          <AppFooter />
+          <Sidebar />
+          <div className="main-content">
+            <AppHeader />
+            <main>
+              <Routes>
+                <Route element={<HomePage />} path="/" />
+                <Route element={<About />} path="/about" />
+                <Route element={<UserDetails />} path="/user" />
+                <Route element={<MenuPage />} path="/products" />
+                <Route element={<ItemDetails />} path="/products/:itemId" />
+                <Route element={<OrderPage />} path="/order" />
+                <Route element={<OrdersListPage />} path="/orders" />
+                <Route element={<ItemsManagementPage />} path="/items-management" />
+                <Route element={<RecipesPage />} path="/recipes" />
+              </Routes>
+            </main>
+            <AppFooter />
+          </div>
         </section>
       </Router>
       <UserMsg />

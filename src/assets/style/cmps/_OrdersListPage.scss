@@ -1,72 +1,183 @@
 @import '../setup/vars';
 
 .orders-list-page {
-  padding: 2rem;
-  max-width: 1200px;
+  padding: 1.5rem;
+  max-width: 100%;
   margin: 0 auto;
   background: $white-off;
 
   h1 {
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     color: $black-dark;
     font-weight: 700;
     font-size: 2rem;
   }
 
-  .orders-list {
-    display: grid;
-    gap: 1.5rem;
+  .empty-message {
+    text-align: center;
+    padding: 2rem;
+    color: $gray-600;
+    font-size: 1.2rem;
+  }
 
-    .order-card {
-      background: $white;
-      padding: 1.5rem;
-      border-radius: $border-radius-lg;
-      box-shadow: $shadow-md;
-      transition: all 0.3s ease;
-      border: 1px solid $border-color;
-      margin-bottom: 1.5rem;
+  // --- טבלה: שורה = תאריך, עמודה = ספק ---
+  .orders-grid-wrapper {
+    overflow-x: auto;
+    border: 1px solid $border-color;
+    border-radius: $border-radius-lg;
+    background: $white;
+    box-shadow: $shadow-sm;
+  }
 
-      &:hover {
-        transform: translateY(-3px);
-        box-shadow: $shadow-lg;
-        border-color: $gray-400;
-      }
+  .orders-grid-table {
+    width: 100%;
+    min-width: 480px;
+    border-collapse: collapse;
+    font-size: 0.95rem;
 
-      .order-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid $gray-200;
+    thead {
+      tr {
+        border-bottom: 2px solid $gray-600;
+        background: $gray-100;
 
-        h3 {
-          margin: 0;
+        th {
+          text-align: center;
+          padding: 0.75rem 0.5rem;
+          font-weight: 700;
           color: $black-dark;
-          font-weight: 600;
-          font-size: 1.1rem;
+          white-space: nowrap;
         }
 
-        .order-actions {
+        .col-date {
+          min-width: 100px;
+          text-align: right;
+          padding-right: 1rem;
+        }
+
+        .col-supplier {
+          min-width: 140px;
+        }
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid $gray-200;
+
+        &:hover {
+          background: rgba(0, 0, 0, 0.02);
+        }
+
+        &:last-child {
+          border-bottom: none;
+        }
+      }
+
+      .cell-date {
+        text-align: right;
+        padding: 0.6rem 1rem;
+        font-weight: 600;
+        color: $black-dark;
+        vertical-align: top;
+        white-space: nowrap;
+      }
+
+      .cell-orders {
+        vertical-align: top;
+        padding: 0.5rem;
+        min-width: 160px;
+      }
+
+      .cell-empty {
+        color: $gray-400;
+        font-size: 1rem;
+      }
+
+      .cell-order-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .cell-order-card {
+        background: $white-off;
+        border: 1px solid $border-color;
+        border-radius: $border-radius;
+        overflow: hidden;
+        transition: box-shadow 0.2s;
+
+        &:hover {
+          box-shadow: $shadow-sm;
+        }
+
+        &.expanded {
+          box-shadow: $shadow-md;
+          border-color: $gray-400;
+        }
+
+        .cell-order-head {
           display: flex;
+          align-items: center;
+          justify-content: space-between;
           gap: 0.5rem;
+          padding: 0.5rem 0.6rem;
+          min-height: 36px;
+
+          .cell-order-summary {
+            font-weight: 600;
+            color: $black-dark;
+            font-size: 0.9rem;
+            cursor: pointer;
+            flex: 1;
+            min-width: 0;
+          }
+
+          .cell-order-toggle {
+            font-size: 0.7rem;
+            color: $gray-600;
+            cursor: pointer;
+            flex-shrink: 0;
+          }
+        }
+
+        .cell-order-actions {
+          display: flex;
+          gap: 2px;
+          flex-wrap: nowrap;
+          align-items: center;
+          flex-shrink: 0;
+          font-size: 0;
 
           button {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.5rem 1rem;
+            margin: 0;
+            padding: 0.3rem 0.5rem;
             border: none;
             border-radius: $border-radius;
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.3s;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
+            transition: background 0.2s;
 
-            svg {
-              width: 16px;
-              height: 16px;
-              flex-shrink: 0;
+            &.btn-icon {
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              padding: 0.3rem;
+              min-width: 24px;
+              min-height: 24px;
+
+              svg {
+                flex-shrink: 0;
+              }
+            }
+
+            &.btn-download-pdf {
+              background: $gray-600;
+              color: $white;
+
+              &:hover {
+                background: $gray-700;
+              }
             }
 
             &.btn-edit {
@@ -75,8 +186,6 @@
 
               &:hover {
                 background: $gray-700;
-                transform: translateY(-2px);
-                box-shadow: $shadow-sm;
               }
             }
 
@@ -86,8 +195,6 @@
 
               &:hover {
                 background: $black-dark;
-                transform: translateY(-2px);
-                box-shadow: $shadow-sm;
               }
             }
 
@@ -110,94 +217,115 @@
             }
           }
         }
-      }
 
-      .order-date {
-        color: $gray-700;
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
-      }
+        .cell-order-detail {
+          padding: 0.6rem;
+          border-top: 1px solid $gray-200;
+          background: $white;
 
-      .order-items {
-        table {
-          width: 100%;
-          border-collapse: collapse;
+          .order-items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
 
-          thead {
-            tr {
-              border-bottom: 2px solid $black-dark;
+            .th-actions,
+            .td-actions {
+              width: 44px;
+              text-align: center;
 
-              th {
-                text-align: right;
-                padding: 0.75rem;
-                font-weight: 700;
-                color: $black-dark;
-                font-size: 1rem;
-
-                &:nth-child(2) {
-                  text-align: center;
-                  width: 120px;
-                }
+              .btn-icon,
+              svg {
+                margin: 0 auto;
               }
             }
-          }
 
-          tbody {
-            tr {
-              border-bottom: 1px solid $gray-200;
+            thead .th-actions svg {
+              display: inline-block;
+              vertical-align: middle;
+            }
 
-              &:last-child {
-                border-bottom: none;
-              }
+            thead th {
+              text-align: right;
+              padding: 0.35rem 0.5rem;
+              font-weight: 700;
+              color: $black-dark;
+            }
+
+            tbody tr.row-deleted {
+              background: rgba(0, 0, 0, 0.04);
 
               td {
+                padding: 0.35rem 0.5rem;
                 text-align: right;
-                padding: 0.75rem;
-                font-size: 1rem;
-                color: $black-dark;
+              }
 
-                &:nth-child(2) {
-                  text-align: center;
-                  font-weight: 700;
-                  color: $black-dark;
-                  font-size: 1.1rem;
+              .item-removed {
+                text-decoration: line-through;
+                color: $gray-600;
+                margin-left: 0.5rem;
+              }
+
+              .btn-undo-item {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0.35rem;
+                min-width: 26px;
+                min-height: 26px;
+                border: none;
+                border-radius: $border-radius;
+                cursor: pointer;
+                background: $gray-500;
+                color: $white;
+
+                &:hover {
+                  background: $gray-600;
                 }
+              }
+            }
 
-                input {
-                  width: 80px;
-                  padding: 0.25rem 0.5rem;
-                  border: 1px solid $gray-600;
-                  border-radius: $border-radius;
-                  text-align: center;
-                  background: $white;
-                  color: $black-dark;
-                  font-weight: 700;
-                  font-size: 1rem;
+            tbody td {
+              text-align: right;
+              padding: 0.35rem 0.5rem;
 
-                  &:focus {
-                    outline: none;
-                    border-color: $gray-800;
-                    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
-                  }
+              &:nth-child(2) {
+                text-align: center;
+              }
+
+              input {
+                width: 56px;
+                padding: 0.2rem 0.35rem;
+                border: 1px solid $gray-500;
+                border-radius: $border-radius;
+                text-align: center;
+              }
+
+              .btn-delete-item {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0.35rem;
+                min-width: 26px;
+                min-height: 26px;
+                border: none;
+                border-radius: $border-radius;
+                cursor: pointer;
+                background: $gray-700;
+                color: $white;
+
+                &:hover {
+                  background: $black-dark;
                 }
               }
             }
           }
-        }
 
-        .empty-message {
-          color: $gray-500;
-          text-align: center;
-          padding: 1rem;
+          .empty-message {
+            padding: 0.5rem;
+            font-size: 0.9rem;
+          }
         }
       }
     }
-  }
-
-  p {
-    text-align: center;
-    padding: 2rem;
-    color: $gray-600;
-    font-size: 1.2rem;
   }
 }

@@ -1,8 +1,10 @@
 import { useSelector } from 'react-redux'
-import { removeFromCart, updateCartItem, clearCart } from '../store/actions/order.actions'
+import { removeFromCart, updateCartItem, clearCart, checkout } from '../store/actions/order.actions'
+import { Loader } from '../cmps/Loader'
 
 export function OrderPage() {
   const cart = useSelector((storeState) => storeState.orderModule.cart)
+  const isLoading = useSelector((storeState) => storeState.orderModule.flag.isLoading)
 
   const totalAmount = cart.reduce((sum, item) => sum + item.subtotal, 0)
 
@@ -14,10 +16,11 @@ export function OrderPage() {
     }
   }
 
-  function handleCheckout() {
-    // TODO: Implement checkout
-    alert('Checkout functionality coming soon')
+  async function handleCheckout() {
+    await checkout()
   }
+
+  if (isLoading) return <Loader />
 
   return (
     <div className="order-page">
@@ -30,6 +33,9 @@ export function OrderPage() {
             {cart.map((item) => (
               <div key={item.itemId} className="cart-item">
                 <h3>{item.itemName}</h3>
+                {item.supplier && (
+                  <p className="cart-item-supplier">ספק: {item.supplier}</p>
+                )}
                 <p>מחיר: ₪{item.price}</p>
                 <div>
                   <label>
@@ -49,7 +55,9 @@ export function OrderPage() {
           </div>
           <div className="cart-summary">
             <h2>סה"כ: ₪{totalAmount}</h2>
-            <button onClick={handleCheckout}>הזמן עכשיו</button>
+            <button onClick={handleCheckout} disabled={isLoading}>
+              הזמן עכשיו (לפי ספק)
+            </button>
             <button onClick={clearCart}>נקה עגלה</button>
           </div>
         </>

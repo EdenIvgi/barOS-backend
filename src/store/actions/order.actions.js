@@ -11,8 +11,10 @@ import {
 import { store } from '../store'
 import { asyncStorageService } from '../../services/async-storage.service'
 import { orderService } from '../../services/order.service'
+import { showSuccessMsg, showErrorMsg } from '../../services/event-bus.service'
 
 const STORAGE_KEY = 'cart'
+const NO_SUPPLIER = 'ללא ספק'
 
 export function addToCart(item, quantity = 1) {
   store.dispatch({ type: ADD_TO_CART, item, quantity })
@@ -99,5 +101,55 @@ export async function updateOrder(order) {
     // Reload orders on error
     await loadOrders()
     throw error
+  }
+}
+
+/**
+ * Group cart by supplier and create one order per supplier.
+ * On success: clear cart, reload orders, show success. On failure: show error, keep cart.
+ */
+export async function checkout() {
+  const cart = store.getState().orderModule.cart
+  if (!cart || cart.length === 0) {
+    showErrorMsg('העגלה ריקה')
+    return 0
+  }
+
+  const bySupplier = {}
+  for (const item of cart) {
+    const key = item.supplier != null && String(item.supplier).trim() !== '' ? String(item.supplier).trim() : NO_SUPPLIER
+    if (!bySupplier[key]) bySupplier[key] = []
+    bySupplier[key].push(item)
+  }
+
+  try {
+    store.dispatch({ type: SET_IS_LOADING, isLoading: true })
+    let created = 0
+    for (const [supplier, items] of Object.entries(bySupplier)) {
+      const saved = await orderService.save({
+        items: items.map(({ itemId, itemName, price, quantity, subtotal }) => ({
+          itemId,
+          name: itemName,
+          price,
+          quantity,
+          subtotal,
+        })),
+        supplier: supplier || '',
+        status: 'pending',
+        type: 'stock_order',
+      })
+      if (saved) created++
+    }
+    clearCart()
+    await loadOrders()
+    showSuccessMsg(created === 1
+      ? 'ההזמנה נוצרה בהצלחה'
+      : `נוצרו ${created} הזמנות בהצלחה (לפי ספק)`)
+    return created
+  } catch (error) {
+    showErrorMsg('שגיאה ביצירת ההזמנות. נסה שוב.')
+    throw error
+  } finally {
+    store.dispatch({ type: SET_IS_LOADING, isLoading: false })
   }
 }

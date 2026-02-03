@@ -8,6 +8,7 @@ export const itemService = {
   save,
   remove,
   updateStock,
+  importStock,
   getEmptyItem,
   getDefaultFilter,
 }
@@ -34,6 +35,10 @@ async function save(item) {
 
 async function updateStock(itemId, quantity) {
   return httpService.put(BASE_URL + `${itemId}/stock`, { quantity })
+}
+
+async function importStock(rows, { dryRun = true, mode = 'set' } = {}) {
+  return httpService.post(BASE_URL + 'stock/import', { rows, dryRun, mode })
 }
 
 function getDefaultFilter() {

@@ -165,7 +165,8 @@
     justify-content: flex-end;
 
     .btn-add,
-    .btn-create-order {
+    .btn-create-order,
+    .btn-import {
       display: flex;
       align-items: center;
       gap: 0.4rem;
@@ -192,6 +193,14 @@
         background: $black-dark;
         transform: translateY(-1px);
         box-shadow: $shadow-md;
+      }
+    }
+
+    .btn-import {
+      background: $gray-700;
+
+      &:hover {
+        background: $gray-900;
       }
     }
   }

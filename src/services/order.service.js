@@ -23,7 +23,18 @@ async function save(order) {
   if (order._id) {
     return httpService.put(`${BASE_URL}${order._id}`, order)
   } else {
-    return httpService.post(BASE_URL, order)
+    const supplierStr = order.supplier != null ? String(order.supplier).trim() : ''
+    const body = {
+      items: order.items,
+      userId: order.userId ?? null,
+      status: order.status || 'pending',
+      type: order.type || 'stock_order',
+      supplier: supplierStr
+    }
+    const params = new URLSearchParams()
+    if (supplierStr) params.set('supplier', supplierStr)
+    const url = params.toString() ? `${BASE_URL}?${params.toString()}` : BASE_URL
+    return httpService.post(url, body)
   }
 }
 

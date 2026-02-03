@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { loadItems, removeItem } from '../store/actions/item.actions'
@@ -8,6 +8,7 @@ import { itemService } from '../services/item.service'
 import { orderService } from '../services/order.service'
 import { Loader } from '../cmps/Loader'
 import { showSuccessMsg, showErrorMsg } from '../services/event-bus.service'
+import * as XLSX from 'xlsx'
 
 export function ItemsManagementPage() {
   const items = useSelector((storeState) => storeState.itemModule.items)
@@ -26,6 +27,16 @@ export function ItemsManagementPage() {
     stockStatus: ''
   })
   const [editingToOrder, setEditingToOrder] = useState({}) // Track which items are being edited
+
+  const fileInputRef = useRef(null)
+  const [importState, setImportState] = useState({
+    isOpen: false,
+    isLoading: false,
+    fileName: '',
+    rows: [],
+    report: null,
+    error: null,
+  })
 
   useEffect(() => {
     loadItems()
@@ -269,45 +280,285 @@ export function ItemsManagementPage() {
     }
   }
 
+  function _pick(obj, candidates) {
+    const keys = Object.keys(obj || {})
+    for (const c of candidates) {
+      const direct = obj?.[c]
+      if (direct !== undefined && direct !== null && String(direct).trim() !== '') return direct
+      const foundKey = keys.find(k => k.trim().toLowerCase() === c.trim().toLowerCase())
+      if (foundKey) {
+        const v = obj?.[foundKey]
+        if (v !== undefined && v !== null && String(v).trim() !== '') return v
+      }
+    }
+    return ''
+  }
+
+  function _toNumber(val) {
+    if (val === null || val === undefined) return NaN
+    if (typeof val === 'number') return val
+    const s = String(val).replace(/,/g, '').trim()
+    if (!s) return NaN
+    return Number(s)
+  }
+
+  async function handleImportFile(ev) {
+    const file = ev.target.files?.[0]
+    if (!file) return
+
+    setImportState(prev => ({
+      ...prev,
+      isOpen: true,
+      isLoading: true,
+      fileName: file.name,
+      report: null,
+      error: null,
+      rows: [],
+    }))
+
+    try {
+      const buffer = await file.arrayBuffer()
+      const wb = XLSX.read(buffer, { type: 'array' })
+      const sheet = wb.Sheets[wb.SheetNames[0]]
+      const rawRows = XLSX.utils.sheet_to_json(sheet, { defval: '' })
+
+      // Find header row (first row with "שם המוצר" or "ספק")
+      let headerRowIndex = -1
+      let headers = {}
+
+      for (let i = 0; i < rawRows.length; i++) {
+        const row = rawRows[i]
+        const values = Object.values(row)
+        // Check if this row contains headers
+        if (values.some(v => String(v).includes('שם המוצר') || String(v).includes('ספק'))) {
+          headerRowIndex = i
+          // Map column names to field names
+          Object.keys(row).forEach(key => {
+            const value = String(row[key])
+            if (value.includes('שם המוצר')) headers.productName = key
+            else if (value.includes('ספק')) headers.supplier = key
+            else if (value.includes('כמות במלאי')) headers.stockQuantity = key
+            else if (value.includes('כמה להזמין')) headers.orderQuantity = key
+          })
+          break
+        }
+      }
+
+      if (headerRowIndex === -1) {
+        // Fallback to old method if header row not found
+        const parsedRows = rawRows
+          .map(r => {
+            const name = _pick(r, ['name', 'item', 'itemName', 'שם', 'שם מוצר', 'שם המוצר', 'מוצר', 'פריט'])
+            const qtyRaw = _pick(r, [
+              'stockQuantity',
+              'quantity',
+              'qty',
+              'stock',
+              'מלאי',
+              'כמות',
+              'כמות במלאי',
+              'מלאי קיים',
+            ])
+            const quantity = _toNumber(qtyRaw)
+            return { name: String(name || '').trim(), quantity }
+          })
+          .filter(r => r.name && !Number.isNaN(r.quantity))
+
+        if (!parsedRows.length) {
+          throw new Error('לא נמצאו שורות תקינות. בדוק שיש עמודות שם + מלאי (כמות).')
+        }
+
+        const report = await itemService.importStock(parsedRows, { dryRun: true, mode: 'set' })
+        setImportState(prev => ({
+          ...prev,
+          isLoading: false,
+          rows: parsedRows,
+          report,
+        }))
+        return
+      }
+
+      // Process data rows (skip header row)
+      const dataRows = rawRows.slice(headerRowIndex + 1)
+      const categoryMapping = {
+        '🍷': 'wine',
+        'יין': 'wine',
+        '🍺': 'alcohol',
+        'אלכוהול': 'alcohol',
+        '🥤': 'soft_drink',
+        'משקאות': 'soft_drink',
+        'אחר': 'other'
+      }
+      let currentCategory = 'wine'
+
+      const parsedRows = []
+      for (let i = 0; i < dataRows.length; i++) {
+        const row = dataRows[i]
+        
+        // Check if this row is a category header
+        const productNameCol = row[headers.productName]
+        if (productNameCol) {
+          const productNameValue = String(productNameCol).trim()
+          const isCategoryHeader = productNameValue.match(/[\u{1F300}-\u{1F9FF}]/u) || 
+                                   productNameValue.includes('יין') || 
+                                   productNameValue.includes('אלכוהול') || 
+                                   productNameValue.includes('משקאות') ||
+                                   productNameValue.includes('אחר')
+          
+          if (isCategoryHeader && (!row[headers.supplier] || String(row[headers.supplier]).trim() === '')) {
+            // This is a category header row
+            for (const [key, category] of Object.entries(categoryMapping)) {
+              if (productNameValue.includes(key)) {
+                currentCategory = category
+                break
+              }
+            }
+            continue // Skip category header rows
+          }
+        }
+
+        // Extract item data
+        const productName = row[headers.productName] ? String(row[headers.productName]).trim() : ''
+        const supplier = row[headers.supplier] ? String(row[headers.supplier]).trim() : ''
+        const stockQty = row[headers.stockQuantity] !== undefined && row[headers.stockQuantity] !== '' 
+          ? Number(row[headers.stockQuantity]) 
+          : 0
+        // Extract order quantity (כמה להזמין) - always from file column; empty = 0
+        const orderQtyRaw = row[headers.orderQuantity]
+        let orderQty = 0
+        if (orderQtyRaw !== undefined && orderQtyRaw !== '' && orderQtyRaw !== null) {
+          const parsed = Number(orderQtyRaw)
+          if (!isNaN(parsed)) {
+            orderQty = Math.max(0, parsed)
+          }
+        }
+
+        // Skip empty rows
+        if (!productName || productName === '' || productName.match(/[\u{1F300}-\u{1F9FF}]/u)) continue
+
+        parsedRows.push({
+          name: productName,
+          quantity: stockQty,
+          supplier: supplier,
+          category: currentCategory,
+          toOrder: orderQty
+        })
+      }
+
+      if (!parsedRows.length) {
+        throw new Error('לא נמצאו שורות תקינות. בדוק שיש עמודות שם + מלאי (כמות).')
+      }
+
+      const report = await itemService.importStock(parsedRows, { dryRun: true, mode: 'set' })
+
+      setImportState(prev => ({
+        ...prev,
+        isLoading: false,
+        rows: parsedRows,
+        report,
+      }))
+    } catch (err) {
+      setImportState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: err?.message || 'שגיאה בקריאת הקובץ',
+      }))
+    } finally {
+      // allow re-uploading same file
+      ev.target.value = ''
+    }
+  }
+
+  async function handleApplyImport() {
+    try {
+      setImportState(prev => ({ ...prev, isLoading: true, error: null }))
+      const report = await itemService.importStock(importState.rows, { dryRun: false, mode: 'set' })
+      await loadItems()
+      setImportState(prev => ({ ...prev, isLoading: false, report }))
+      showSuccessMsg('המלאי עודכן בהצלחה')
+    } catch (err) {
+      setImportState(prev => ({ ...prev, isLoading: false, error: err?.message || 'שגיאה בעדכון המלאי' }))
+    }
+  }
+
+  function closeImportModal() {
+    setImportState({
+      isOpen: false,
+      isLoading: false,
+      fileName: '',
+      rows: [],
+      report: null,
+      error: null,
+    })
+  }
+
+  const NO_SUPPLIER = 'ללא ספק'
+
+  function getSupplierFromItem(item) {
+    if (!item) return ''
+    const s = item.supplier ?? item.supplierName ?? ''
+    if (typeof s === 'string' && s.trim() !== '') return s.trim()
+    if (s && typeof s === 'object' && s.name) return String(s.name).trim()
+    return ''
+  }
+
   async function handleCreateOrder() {
     try {
-      // Collect all items that need to be ordered (toOrder > 0)
-      const itemsToOrder = filteredItems
+      // 1. Collect items to order (toOrder > 0); supplier from same field as table column
+      const rows = filteredItems
         .map((item) => {
-          const optimalStock = item.optimalStockLevel || 0
-          const currentStock = item.stockQuantity || 0
-          const toOrder = Math.max(0, optimalStock - currentStock)
-          
-          if (toOrder > 0) {
-            return {
-              itemId: item._id,
-              name: item.name,
-              quantity: toOrder,
-              price: item.price || 0,
-              subtotal: (item.price || 0) * toOrder
-            }
+          const toOrder = Math.max(0, (item.optimalStockLevel || 0) - (item.stockQuantity || 0))
+          if (toOrder <= 0) return null
+          const supplier = getSupplierFromItem(item) || NO_SUPPLIER
+          return {
+            itemId: item._id,
+            name: item.name,
+            quantity: toOrder,
+            price: item.price || 0,
+            subtotal: (item.price || 0) * toOrder,
+            supplier
           }
-          return null
         })
-        .filter(item => item !== null)
+        .filter(Boolean)
 
-      if (itemsToOrder.length === 0) {
+      if (rows.length === 0) {
         showErrorMsg('אין מוצרים להזמין')
         return
       }
 
-      // Create order
-      const order = {
-        items: itemsToOrder,
-        userId: user?._id || null,
-        status: 'pending',
-        type: 'stock_order' // Mark as stock order
+      // 2. Group by supplier – each group becomes one order
+      const bySupplier = {}
+      for (const row of rows) {
+        const key = row.supplier || NO_SUPPLIER
+        if (!bySupplier[key]) bySupplier[key] = []
+        bySupplier[key].push({
+          itemId: row.itemId,
+          name: row.name,
+          quantity: row.quantity,
+          price: row.price,
+          subtotal: row.subtotal
+        })
       }
 
-      await orderService.save(order)
-      showSuccessMsg(`הזמנה נוצרה בהצלחה עם ${itemsToOrder.length} מוצרים`)
-      
-      // Navigate to orders page
+      // 3. Create one order per supplier; supplier from group key + confirm from first item
+      let created = 0
+      for (const [supplierName, orderItems] of Object.entries(bySupplier)) {
+        const firstItemId = orderItems[0]?.itemId
+        const firstItem = filteredItems.find((i) => i._id === firstItemId || String(i._id) === String(firstItemId))
+        const supplierToSave = (getSupplierFromItem(firstItem) || supplierName || NO_SUPPLIER).trim() || supplierName
+        await orderService.save({
+          items: orderItems,
+          supplier: supplierToSave,
+          userId: user?._id || null,
+          status: 'pending',
+          type: 'stock_order'
+        })
+        created++
+      }
+
+      showSuccessMsg(created === 1
+        ? `הזמנה נוצרה – ${rows.length} מוצרים`
+        : `נוצרו ${created} הזמנות (לפי ספק) – ${rows.length} מוצרים`)
       navigate('/orders')
     } catch (error) {
       showErrorMsg('שגיאה ביצירת ההזמנה')
@@ -396,6 +647,13 @@ export function ItemsManagementPage() {
           </div>
 
           <div className="header-actions">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              style={{ display: 'none' }}
+              onChange={handleImportFile}
+            />
             {totalItemsToOrder > 0 && (
               <button 
                 className="btn-create-order" 
@@ -407,10 +665,70 @@ export function ItemsManagementPage() {
                 צור הזמנה ({totalItemsToOrder})
               </button>
             )}
+            <button
+              className="btn-import"
+              onClick={() => fileInputRef.current?.click()}
+              title="ייבוא מלאי מאקסל"
+            >
+              העלאת מסמך
+            </button>
             <button className="btn-add" onClick={handleAdd}>
               + הוסף מוצר
             </button>
           </div>
+
+          {importState.isOpen && (
+            <div className="form-overlay" onClick={closeImportModal}>
+              <div className="form-container" onClick={(e) => e.stopPropagation()}>
+                <h2>ייבוא מלאי מאקסל</h2>
+                {importState.fileName && <p style={{ marginTop: '0.5rem' }}>קובץ: {importState.fileName}</p>}
+
+                {importState.isLoading && <p>טוען...</p>}
+                {importState.error && <p style={{ color: 'crimson' }}>{importState.error}</p>}
+
+                {!!importState.report && (
+                  <>
+                    <div style={{ marginTop: '1rem' }}>
+                      <div>סה״כ שורות: {importState.report.summary?.totalRows}</div>
+                      <div>שורות שנמצאה התאמה: {importState.report.summary?.matchedRows}</div>
+                      <div>פריטים ייחודיים שיעודכנו: {importState.report.summary?.uniqueMatchedItems}</div>
+                      <div>שורות ללא התאמה: {importState.report.summary?.unmatchedRows}</div>
+                    </div>
+
+                    {Array.isArray(importState.report.unmatched) && importState.report.unmatched.length > 0 && (
+                      <details style={{ marginTop: '1rem' }}>
+                        <summary>הצג שורות ללא התאמה</summary>
+                        <ul style={{ marginTop: '0.5rem' }}>
+                          {importState.report.unmatched.slice(0, 20).map((u) => (
+                            <li key={`${u.rowIndex}-${u.inputName}`}>
+                              #{u.rowIndex + 1} — {u.inputName} ({u.quantity})
+                            </li>
+                          ))}
+                          {importState.report.unmatched.length > 20 && (
+                            <li>... ועוד {importState.report.unmatched.length - 20}</li>
+                          )}
+                        </ul>
+                      </details>
+                    )}
+                  </>
+                )}
+
+                <div className="form-actions" style={{ marginTop: '1rem' }}>
+                  <button
+                    type="button"
+                    className="btn-save"
+                    disabled={importState.isLoading || !importState.rows.length}
+                    onClick={handleApplyImport}
+                  >
+                    החל עדכון מלאי
+                  </button>
+                  <button type="button" className="btn-cancel" onClick={closeImportModal}>
+                    סגור
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
       {showForm && (
         <div className="form-overlay" onClick={handleCancel}>

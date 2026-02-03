@@ -37,6 +37,7 @@ export function orderReducer(state = initialState, action = {}) {
           price: action.item.price,
           quantity: action.quantity || 1,
           subtotal: action.item.price * (action.quantity || 1),
+          supplier: action.item.supplier || '',
         })
       }
       return { ...state, cart }

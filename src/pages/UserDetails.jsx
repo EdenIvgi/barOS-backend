@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { ReviewList } from '../cmps/ReviewList'
 import { showErrorMsg, showSuccessMsg } from '../services/event-bus.service'
-import { loadReviews } from '../store/actions/review.actions'
+import { loadReviews, removeReview } from '../store/actions/review.actions'
 
 export function UserDetails() {
   const user = useSelector(storeState => storeState.userModule.loggedInUser)

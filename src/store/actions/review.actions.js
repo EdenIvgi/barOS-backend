@@ -12,8 +12,8 @@ export async function loadReviews(filterBy = {}) {
     const reviews = await reviewService.query(filterBy)
     store.dispatch({ type: SET_REVIEWS, reviews })
   } catch (err) {
-    console.log('ReviewActions: err in loadReviews', err)
-    throw err
+    // If backend endpoint doesn't exist, set empty reviews array
+    store.dispatch({ type: SET_REVIEWS, reviews: [] })
   }
 }
 

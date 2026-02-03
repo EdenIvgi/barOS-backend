@@ -6,7 +6,7 @@ import { logout } from '../store/actions/user.actions'
 import { LoginSignup } from './LoginSignup'
 import { CartIcon } from './CartIcon'
 
-export function AppHeader() {
+export function AppHeader({ isSidebarExpanded, onToggleSidebar }) {
   const user = useSelector(storeState => storeState.userModule.loggedInUser)
   const { t, i18n } = useTranslation()
 
@@ -55,7 +55,22 @@ export function AppHeader() {
           )}
           <CartIcon />
         </div>
-        <div className="logo">Bar App</div>
+        <div className="header-brand flex align-center gap-1">
+          <button
+            type="button"
+            className="sidebar-toggle"
+            aria-label={isSidebarExpanded ? 'Close sidebar' : 'Open sidebar'}
+            aria-expanded={!!isSidebarExpanded}
+            onClick={onToggleSidebar}
+          >
+            <span className="hamburger" aria-hidden="true">
+              <span className="bar" />
+              <span className="bar" />
+              <span className="bar" />
+            </span>
+          </button>
+          <div className="logo">Bar App</div>
+        </div>
       </div>
     </section>
   )

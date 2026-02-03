@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Provider } from 'react-redux'
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import './assets/style/main.scss'
@@ -21,6 +21,8 @@ import { loadCartFromStorage } from './store/actions/order.actions'
 import { initLocalData } from './services/localData'
 
 export function App() {
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
+
   useEffect(() => {
     // Initialize demo data in localStorage if empty
     initLocalData()
@@ -31,10 +33,13 @@ export function App() {
   return (
     <Provider store={store}>
       <Router>
-        <section className="main-layout app">
-          <Sidebar />
+        <section className={`main-layout app ${isSidebarExpanded ? 'sidebar-expanded' : ''}`}>
+          <Sidebar isExpanded={isSidebarExpanded} />
           <div className="main-content">
-            <AppHeader />
+            <AppHeader
+              isSidebarExpanded={isSidebarExpanded}
+              onToggleSidebar={() => setIsSidebarExpanded(prev => !prev)}
+            />
             <main>
               <Routes>
                 <Route element={<HomePage />} path="/" />

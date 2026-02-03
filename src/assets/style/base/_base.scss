@@ -7,13 +7,14 @@
 html {
   color: $gray-800;
   font-family: roboto, sans-serif;
-  background: $white-off;
+  background: $gray-800;
 }
 
 body {
   margin: 0;
-  background: $white-off;
+  background: $gray-800;
   color: $black-dark;
+  min-height: 100vh;
 }
 
 h1,

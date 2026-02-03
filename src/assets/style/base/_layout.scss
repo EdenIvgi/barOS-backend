@@ -3,7 +3,7 @@
 .main-layout {
   display: flex;
   min-height: 100vh;
-  background: $white-off;
+  background: $gray-800;
   direction: rtl;
 
   .main-content {
@@ -14,10 +14,19 @@
     margin-top: 70px;
     min-height: calc(100vh - 70px);
     transition: margin-left 0.3s ease;
+    background: $white-off;
+    border-top-left-radius: 12px;
+    overflow: hidden;
 
     main {
       flex: 1;
       padding: 0;
+    }
+  }
+
+  &.sidebar-expanded {
+    .main-content {
+      margin-left: 200px;
     }
   }
 }

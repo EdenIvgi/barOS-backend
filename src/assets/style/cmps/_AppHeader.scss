@@ -3,7 +3,6 @@
 .app-header {
   background-color: $gray-800;
   color: $white;
-  padding: 1rem 2rem;
   box-shadow: none;
   position: fixed;
   top: 0;
@@ -20,6 +19,56 @@
     align-items: center;
     gap: 1rem;
     width: 100%;
+    position: relative;
+  }
+
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    direction: ltr;
+    position: absolute;
+    left: 0px; // align with centered 44px icons inside 60px sidebar
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.05s ease;
+
+    &:hover {
+      background: $gray-700;
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+  }
+
+  .hamburger {
+    width: 20px;
+    height: 14px;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .hamburger .bar {
+    height: 2px;
+    width: 100%;
+    background: currentColor;
+    border-radius: 999px;
+    opacity: 0.9;
   }
 
   .logo {

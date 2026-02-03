@@ -1,34 +1,15 @@
-import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 
-export function Sidebar() {
+export function Sidebar({ isExpanded = false }) {
   const { t } = useTranslation()
   const user = useSelector(storeState => storeState.userModule.loggedInUser)
-  const [isHovered, setIsHovered] = useState(false)
-  const [isPinnedOpen, setIsPinnedOpen] = useState(false)
-  const isExpanded = isPinnedOpen || isHovered
 
   return (
     <aside 
       className={`sidebar ${isExpanded ? 'expanded' : ''}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
-      <button
-        type="button"
-        className="sidebar-toggle"
-        aria-label={isExpanded ? 'Close sidebar' : 'Open sidebar'}
-        aria-expanded={isExpanded}
-        onClick={() => setIsPinnedOpen(prev => !prev)}
-      >
-        <span className="hamburger" aria-hidden="true">
-          <span className="bar" />
-          <span className="bar" />
-          <span className="bar" />
-        </span>
-      </button>
       <nav className="sidebar-nav">
         <NavLink to="/" className="nav-item">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
+import { OrdersGrowthBySupplierChart } from '../cmps/OrdersGrowthBySupplierChart'
 import { loadItems } from '../store/actions/item.actions'
 import { loadOrders } from '../store/actions/order.actions'
 
@@ -81,6 +82,9 @@ export function HomePage() {
           <p>הכנסות היום</p>
         </div>
       </div>
+
+      {/* Orders growth by supplier – uses same supplier logic as orders list, Y = order size (totalAmount) */}
+      <OrdersGrowthBySupplierChart orders={orders} items={items} />
 
       {/* Low Stock Alerts */}
       {stats.lowStockItems > 0 && (

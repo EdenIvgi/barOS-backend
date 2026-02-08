@@ -5,7 +5,8 @@ import {
     addItem, 
     updateItem, 
     deleteItem,
-    updateItemStock
+    updateItemStock,
+    importItemStock
 } from './item.controller.js'
 
 const router = express.Router()
@@ -15,6 +16,7 @@ router.get('/:id', getItemById)
 router.post('/', addItem)
 router.put('/', updateItem)
 router.put('/:id/stock', updateItemStock)
+router.post('/stock/import', importItemStock)
 router.delete('/:id', deleteItem)
 
 export const itemRoutes = router

@@ -83,3 +83,18 @@ export async function updateItemStock(req, res) {
         res.status(500).json({ error: 'Failed to update item stock' })
     }
 }
+
+export async function importItemStock(req, res) {
+    try {
+        const { rows, dryRun = true, mode = 'set' } = req.body || {}
+        if (!Array.isArray(rows) || rows.length === 0) {
+            return res.status(400).json({ error: 'rows array is required' })
+        }
+
+        const result = await itemService.importStock(rows, { dryRun: !!dryRun, mode })
+        res.json(result)
+    } catch (error) {
+        console.error('[Controller] Error importing item stock:', error)
+        res.status(500).json({ error: 'Failed to import item stock', details: error.message })
+    }
+}

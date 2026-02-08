@@ -3,7 +3,7 @@ import Axios from 'axios'
 // console.log(process.env.NODE_ENV);
 
 const BASE_URL =
-  process.env.NODE_ENV === 'production' ? '/api/' : 'http://localhost:3031/api/'
+  process.env.NODE_ENV === 'production' ? '/api/' : (import.meta.env.VITE_API_BASE_URL || '/api/')
 
 const axios = Axios.create({
   withCredentials: true,

@@ -15,7 +15,7 @@ import { ItemDetails } from './pages/ItemDetails'
 import { OrderPage } from './pages/OrderPage'
 import { OrdersListPage } from './pages/OrdersListPage'
 import { ItemsManagementPage } from './pages/ItemsManagementPage'
-import { RecipesPage } from './pages/RecipesPage'
+import { BarBookPage } from './pages/BarBookPage'
 import { store } from './store/store'
 import { loadCartFromStorage } from './store/actions/order.actions'
 import { initLocalData } from './services/localData'
@@ -50,7 +50,8 @@ export function App() {
                 <Route element={<OrderPage />} path="/order" />
                 <Route element={<OrdersListPage />} path="/orders" />
                 <Route element={<ItemsManagementPage />} path="/items-management" />
-                <Route element={<RecipesPage />} path="/recipes" />
+                <Route element={<BarBookPage />} path="/bar-book" />
+                <Route element={<BarBookPage />} path="/recipes" />
               </Routes>
             </main>
             <AppFooter />

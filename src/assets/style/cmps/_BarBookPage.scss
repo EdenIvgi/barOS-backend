@@ -1,0 +1,444 @@
+@import '../setup/vars';
+
+.bar-book-page {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: $white-off;
+  min-height: calc(100vh - 200px);
+
+  .page-title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin: 0 0 1.5rem 0;
+    color: $black-dark;
+    font-weight: 700;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid $gray-200;
+  }
+
+  .bar-book-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .bar-book-tab {
+    padding: 0.65rem 1.25rem;
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: $border-radius;
+    font-size: 1rem;
+    font-weight: 600;
+    color: $gray-700;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: $gray-50;
+      border-color: $gray-300;
+      color: $gray-800;
+    }
+
+    &.active {
+      background: $gray-800;
+      border-color: $gray-800;
+      color: $white;
+
+      &:hover {
+        background: $black-dark;
+      }
+    }
+  }
+
+  .bar-book-content {
+    min-height: 200px;
+  }
+
+  .bar-book-loading,
+  .bar-book-error {
+    padding: 1.5rem;
+    text-align: center;
+    font-size: 1.1rem;
+  }
+
+  .bar-book-error {
+    color: #c62828;
+  }
+
+  .bar-book-placeholder {
+    background: $white;
+    padding: 2rem;
+    border-radius: $border-radius-lg;
+    border: 1px solid $border-color;
+    text-align: center;
+    color: $gray-600;
+    font-size: 1.1rem;
+  }
+
+  .bar-book-checklists {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .checklist-section {
+    background: $white;
+    padding: 1.5rem 2rem;
+    border-radius: $border-radius-lg;
+    border: 1px solid $border-color;
+    box-shadow: $shadow-sm;
+  }
+
+  .checklist-title {
+    margin: 0 0 1rem 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: $black-dark;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid $gray-200;
+  }
+
+  .checklist-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .checklist-item {
+    margin-bottom: 0.5rem;
+
+    label {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      cursor: pointer;
+      font-size: 1rem;
+      color: $gray-800;
+      line-height: 1.5;
+    }
+
+    input[type="checkbox"] {
+      margin-top: 0.25rem;
+      flex-shrink: 0;
+      width: 1.1rem;
+      height: 1.1rem;
+    }
+
+    .editable {
+      cursor: pointer;
+      border-radius: 4px;
+      padding: 2px 4px;
+      &:hover {
+        background: $gray-100;
+      }
+    }
+
+    .btn-icon.btn-delete-item {
+      margin-right: auto;
+      opacity: 0.6;
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+
+  .checklist-title.editable,
+  .section-title.editable {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px 4px;
+    &:hover {
+      background: $gray-100;
+    }
+  }
+
+  .checklist-title-edit,
+  .section-title-edit {
+    margin-bottom: 1rem;
+  }
+
+  .checklist-item-edit {
+    margin-bottom: 0.5rem;
+  }
+
+  .edit-input {
+    width: 100%;
+    max-width: 100%;
+    padding: 0.4rem 0.6rem;
+    font-size: 1rem;
+    border: 1px solid $gray-300;
+    border-radius: $border-radius;
+    font-family: inherit;
+    &.title-input {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+    &.cell-input {
+      min-width: 80px;
+      width: 100%;
+    }
+    &.inline-edit {
+      max-width: 400px;
+    }
+  }
+
+  .btn-add-item {
+    margin-top: 0.75rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    background: $gray-100;
+    border: 1px solid $gray-300;
+    border-radius: $border-radius;
+    cursor: pointer;
+    font-weight: 600;
+    color: $gray-700;
+    &:hover {
+      background: $gray-200;
+      color: $black-dark;
+    }
+  }
+
+  .btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: $gray-600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    &:hover {
+      color: #c62828;
+      background: rgba(198, 40, 40, 0.08);
+    }
+  }
+
+  .btn-delete-row {
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .bar-book-reset-wrap {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid $gray-200;
+  }
+
+  .btn-reset-default {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    background: $white;
+    border: 1px solid $gray-300;
+    border-radius: $border-radius;
+    color: $gray-600;
+    cursor: pointer;
+    &:hover {
+      background: $gray-50;
+      color: $gray-800;
+    }
+  }
+
+  .bar-book-full-pages {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .daily-tasks-section,
+  .stock-section {
+    background: $white;
+    padding: 1.5rem 2rem;
+    border-radius: $border-radius-lg;
+    border: 1px solid $border-color;
+    box-shadow: $shadow-sm;
+  }
+
+  .section-intro {
+    margin: 0 0 1rem 0;
+    color: $gray-600;
+    font-size: 0.95rem;
+  }
+
+  .daily-tasks-table-wrap {
+    overflow-x: auto;
+  }
+
+  .daily-tasks-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+
+    th,
+    td {
+      padding: 0.75rem 1rem;
+      text-align: right;
+      border: 1px solid $gray-200;
+      vertical-align: top;
+    }
+
+    th {
+      background: $gray-100;
+      font-weight: 700;
+      color: $black-dark;
+    }
+
+    td {
+      color: $gray-800;
+    }
+
+    &.daily-tasks-vertical {
+      .daily-task-day-cell {
+        width: 1%;
+        white-space: nowrap;
+        font-weight: 700;
+        color: $black-dark;
+        background: $gray-50;
+      }
+
+      .daily-task-details-cell {
+        min-width: 280px;
+      }
+
+      .daily-task-items {
+        margin: 0;
+        padding-right: 1.25rem;
+        list-style: disc;
+        font-size: 0.95rem;
+        color: $gray-800;
+        line-height: 1.6;
+
+        li {
+          margin-bottom: 0.4rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          flex-wrap: wrap;
+
+          .editable {
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 2px 4px;
+            flex: 1;
+            min-width: 0;
+            &:hover {
+              background: $gray-100;
+            }
+          }
+
+          .btn-icon {
+            flex-shrink: 0;
+          }
+        }
+      }
+
+      .btn-add-task-inline {
+        margin-top: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.85rem;
+        background: transparent;
+        border: 1px dashed $gray-400;
+        border-radius: 4px;
+        color: $gray-600;
+        cursor: pointer;
+        &:hover {
+          background: $gray-50;
+          color: $gray-800;
+        }
+      }
+
+      .th-actions,
+      .td-actions {
+        width: 1%;
+        white-space: nowrap;
+        vertical-align: middle;
+      }
+
+      tbody tr:nth-child(even) {
+        background: $gray-50;
+      }
+
+      tbody tr:nth-child(even) .daily-task-day-cell {
+        background: darken($gray-50, 2%);
+      }
+    }
+
+    tbody tr:nth-child(even) {
+      background: $gray-50;
+    }
+  }
+
+  .stock-table-wrap {
+    overflow-x: auto;
+  }
+
+  .stock-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+
+    th,
+    td {
+      padding: 0.6rem 0.75rem;
+      text-align: right;
+      border: 1px solid $gray-200;
+    }
+
+    th {
+      background: $gray-100;
+      font-weight: 700;
+      color: $black-dark;
+
+      .editable {
+        cursor: pointer;
+        border-radius: 4px;
+        padding: 2px 4px;
+        display: inline-block;
+        &:hover {
+          background: $gray-200;
+        }
+      }
+    }
+
+    td {
+      color: $gray-800;
+
+      .editable {
+        cursor: pointer;
+        border-radius: 4px;
+        padding: 2px 4px;
+        display: inline-block;
+        min-height: 1.4em;
+        min-width: 2em;
+        &:hover {
+          background: $gray-100;
+        }
+      }
+    }
+
+    .th-actions,
+    .td-actions {
+      width: 1%;
+      white-space: nowrap;
+    }
+
+    tbody tr:nth-child(even) {
+      background: $gray-50;
+    }
+  }
+
+  .bar-book-recipes {
+    padding: 0;
+    max-width: none;
+    margin: 0;
+    background: transparent;
+    min-height: 0;
+
+    .section-title {
+      margin: 0 0 1rem 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: $black-dark;
+    }
+  }
+}

@@ -8,6 +8,7 @@ import { reviewReducer } from './reducers/review.reducer.js'
 import { categoryReducer } from './reducers/category.reducer.js'
 import { itemReducer } from './reducers/item.reducer.js'
 import { orderReducer } from './reducers/order.reducer.js'
+import { recipeReducer } from './reducers/recipe.reducer.js'
 
 const rootReducer = combineReducers({
   userModule: userReducer,
@@ -15,6 +16,7 @@ const rootReducer = combineReducers({
   categoryModule: categoryReducer,
   itemModule: itemReducer,
   orderModule: orderReducer,
+  recipeModule: recipeReducer,
 })
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose

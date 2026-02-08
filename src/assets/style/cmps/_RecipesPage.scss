@@ -19,15 +19,262 @@
 
   .recipes-content {
     background: $white;
-    padding: 3rem;
+    padding: 2rem;
     border-radius: $border-radius-lg;
     box-shadow: $shadow-sm;
     border: 1px solid $border-color;
-    text-align: center;
+  }
 
-    p {
-      color: $gray-600;
-      font-size: 1.1rem;
+  .recipes-header-actions {
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .btn-add-recipe {
+    padding: 0.75rem 1.5rem;
+    background: $gray-800;
+    color: $white;
+    border: none;
+    border-radius: $border-radius;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: $shadow-sm;
+
+    &:hover {
+      background: $black-dark;
+      transform: translateY(-2px);
+      box-shadow: $shadow-md;
+    }
+  }
+
+  .recipes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+  }
+
+  .recipes-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: $gray-600;
+    font-size: 1.1rem;
+    margin: 2rem 0;
+  }
+
+  .recipe-card {
+    background: $gray-50;
+    border-radius: $border-radius;
+    padding: 1.75rem;
+    border: 1px solid $gray-200;
+    text-align: right;
+    position: relative;
+
+    .recipe-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .recipe-title {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: $black-dark;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid $gray-300;
+      flex: 1;
+    }
+
+    .recipe-card-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    .btn-edit-recipe,
+    .btn-delete-recipe {
+      padding: 0.4rem 0.75rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-edit-recipe {
+      background: $gray-700;
+      color: $white;
+
+      &:hover {
+        background: $gray-800;
+      }
+    }
+
+    .btn-delete-recipe {
+      background: $gray-200;
+      color: $gray-800;
+
+      &:hover {
+        background: $gray-300;
+      }
+    }
+
+    .recipe-section {
+      margin-bottom: 1.25rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      h3 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: $gray-800;
+      }
+
+      ul, ol {
+        margin: 0;
+        padding-right: 1.25rem;
+        padding-left: 0;
+        color: $gray-700;
+        font-size: 0.95rem;
+        line-height: 1.6;
+      }
+
+      li {
+        margin-bottom: 0.35rem;
+      }
+
+      ol {
+        list-style: decimal;
+      }
+
+      ul {
+        list-style: disc;
+      }
+    }
+  }
+
+  .recipe-form-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 2rem;
+  }
+
+  .recipe-form-container {
+    background: $white;
+    border-radius: $border-radius-lg;
+    padding: 2rem;
+    max-width: 560px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 1px solid $border-color;
+
+    h2 {
+      margin: 0 0 1.5rem 0;
+      font-size: 1.5rem;
+      color: $black-dark;
+      font-weight: 700;
+    }
+  }
+
+  .recipe-form {
+    .form-group {
+      margin-bottom: 1.25rem;
+
+      label {
+        display: block;
+        margin-bottom: 0.4rem;
+        font-weight: 600;
+        color: $black-dark;
+        font-size: 0.95rem;
+      }
+
+      .form-input,
+      .form-textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid $border-color;
+        border-radius: $border-radius;
+        font-size: 1rem;
+        background: $white;
+        color: $black-dark;
+        font-family: inherit;
+        box-sizing: border-box;
+
+        &:focus {
+          outline: none;
+          border-color: $gray-600;
+          box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.06);
+        }
+      }
+
+      .form-textarea {
+        resize: vertical;
+        min-height: 120px;
+      }
+
+      .form-error {
+        margin-top: 0.35rem;
+        font-size: 0.85rem;
+        color: #c00;
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid $gray-200;
+
+      .btn-save {
+        padding: 0.65rem 1.5rem;
+        background: $gray-800;
+        color: $white;
+        border: none;
+        border-radius: $border-radius;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+          background: $black-dark;
+        }
+      }
+
+      .btn-cancel {
+        padding: 0.65rem 1.5rem;
+        background: $gray-300;
+        color: $gray-800;
+        border: none;
+        border-radius: $border-radius;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+          background: $gray-400;
+        }
+      }
     }
   }
 }

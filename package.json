@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "seed:recipes": "node data/seed-recipes.mjs"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

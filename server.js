@@ -8,6 +8,7 @@ import { categoryRoutes } from './api/category/category.routes.js'
 import { authRoutes } from './api/auth/auth.routes.js'
 import { userRoutes } from './api/user/user.routes.js'
 import { orderRoutes } from './api/order/order.routes.js'
+import { recipeRoutes } from './api/recipe/recipe.routes.js'
 
 const app = express()
 const PORT = process.env.PORT || 3031
@@ -43,7 +44,9 @@ const corsOptions = {
         'http://127.0.0.1:5173',
         'http://localhost:5173',
         'http://127.0.0.1:5174',
-        'http://localhost:5174'
+        'http://localhost:5174',
+        'http://127.0.0.1:5175',
+        'http://localhost:5175'
     ],
     credentials: true
 }
@@ -56,6 +59,30 @@ app.use('/api/auth', authRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/order', orderRoutes)
 
+// רשימת מתכונים ישירות מקולקשן recipe (אותו DB של השרת)
+async function getRecipeList(req, res) {
+    try {
+        if (!db) await connectToDB()
+        const recipes = await db.collection('recipe').find({}).sort({ createdAt: -1 }).toArray()
+        const list = recipes.map(r => ({
+            _id: r._id.toString(),
+            title: r.title || '',
+            ingredients: r.ingredients || [],
+            instructions: r.instructions || [],
+            createdAt: r.createdAt,
+            updatedAt: r.updatedAt
+        }))
+        res.json(list)
+    } catch (err) {
+        console.error('[GET /api/recipe]', err.message)
+        res.status(500).json({ error: err.message })
+    }
+}
+app.get('/api/recipe', getRecipeList)
+app.get('/api/recipe/', getRecipeList)
+
+app.use('/api/recipe', recipeRoutes)
+
 // ==================== OLD ENDPOINTS (REMOVED - NOW USING ROUTES ABOVE) ====================
 app.get('/api/order', async (req, res) => {
     try {
@@ -63,7 +90,7 @@ app.get('/api/order', async (req, res) => {
         const criteria = {}
         if (req.query.userId) criteria.userId = req.query.userId
         if (req.query.status) criteria.status = req.query.status
-        
+
         const orders = await db.collection('order').find(criteria).sort({ createdAt: -1 }).toArray()
         res.json(orders)
     } catch (err) {
@@ -106,7 +133,7 @@ app.post('/api/order', async (req, res) => {
         if (!db) await connectToDB()
         const orderData = req.body
         const totalAmount = orderData.items.reduce((sum, item) => sum + (item.subtotal || 0), 0)
-        
+
         const order = {
             items: orderData.items,
             userId: orderData.userId,
@@ -115,7 +142,7 @@ app.post('/api/order', async (req, res) => {
             createdAt: Date.now(),
             updatedAt: Date.now()
         }
-        
+
         const result = await db.collection('order').insertOne(order)
         order._id = result.insertedId
         res.status(201).json(order)
@@ -130,12 +157,12 @@ app.put('/api/order/:id', async (req, res) => {
         const orderData = req.body
         const updateData = { ...orderData }
         delete updateData._id
-        
+
         if (updateData.items) {
             updateData.totalAmount = updateData.items.reduce((sum, item) => sum + (item.subtotal || 0), 0)
         }
         updateData.updatedAt = Date.now()
-        
+
         let result
         try {
             result = await db.collection('order').updateOne(
@@ -148,11 +175,11 @@ app.put('/api/order/:id', async (req, res) => {
                 { $set: updateData }
             )
         }
-        
+
         if (result.matchedCount === 0) {
             return res.status(404).json({ error: 'Order not found' })
         }
-        
+
         const updatedOrder = await db.collection('order').findOne({ _id: req.params.id })
         res.json(updatedOrder)
     } catch (err) {
@@ -164,7 +191,7 @@ app.put('/api/order/:id/status', async (req, res) => {
     try {
         if (!db) await connectToDB()
         const { status } = req.body
-        
+
         let result
         try {
             result = await db.collection('order').updateOne(
@@ -177,11 +204,11 @@ app.put('/api/order/:id/status', async (req, res) => {
                 { $set: { status, updatedAt: Date.now() } }
             )
         }
-        
+
         if (result.matchedCount === 0) {
             return res.status(404).json({ error: 'Order not found' })
         }
-        
+
         const updatedOrder = await db.collection('order').findOne({ _id: req.params.id })
         res.json(updatedOrder)
     } catch (err) {
@@ -198,7 +225,7 @@ app.delete('/api/order/:id', async (req, res) => {
         } catch {
             result = await db.collection('order').deleteOne({ _id: req.params.id })
         }
-        
+
         if (result.deletedCount === 1) {
             res.json({ message: 'Deleted successfully' })
         } else {
@@ -211,8 +238,8 @@ app.delete('/api/order/:id', async (req, res) => {
 
 // Health check
 app.get('/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
+    res.json({
+        status: 'OK',
         message: 'Server is running',
         database: db ? 'Connected' : 'Not connected'
     })

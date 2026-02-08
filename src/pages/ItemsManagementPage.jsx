@@ -27,6 +27,11 @@ export function ItemsManagementPage() {
     stockStatus: ''
   })
   const [editingToOrder, setEditingToOrder] = useState({}) // Track which items are being edited
+  const [createOrderModal, setCreateOrderModal] = useState({
+    isOpen: false,
+    bySupplier: null,
+    selectedSuppliers: {}
+  })
 
   const fileInputRef = useRef(null)
   const [importState, setImportState] = useState({
@@ -302,6 +307,17 @@ export function ItemsManagementPage() {
     return Number(s)
   }
 
+  /** כמות להזמין = השלמה לכמות אופטימלית: optimal - current. מקרה קצה: פחות ממוצר אחד במלאי ואופטימלי ≥ 1 → מזמינים לפחות 1 */
+  function getToOrderQuantity(item) {
+    const optimal = parseFloat(item?.optimalStockLevel)
+    const current = parseFloat(item?.stockQuantity)
+    if (Number.isNaN(optimal) || optimal <= 0) return 0
+    const stock = Number.isNaN(current) ? 0 : current
+    let toOrder = Math.max(0, optimal - stock)
+    if (stock < 1 && optimal >= 1 && toOrder > 0 && toOrder < 1) toOrder = 1
+    return toOrder
+  }
+
   async function handleImportFile(ev) {
     const file = ev.target.files?.[0]
     if (!file) return
@@ -502,47 +518,74 @@ export function ItemsManagementPage() {
     return ''
   }
 
-  async function handleCreateOrder() {
+  function openCreateOrderModal() {
+    const rows = filteredItems
+      .map((item) => {
+        const toOrder = getToOrderQuantity(item)
+        if (toOrder <= 0) return null
+        const supplier = getSupplierFromItem(item) || NO_SUPPLIER
+        return {
+          itemId: item._id,
+          name: item.name,
+          quantity: toOrder,
+          price: item.price || 0,
+          subtotal: (item.price || 0) * toOrder,
+          supplier
+        }
+      })
+      .filter(Boolean)
+
+    if (rows.length === 0) {
+      showErrorMsg('אין מוצרים להזמין')
+      return
+    }
+
+    const bySupplier = {}
+    for (const row of rows) {
+      const key = row.supplier || NO_SUPPLIER
+      if (!bySupplier[key]) bySupplier[key] = []
+      bySupplier[key].push({
+        itemId: row.itemId,
+        name: row.name,
+        quantity: row.quantity,
+        price: row.price,
+        subtotal: row.subtotal
+      })
+    }
+
+    const selectedSuppliers = {}
+    for (const key of Object.keys(bySupplier)) {
+      selectedSuppliers[key] = true
+    }
+    setCreateOrderModal({ isOpen: true, bySupplier, selectedSuppliers })
+  }
+
+  function closeCreateOrderModal() {
+    setCreateOrderModal({ isOpen: false, bySupplier: null, selectedSuppliers: {} })
+  }
+
+  function toggleCreateOrderSupplier(supplierName) {
+    setCreateOrderModal((prev) => ({
+      ...prev,
+      selectedSuppliers: {
+        ...prev.selectedSuppliers,
+        [supplierName]: !prev.selectedSuppliers[supplierName]
+      }
+    }))
+  }
+
+  async function confirmCreateSelectedOrders() {
+    const { bySupplier, selectedSuppliers } = createOrderModal
+    if (!bySupplier) return
+    const toCreate = Object.entries(bySupplier).filter(([name]) => selectedSuppliers[name])
+    if (toCreate.length === 0) {
+      showErrorMsg('נא לבחור לפחות ספק אחד')
+      return
+    }
     try {
-      // 1. Collect items to order (toOrder > 0); supplier from same field as table column
-      const rows = filteredItems
-        .map((item) => {
-          const toOrder = Math.max(0, (item.optimalStockLevel || 0) - (item.stockQuantity || 0))
-          if (toOrder <= 0) return null
-          const supplier = getSupplierFromItem(item) || NO_SUPPLIER
-          return {
-            itemId: item._id,
-            name: item.name,
-            quantity: toOrder,
-            price: item.price || 0,
-            subtotal: (item.price || 0) * toOrder,
-            supplier
-          }
-        })
-        .filter(Boolean)
-
-      if (rows.length === 0) {
-        showErrorMsg('אין מוצרים להזמין')
-        return
-      }
-
-      // 2. Group by supplier – each group becomes one order
-      const bySupplier = {}
-      for (const row of rows) {
-        const key = row.supplier || NO_SUPPLIER
-        if (!bySupplier[key]) bySupplier[key] = []
-        bySupplier[key].push({
-          itemId: row.itemId,
-          name: row.name,
-          quantity: row.quantity,
-          price: row.price,
-          subtotal: row.subtotal
-        })
-      }
-
-      // 3. Create one order per supplier; supplier from group key + confirm from first item
       let created = 0
-      for (const [supplierName, orderItems] of Object.entries(bySupplier)) {
+      let totalProducts = 0
+      for (const [supplierName, orderItems] of toCreate) {
         const firstItemId = orderItems[0]?.itemId
         const firstItem = filteredItems.find((i) => i._id === firstItemId || String(i._id) === String(firstItemId))
         const supplierToSave = (getSupplierFromItem(firstItem) || supplierName || NO_SUPPLIER).trim() || supplierName
@@ -554,22 +597,21 @@ export function ItemsManagementPage() {
           type: 'stock_order'
         })
         created++
+        totalProducts += orderItems.length
       }
-
+      closeCreateOrderModal()
       showSuccessMsg(created === 1
-        ? `הזמנה נוצרה – ${rows.length} מוצרים`
-        : `נוצרו ${created} הזמנות (לפי ספק) – ${rows.length} מוצרים`)
+        ? `הזמנה נוצרה – ${totalProducts} מוצרים`
+        : `נוצרו ${created} הזמנות – ${totalProducts} מוצרים`)
       navigate('/orders')
     } catch (error) {
-      showErrorMsg('שגיאה ביצירת ההזמנה')
+      showErrorMsg('שגיאה ביצירת ההזמנות')
     }
   }
 
   // Calculate total items to order
   const totalItemsToOrder = filteredItems.reduce((sum, item) => {
-    const optimalStock = item.optimalStockLevel || 0
-    const currentStock = item.stockQuantity || 0
-    const toOrder = Math.max(0, optimalStock - currentStock)
+    const toOrder = getToOrderQuantity(item)
     return sum + (toOrder > 0 ? 1 : 0)
   }, 0)
 
@@ -657,7 +699,7 @@ export function ItemsManagementPage() {
             {totalItemsToOrder > 0 && (
               <button 
                 className="btn-create-order" 
-                onClick={handleCreateOrder}
+                onClick={openCreateOrderModal}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M20 7L12 3L4 7M20 7L12 11M20 7V17L12 21M12 11L4 7M12 11V21M4 7V17L12 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -676,6 +718,42 @@ export function ItemsManagementPage() {
               + הוסף מוצר
             </button>
           </div>
+
+          {createOrderModal.isOpen && createOrderModal.bySupplier && (
+            <div className="form-overlay" onClick={closeCreateOrderModal}>
+              <div className="form-container create-order-modal" onClick={(e) => e.stopPropagation()}>
+                <h2>בחר אילו הזמנות ליצור</h2>
+                <p className="create-order-modal-desc">נבחרו מוצרים להזמנה לפי ספק. סמן את הספקים שאליהם תרצה לשלוח הזמנה.</p>
+                <ul className="create-order-supplier-list">
+                  {Object.entries(createOrderModal.bySupplier).map(([supplierName, orderItems]) => (
+                    <li key={supplierName} className="create-order-supplier-item">
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={!!createOrderModal.selectedSuppliers[supplierName]}
+                          onChange={() => toggleCreateOrderSupplier(supplierName)}
+                        />
+                        <span className="supplier-name">{supplierName}</span>
+                        <span className="supplier-summary"> — {orderItems.length} מוצרים</span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+                <div className="form-actions" style={{ marginTop: '1rem' }}>
+                  <button
+                    type="button"
+                    className="btn-save"
+                    onClick={confirmCreateSelectedOrders}
+                  >
+                    צור הזמנות נבחרות
+                  </button>
+                  <button type="button" className="btn-cancel" onClick={closeCreateOrderModal}>
+                    בטל
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {importState.isOpen && (
             <div className="form-overlay" onClick={closeImportModal}>
@@ -819,9 +897,10 @@ export function ItemsManagementPage() {
                   <input
                     type="number"
                     name="stockQuantity"
-                    value={editingItem?.stockQuantity || 0}
+                    value={editingItem?.stockQuantity ?? ''}
                     onChange={handleChange}
                     min="0"
+                    step="any"
                     required
                   />
                 </div>
@@ -831,9 +910,10 @@ export function ItemsManagementPage() {
                   <input
                     type="number"
                     name="minStockLevel"
-                    value={editingItem?.minStockLevel || 0}
+                    value={editingItem?.minStockLevel ?? ''}
                     onChange={handleChange}
                     min="0"
+                    step="any"
                   />
                 </div>
 
@@ -842,9 +922,10 @@ export function ItemsManagementPage() {
                   <input
                     type="number"
                     name="optimalStockLevel"
-                    value={editingItem?.optimalStockLevel || 0}
+                    value={editingItem?.optimalStockLevel ?? ''}
                     onChange={handleChange}
                     min="0"
+                    step="any"
                     required
                   />
                 </div>
@@ -937,9 +1018,7 @@ export function ItemsManagementPage() {
                   </td>
                   <td>
                     {(() => {
-                      const optimalStock = item.optimalStockLevel || 0
-                      const currentStock = item.stockQuantity || 0
-                      const toOrder = Math.max(0, optimalStock - currentStock)
+                      const toOrder = getToOrderQuantity(item)
                       const itemId = item._id
                       const isEditing = editingToOrder[itemId]
                       
@@ -948,6 +1027,7 @@ export function ItemsManagementPage() {
                           <input
                             type="number"
                             min="0"
+                            step="any"
                             defaultValue={toOrder}
                             onBlur={(e) => {
                               const newValue = e.target.value

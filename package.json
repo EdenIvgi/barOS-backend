@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "seed:recipes": "node data/seed-recipes.mjs"
+    "seed:recipes": "node data/seed-recipes.mjs",
+    "seed:barBook": "node data/seed-barBook.mjs"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

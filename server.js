@@ -9,6 +9,7 @@ import { authRoutes } from './api/auth/auth.routes.js'
 import { userRoutes } from './api/user/user.routes.js'
 import { orderRoutes } from './api/order/order.routes.js'
 import { recipeRoutes } from './api/recipe/recipe.routes.js'
+import { barBookRoutes } from './api/barBook/barBook.routes.js'
 
 const app = express()
 const PORT = process.env.PORT || 3031
@@ -82,6 +83,7 @@ app.get('/api/recipe', getRecipeList)
 app.get('/api/recipe/', getRecipeList)
 
 app.use('/api/recipe', recipeRoutes)
+app.use('/api/barBook', barBookRoutes)
 
 // ==================== OLD ENDPOINTS (REMOVED - NOW USING ROUTES ABOVE) ====================
 app.get('/api/order', async (req, res) => {

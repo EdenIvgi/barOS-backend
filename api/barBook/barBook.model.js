@@ -21,7 +21,7 @@ export const barBookModel = {
   clear,
 }
 
-/** מחזיר את תוכן ספר הבר היחיד (slug: default). אם אין – null. */
+/** Returns the single bar book document (slug: default), or null if none. */
 async function get() {
   const collection = await dbService.getCollection(COLLECTION_NAME)
   const doc = await collection.findOne({ slug: DEFAULT_SLUG })
@@ -35,7 +35,7 @@ async function get() {
   }
 }
 
-/** שומר את כל תוכן ספר הבר. אם אין מסמך – יוצר; אחרת מעדכן. */
+/** Saves full bar book content; creates document if missing, otherwise updates. */
 async function save(content) {
   const collection = await dbService.getCollection(COLLECTION_NAME)
   const { _id, createdAt, updatedAt, ...payload } = content || {}
@@ -63,7 +63,7 @@ async function save(content) {
   return get()
 }
 
-/** מנקה את התוכן – שומר מבנה ריק (אין דמו דאטה). */
+/** Clears content to empty structure (no demo data). */
 async function clear() {
   return save(emptyContent())
 }

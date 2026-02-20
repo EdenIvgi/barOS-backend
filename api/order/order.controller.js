@@ -1,118 +1,86 @@
 import { orderService } from './order.service.js'
 
-export async function getOrders(req, res) {
+export async function getOrders(req, res, next) {
     try {
         const orders = await orderService.query(req.query)
         res.json(orders)
     } catch (error) {
-        console.error('[Controller] Error getting orders:', error)
-        res.status(500).json({ error: 'Failed to get orders' })
+        next(error)
     }
 }
 
-export async function getOrderById(req, res) {
+export async function getOrderById(req, res, next) {
     try {
-        const { id: orderId } = req.params
-        const order = await orderService.getById(orderId)
-        if (!order) {
-            return res.status(404).json({ error: 'Order not found' })
-        }
+        const order = await orderService.getById(req.params.id)
+        if (!order) return res.status(404).json({ error: 'Order not found' })
         res.json(order)
     } catch (error) {
-        console.error('[Controller] Error getting order by id:', error)
-        res.status(500).json({ error: 'Failed to get order' })
+        next(error)
     }
 }
 
-export async function addOrder(req, res) {
+export async function addOrder(req, res, next) {
     try {
         const orderData = req.body
-
-        // Validate that order has items
         if (!orderData.items || !Array.isArray(orderData.items) || orderData.items.length === 0) {
             return res.status(400).json({ error: 'Order must contain at least one item' })
         }
 
-        // Supplier: prefer body (parsed correctly), then query
-        const fromBody = orderData.supplier != null && String(orderData.supplier).trim() !== ''
+        const supplier = (orderData.supplier != null && String(orderData.supplier).trim() !== '')
             ? String(orderData.supplier).trim()
-            : null
-        const fromQuery = req.query.supplier != null && String(req.query.supplier).trim() !== ''
-            ? String(req.query.supplier).trim()
-            : null
-        const supplier = fromBody ?? fromQuery ?? ''
+            : (String(req.query.supplier || '').trim() || '')
 
         const payload = {
             items: orderData.items,
             userId: orderData.userId ?? null,
             status: orderData.status || 'pending',
             type: orderData.type || 'stock_order',
-            supplier: supplier || ''
+            supplier,
         }
 
         const addedOrder = await orderService.add(payload)
         res.status(201).json(addedOrder)
     } catch (error) {
-        console.error('[Controller] Error adding order:', error)
-        res.status(500).json({ error: 'Failed to add order', details: error.message })
+        next(error)
     }
 }
 
-export async function updateOrder(req, res) {
+export async function updateOrder(req, res, next) {
     try {
-        const { id: orderId } = req.params
-        const orderData = req.body
-
-        // Make sure we don't update _id
-        const { _id, ...updateData } = orderData
-
-        const updatedOrder = await orderService.update(orderId, updateData)
-        if (!updatedOrder) {
-            return res.status(404).json({ error: 'Order not found' })
-        }
+        const { _id, ...updateData } = req.body
+        const updatedOrder = await orderService.update(req.params.id, updateData)
+        if (!updatedOrder) return res.status(404).json({ error: 'Order not found' })
         res.json(updatedOrder)
     } catch (error) {
-        console.error('[Controller] Error updating order:', error)
-        res.status(500).json({ error: 'Failed to update order' })
+        next(error)
     }
 }
 
-export async function deleteOrder(req, res) {
+export async function deleteOrder(req, res, next) {
     try {
-        const { id: orderId } = req.params
-        const deletedCount = await orderService.remove(orderId)
-        if (deletedCount === 1) {
-            res.json({ message: 'Deleted successfully' })
-        } else {
-            res.status(404).json({ error: 'Order not found' })
-        }
+        const deletedCount = await orderService.remove(req.params.id)
+        if (deletedCount === 1) res.json({ message: 'Deleted successfully' })
+        else res.status(404).json({ error: 'Order not found' })
     } catch (error) {
-        console.error('[Controller] Error deleting order:', error)
-        res.status(500).json({ error: 'Failed to delete order' })
+        next(error)
     }
 }
 
-export async function updateOrderStatus(req, res) {
+export async function updateOrderStatus(req, res, next) {
     try {
-        const { id: orderId } = req.params
-        const { status } = req.body
-        const updatedOrder = await orderService.updateStatus(orderId, status)
-        if (!updatedOrder) {
-            return res.status(404).json({ error: 'Order not found' })
-        }
+        const updatedOrder = await orderService.updateStatus(req.params.id, req.body.status)
+        if (!updatedOrder) return res.status(404).json({ error: 'Order not found' })
         res.json(updatedOrder)
     } catch (error) {
-        console.error('[Controller] Error updating order status:', error)
-        res.status(500).json({ error: 'Failed to update order status' })
+        next(error)
     }
 }
 
-export async function getActiveOrders(req, res) {
+export async function getActiveOrders(req, res, next) {
     try {
         const orders = await orderService.getActiveOrders()
         res.json(orders)
     } catch (error) {
-        console.error('[Controller] Error getting active orders:', error)
-        res.status(500).json({ error: 'Failed to get active orders' })
+        next(error)
     }
 }

@@ -1,33 +1,41 @@
 import { authService } from './auth.service.js'
+import { signToken } from '../../middleware/auth.middleware.js'
 
-export async function login(req, res) {
+const COOKIE_OPTIONS = {
+    httpOnly: true,
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    ...(process.env.NODE_ENV === 'production' && { secure: true }),
+}
+
+export async function login(req, res, next) {
     try {
         const { username, password } = req.body
         const user = await authService.login(username, password)
+        const token = signToken({ _id: user._id, username: user.username })
+        res.cookie('barapp_token', token, COOKIE_OPTIONS)
         res.json(user)
     } catch (error) {
-        console.error('[Controller] Error logging in:', error)
-        res.status(401).json({ error: error.message || 'Invalid credentials' })
+        next(error)
     }
 }
 
-export async function signup(req, res) {
+export async function signup(req, res, next) {
     try {
-        const userData = req.body
-        const user = await authService.signup(userData)
+        const user = await authService.signup(req.body)
+        const token = signToken({ _id: user._id, username: user.username })
+        res.cookie('barapp_token', token, COOKIE_OPTIONS)
         res.status(201).json(user)
     } catch (error) {
-        console.error('[Controller] Error signing up:', error)
-        res.status(400).json({ error: error.message || 'Failed to signup' })
+        next(error)
     }
 }
 
-export async function logout(req, res) {
+export async function logout(req, res, next) {
     try {
-        await authService.logout()
+        res.clearCookie('barapp_token')
         res.json({ message: 'Logged out successfully' })
     } catch (error) {
-        console.error('[Controller] Error logging out:', error)
-        res.status(500).json({ error: 'Failed to logout' })
+        next(error)
     }
 }

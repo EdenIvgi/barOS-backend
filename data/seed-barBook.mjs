@@ -1,6 +1,6 @@
 /**
- * הזרקה חד-פעמית: יוצר קולקשן barBook ומכניס לתוכו את תוכן ספר הבר (צ'קליסטים, משימות יומיות, טבלת מלאים).
- * הרצה: node data/seed-barBook.mjs
+ * One-time seed: creates barBook collection and inserts bar book content (checklists, daily tasks, stock table).
+ * Run: node data/seed-barBook.mjs
  */
 import { MongoClient } from 'mongodb'
 import { config } from '../config/index.js'

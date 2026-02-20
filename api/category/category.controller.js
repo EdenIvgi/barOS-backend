@@ -1,69 +1,51 @@
 import { categoryService } from './category.service.js'
 
-export async function getCategories(req, res) {
+export async function getCategories(req, res, next) {
     try {
         const categories = await categoryService.query()
         res.json(categories)
     } catch (error) {
-        console.error('[Controller] Error getting categories:', error)
-        res.status(500).json({ error: 'Failed to get categories', details: error.message })
+        next(error)
     }
 }
 
-export async function getCategoryById(req, res) {
+export async function getCategoryById(req, res, next) {
     try {
-        const { id: categoryId } = req.params
-        const category = await categoryService.getById(categoryId)
-        if (!category) {
-            return res.status(404).json({ error: 'Category not found' })
-        }
+        const category = await categoryService.getById(req.params.id)
+        if (!category) return res.status(404).json({ error: 'Category not found' })
         res.json(category)
     } catch (error) {
-        console.error('[Controller] Error getting category by id:', error)
-        res.status(500).json({ error: 'Failed to get category', details: error.message })
+        next(error)
     }
 }
 
-export async function addCategory(req, res) {
+export async function addCategory(req, res, next) {
     try {
-        const category = req.body
-        const addedCategory = await categoryService.add(category)
+        const addedCategory = await categoryService.add(req.body)
         res.status(201).json(addedCategory)
     } catch (error) {
-        console.error('[Controller] Error adding category:', error)
-        res.status(500).json({ error: 'Failed to add category', details: error.message })
+        next(error)
     }
 }
 
-export async function updateCategory(req, res) {
+export async function updateCategory(req, res, next) {
     try {
         const category = req.body
-        const categoryId = category._id
-        if (!categoryId) {
-            return res.status(400).json({ error: 'Category ID is required' })
-        }
-        const updatedCategory = await categoryService.update(categoryId, category)
-        if (!updatedCategory) {
-            return res.status(404).json({ error: 'Category not found' })
-        }
+        if (!category._id) return res.status(400).json({ error: 'Category ID is required' })
+        const updatedCategory = await categoryService.update(category._id, category)
+        if (!updatedCategory) return res.status(404).json({ error: 'Category not found' })
         res.json(updatedCategory)
     } catch (error) {
-        console.error('[Controller] Error updating category:', error)
-        res.status(500).json({ error: 'Failed to update category', details: error.message })
+        next(error)
     }
 }
 
-export async function deleteCategory(req, res) {
+export async function deleteCategory(req, res, next) {
     try {
-        const { id: categoryId } = req.params
-        const deletedCount = await categoryService.remove(categoryId)
-        if (deletedCount === 1) {
-            res.json({ message: 'Deleted successfully' })
-        } else {
-            res.status(404).json({ error: 'Category not found' })
-        }
+        const deletedCount = await categoryService.remove(req.params.id)
+        if (deletedCount === 1) res.json({ message: 'Deleted successfully' })
+        else res.status(404).json({ error: 'Category not found' })
     } catch (error) {
-        console.error('[Controller] Error deleting category:', error)
-        res.status(500).json({ error: 'Failed to delete category', details: error.message })
+        next(error)
     }
 }

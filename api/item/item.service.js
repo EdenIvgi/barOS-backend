@@ -215,11 +215,6 @@ async function importStock(rows, { dryRun = true, mode = 'set' } = {}) {
         const quantity = Number(inputQtyRaw)
         const inputSupplier = row?.supplier ? String(row.supplier).trim() : ''
         const inputCategory = row?.category ? String(row.category).trim() : ''
-        // "כמה להזמין" from file - used to set optimalStockLevel so that (optimalStockLevel - stockQuantity) = this value
-        const inputToOrder = row?.toOrder !== undefined && row?.toOrder !== null && row?.toOrder !== ''
-            ? Number(row.toOrder)
-            : (row?.toOrder === 0 ? 0 : 0)
-        const toOrder = !isNaN(inputToOrder) ? Math.max(0, inputToOrder) : 0
 
         if (!inputName || Number.isNaN(quantity)) {
             unmatched.push({ rowIndex: idx, inputName, quantity: inputQtyRaw, reason: 'Missing name or quantity' })
@@ -268,7 +263,6 @@ async function importStock(rows, { dryRun = true, mode = 'set' } = {}) {
                 quantity,
                 supplier: inputSupplier,
                 category: inputCategory,
-                toOrder,
                 matchedItemId: best.idStr,
                 matchedName: best.name,
                 matchedNameEn: best.nameEn,
@@ -282,7 +276,6 @@ async function importStock(rows, { dryRun = true, mode = 'set' } = {}) {
                 quantity,
                 supplier: inputSupplier,
                 category: inputCategory,
-                toOrder,
                 matchedItemId: best.idStr,
                 matchedName: best.name,
                 matchedNameEn: best.nameEn,
@@ -320,13 +313,7 @@ async function importStock(rows, { dryRun = true, mode = 'set' } = {}) {
             setFields.stockQuantity = newQty
         }
 
-        // "כמה להזמין" from file: set optimalStockLevel so that (optimalStockLevel - stockQuantity) = toOrder
-        const toOrderFromFile = Number(m.toOrder)
-        if (!isNaN(toOrderFromFile) && toOrderFromFile >= 0) {
-            if (mode === 'set') {
-                setFields.optimalStockLevel = newQty + toOrderFromFile
-            }
-        }
+        // optimalStockLevel: stored in DB, set only by user. Never modified by import or any automated process.
 
         // Update supplier if provided
         if (m.supplier) {

@@ -1,22 +1,32 @@
 import express from 'express'
-import { 
-    getItems, 
-    getItemById, 
-    addItem, 
-    updateItem, 
+import {
+    getItems,
+    getItemById,
+    addItem,
+    updateItem,
     deleteItem,
     updateItemStock,
     importItemStock
 } from './item.controller.js'
+import { requireAuth } from '../../middleware/auth.middleware.js'
+import { validate } from '../../middleware/validate.middleware.js'
 
 const router = express.Router()
 
+const itemSchema = {
+    name: { required: true, minLength: 1 },
+}
+
+const stockSchema = {
+    quantity: { required: true, isNumber: true },
+}
+
 router.get('/', getItems)
 router.get('/:id', getItemById)
-router.post('/', addItem)
-router.put('/', updateItem)
-router.put('/:id/stock', updateItemStock)
-router.post('/stock/import', importItemStock)
-router.delete('/:id', deleteItem)
+router.post('/', requireAuth, validate(itemSchema), addItem)
+router.put('/', requireAuth, validate(itemSchema), updateItem)
+router.put('/:id/stock', requireAuth, validate(stockSchema), updateItemStock)
+router.post('/stock/import', requireAuth, importItemStock)
+router.delete('/:id', requireAuth, deleteItem)
 
 export const itemRoutes = router

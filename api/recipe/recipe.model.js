@@ -1,38 +1,38 @@
 import { dbService } from '../../services/mongo.service.js'
-import { ObjectId } from 'mongodb'
+import { toObjectId } from '../../services/objectId.service.js'
 
 const COLLECTION_NAME = 'recipe'
 
 const DEFAULT_RECIPES = [
   {
-    title: 'סירופ קינמון וציפורן',
-    ingredients: ['10 מקלות קינמון', '20 מקלות ציפורן', '3 קליפות תפוז', 'קילו סוכר', 'ליטר מים'],
+    title: 'Cinnamon & Clove Syrup',
+    ingredients: ['10 cinnamon sticks', '20 cloves', '3 orange peels', '1kg sugar', '1L water'],
     instructions: [
-      'נכתוש 2 מקלות קינמון לשברים דקים.',
-      'נחמם בסיר ליטר מים וסוכר.',
-      'כאשר הסוכר נמס לגמרי נוסיף את שאר המרכיבים. נבשל בטמפרטורה בינונית כ־5 דקות.',
-      'לאחר מכן נוריד את הטמפרטורה לחום נמוך (בעבוע קל) למשך 20 דקות נוספות.',
-      'נשאיר במקרר למשך כחצי שעה ונסנן במסננת דקה.',
+      'Crush 2 cinnamon sticks into small pieces.',
+      'Heat 1L water and sugar in a pot until sugar dissolves.',
+      'Add remaining ingredients and simmer on medium heat for 5 minutes.',
+      'Reduce to low heat and simmer for 20 more minutes.',
+      'Cool in fridge for 30 minutes, then strain through a fine sieve.',
     ],
   },
   {
-    title: 'סירופ כוסברה ופסיפלורה',
-    ingredients: ['מי סוכר', 'קופסת 4 ליטר של כוסברה', 'מחית פסיפלורה'],
+    title: 'Coriander & Passionfruit Syrup',
+    ingredients: ['Sugar water', '4L container of coriander', 'Passionfruit puree'],
     instructions: [
-      'בבלנדר נמלא ראשים של כוסברה וליטר מי סוכר. נשים כוסברה עד שהבלנדר מלא.',
-      'נערבל הכל ונסנן עם בד חיתול.',
-      'אל התערובת שיצאה נוסיף חצי ליטר מי סוכר ובקבוק שלם של מחית פסיפלורה.',
+      'Fill blender with coriander heads and 1L sugar water.',
+      'Blend and strain through cheesecloth.',
+      'Add 0.5L sugar water and a full bottle of passionfruit puree.',
     ],
   },
   {
-    title: 'סירופ דבש וגינגר',
-    ingredients: ['ג׳ינג׳ר', 'דבש', 'מים'],
+    title: 'Honey & Ginger Syrup',
+    ingredients: ['Ginger', 'Honey', 'Water'],
     instructions: [
-      'נטחן קילו גינגר בבלנדר.',
-      'על סיר אינדוקציה נעלה 2 קילו דבש ו־2 ליטר מים.',
-      'נוסיף את הגינגר לסיר ונחמם עד לבעבוע.',
-      'נוריד את החום לעוצמה 4 למשך כ־20 דקות.',
-      'לאחר מכן ניתן לו להצטנן ונסנן דרך בד חיתול.',
+      'Blend 1kg of ginger.',
+      'Heat 2kg honey and 2L water in a pot until boiling.',
+      'Add ginger and bring back to a boil.',
+      'Reduce to low heat for about 20 minutes.',
+      'Let cool and strain through cheesecloth.',
     ],
   },
 ]
@@ -46,7 +46,6 @@ export const recipeModel = {
   ensureDefaultRecipes
 }
 
-/** יוצר את קולקשן recipe אם לא קיים, ומשחזר את שלושת המתכונים ההתחלתיים */
 async function ensureDefaultRecipes() {
   const collection = await dbService.getCollection(COLLECTION_NAME)
   try {
@@ -69,94 +68,54 @@ async function ensureDefaultRecipes() {
 }
 
 async function getAll() {
-  try {
-    const collection = await dbService.getCollection(COLLECTION_NAME)
-    await ensureDefaultRecipes()
-    const recipes = await collection.find({}).sort({ createdAt: -1 }).toArray()
-    return recipes
-  } catch (error) {
-    console.error('[RecipeModel] Error getting recipes:', error)
-    throw error
-  }
+  const collection = await dbService.getCollection(COLLECTION_NAME)
+  await ensureDefaultRecipes()
+  return collection.find({}).sort({ createdAt: -1 }).toArray()
 }
 
 async function getById(recipeId) {
-  try {
-    const collection = await dbService.getCollection(COLLECTION_NAME)
-    let recipe
-    try {
-      recipe = await collection.findOne({ _id: ObjectId.createFromHexString(recipeId) })
-    } catch {
-      recipe = await collection.findOne({ _id: recipeId })
-    }
-    return recipe
-  } catch (error) {
-    console.error('[RecipeModel] Error getting recipe by id:', error)
-    throw error
-  }
+  const collection = await dbService.getCollection(COLLECTION_NAME)
+  const objId = toObjectId(recipeId)
+  const filter = objId ? { _id: objId } : { _id: recipeId }
+  return collection.findOne(filter)
 }
 
 async function create(recipeData) {
-  try {
-    const collection = await dbService.getCollection(COLLECTION_NAME)
-    const now = Date.now()
-    const recipeToAdd = {
-      title: (recipeData.title || '').trim(),
-      ingredients: Array.isArray(recipeData.ingredients) ? recipeData.ingredients : [],
-      instructions: Array.isArray(recipeData.instructions) ? recipeData.instructions : [],
-      createdAt: now,
-      updatedAt: now
-    }
-    const result = await collection.insertOne(recipeToAdd)
-    recipeToAdd._id = result.insertedId
-    return recipeToAdd
-  } catch (error) {
-    console.error('[RecipeModel] Error creating recipe:', error)
-    throw error
+  const collection = await dbService.getCollection(COLLECTION_NAME)
+  const now = Date.now()
+  const recipeToAdd = {
+    title: (recipeData.title || '').trim(),
+    ingredients: Array.isArray(recipeData.ingredients) ? recipeData.ingredients : [],
+    instructions: Array.isArray(recipeData.instructions) ? recipeData.instructions : [],
+    createdAt: now,
+    updatedAt: now
   }
+  const result = await collection.insertOne(recipeToAdd)
+  recipeToAdd._id = result.insertedId
+  return recipeToAdd
 }
 
 async function update(recipeId, updateData) {
-  try {
-    const collection = await dbService.getCollection(COLLECTION_NAME)
-    const { _id, createdAt, ...rest } = updateData
-    const dataToUpdate = {}
-    if (rest.title !== undefined) dataToUpdate.title = String(rest.title).trim()
-    if (rest.ingredients !== undefined) dataToUpdate.ingredients = Array.isArray(rest.ingredients) ? rest.ingredients : []
-    if (rest.instructions !== undefined) dataToUpdate.instructions = Array.isArray(rest.instructions) ? rest.instructions : []
-    dataToUpdate.updatedAt = Date.now()
-    let result
-    try {
-      result = await collection.updateOne(
-        { _id: ObjectId.createFromHexString(recipeId) },
-        { $set: dataToUpdate }
-      )
-    } catch {
-      result = await collection.updateOne(
-        { _id: recipeId },
-        { $set: dataToUpdate }
-      )
-    }
-    if (result.matchedCount === 0) return null
-    return await getById(recipeId)
-  } catch (error) {
-    console.error('[RecipeModel] Error updating recipe:', error)
-    throw error
-  }
+  const collection = await dbService.getCollection(COLLECTION_NAME)
+  const objId = toObjectId(recipeId)
+  const filter = objId ? { _id: objId } : { _id: recipeId }
+
+  const { _id, createdAt, ...rest } = updateData
+  const dataToUpdate = {}
+  if (rest.title !== undefined) dataToUpdate.title = String(rest.title).trim()
+  if (rest.ingredients !== undefined) dataToUpdate.ingredients = Array.isArray(rest.ingredients) ? rest.ingredients : []
+  if (rest.instructions !== undefined) dataToUpdate.instructions = Array.isArray(rest.instructions) ? rest.instructions : []
+  dataToUpdate.updatedAt = Date.now()
+
+  const result = await collection.updateOne(filter, { $set: dataToUpdate })
+  if (result.matchedCount === 0) return null
+  return getById(recipeId)
 }
 
 async function remove(recipeId) {
-  try {
-    const collection = await dbService.getCollection(COLLECTION_NAME)
-    let result
-    try {
-      result = await collection.deleteOne({ _id: ObjectId.createFromHexString(recipeId) })
-    } catch {
-      result = await collection.deleteOne({ _id: recipeId })
-    }
-    return result.deletedCount
-  } catch (error) {
-    console.error('[RecipeModel] Error removing recipe:', error)
-    throw error
-  }
+  const collection = await dbService.getCollection(COLLECTION_NAME)
+  const objId = toObjectId(recipeId)
+  const filter = objId ? { _id: objId } : { _id: recipeId }
+  const result = await collection.deleteOne(filter)
+  return result.deletedCount
 }

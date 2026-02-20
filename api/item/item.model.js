@@ -1,5 +1,6 @@
 import { dbService } from '../../services/mongo.service.js'
 import { ObjectId } from 'mongodb'
+import { toObjectId } from '../../services/objectId.service.js'
 
 const COLLECTION_NAME = 'items'
 
@@ -16,9 +17,9 @@ async function getAll(filterBy = {}) {
     try {
         const collection = await dbService.getCollection(COLLECTION_NAME)
         const categoryCollection = await dbService.getCollection('category')
-        
+
         const criteria = {}
-        
+
         // Text search - search in name, nameEn, description, and supplier
         if (filterBy.txt) {
             criteria.$or = [
@@ -28,7 +29,7 @@ async function getAll(filterBy = {}) {
                 { supplier: { $regex: filterBy.txt, $options: 'i' } }
             ]
         }
-        
+
         // Category filter - support both categoryId (ObjectId) and category (string)
         if (filterBy.categoryId) {
             try {
@@ -44,17 +45,17 @@ async function getAll(filterBy = {}) {
         } else if (filterBy.category) {
             criteria.category = filterBy.category
         }
-        
+
         // Supplier filter
         if (filterBy.supplier) {
             criteria.supplier = filterBy.supplier
         }
-        
+
         // Availability filter
         if (filterBy.isAvailable !== null && filterBy.isAvailable !== undefined) {
             criteria.isAvailable = filterBy.isAvailable === 'true' || filterBy.isAvailable === true
         }
-        
+
         // Price filters
         if (filterBy.minPrice || filterBy.maxPrice) {
             criteria.price = {}
@@ -67,27 +68,27 @@ async function getAll(filterBy = {}) {
         }
 
         const items = await collection.find(criteria).sort({ name: 1 }).toArray()
-        
+
         // Populate category for each item
         const itemsWithCategory = await Promise.all(items.map(async (item) => {
             let category = null
-            
+
             // Try to load category by categoryId or category string
             const categoryIdentifier = item.categoryId || item.category
-            
+
             if (categoryIdentifier) {
                 // First try as ObjectId
                 if (typeof categoryIdentifier === 'object' || (typeof categoryIdentifier === 'string' && categoryIdentifier.length === 24)) {
                     try {
-                        const categoryIdObj = typeof categoryIdentifier === 'string' 
-                            ? ObjectId.createFromHexString(categoryIdentifier) 
+                        const categoryIdObj = typeof categoryIdentifier === 'string'
+                            ? ObjectId.createFromHexString(categoryIdentifier)
                             : categoryIdentifier
                         category = await categoryCollection.findOne({ _id: categoryIdObj })
                     } catch (e) {
                         // Not a valid ObjectId, continue to try as name
                     }
                 }
-                
+
                 // If not found, try as name (string)
                 if (!category && typeof categoryIdentifier === 'string') {
                     category = await categoryCollection.findOne({ name: categoryIdentifier })
@@ -95,7 +96,7 @@ async function getAll(filterBy = {}) {
                         category = await categoryCollection.findOne({ nameEn: categoryIdentifier })
                     }
                 }
-                
+
                 if (category) {
                     item.category = {
                         _id: category._id,
@@ -107,10 +108,10 @@ async function getAll(filterBy = {}) {
                     }
                 }
             }
-            
+
             return item
         }))
-        
+
         return itemsWithCategory
     } catch (error) {
         console.error('[ItemModel] Error getting items:', error)
@@ -122,34 +123,30 @@ async function getById(itemId) {
     try {
         const collection = await dbService.getCollection(COLLECTION_NAME)
         const categoryCollection = await dbService.getCollection('category')
-        
-        let item
-        try {
-            item = await collection.findOne({ _id: ObjectId.createFromHexString(itemId) })
-        } catch {
-            item = await collection.findOne({ _id: itemId })
-        }
-        
+
+        const objId = toObjectId(itemId)
+        const item = await collection.findOne(objId ? { _id: objId } : { _id: itemId })
+
         if (!item) return null
-        
+
         // Populate category if categoryId or category exists
         const categoryIdentifier = item.categoryId || item.category
-        
+
         if (categoryIdentifier) {
             let category = null
-            
+
             // First try as ObjectId
             if (typeof categoryIdentifier === 'object' || (typeof categoryIdentifier === 'string' && categoryIdentifier.length === 24)) {
                 try {
-                    const categoryIdObj = typeof categoryIdentifier === 'string' 
-                        ? ObjectId.createFromHexString(categoryIdentifier) 
+                    const categoryIdObj = typeof categoryIdentifier === 'string'
+                        ? ObjectId.createFromHexString(categoryIdentifier)
                         : categoryIdentifier
                     category = await categoryCollection.findOne({ _id: categoryIdObj })
                 } catch (e) {
                     // Not a valid ObjectId, continue to try as name
                 }
             }
-            
+
             // If not found, try as name (string)
             if (!category && typeof categoryIdentifier === 'string') {
                 category = await categoryCollection.findOne({ name: categoryIdentifier })
@@ -157,7 +154,7 @@ async function getById(itemId) {
                     category = await categoryCollection.findOne({ nameEn: categoryIdentifier })
                 }
             }
-            
+
             if (category) {
                 item.category = {
                     _id: category._id,
@@ -169,7 +166,7 @@ async function getById(itemId) {
                 }
             }
         }
-        
+
         return item
     } catch (error) {
         console.error('[ItemModel] Error getting item by id:', error)
@@ -180,7 +177,7 @@ async function getById(itemId) {
 async function create(itemData) {
     try {
         const collection = await dbService.getCollection(COLLECTION_NAME)
-        
+
         const itemToAdd = {
             name: itemData.name || '',
             nameEn: itemData.nameEn || itemData.name || '',
@@ -202,13 +199,13 @@ async function create(itemData) {
         const categoryCollection = await dbService.getCollection('category')
         let category = null
         const categoryIdentifier = itemData.categoryId || itemData.category
-        
+
         if (categoryIdentifier) {
             // First try as ObjectId
             if (typeof categoryIdentifier === 'object' || (typeof categoryIdentifier === 'string' && categoryIdentifier.length === 24)) {
                 try {
-                    const categoryIdObj = typeof categoryIdentifier === 'string' 
-                        ? ObjectId.createFromHexString(categoryIdentifier) 
+                    const categoryIdObj = typeof categoryIdentifier === 'string'
+                        ? ObjectId.createFromHexString(categoryIdentifier)
                         : categoryIdentifier
                     category = await categoryCollection.findOne({ _id: categoryIdObj })
                     if (category) {
@@ -219,7 +216,7 @@ async function create(itemData) {
                     // Not a valid ObjectId, continue to try as name
                 }
             }
-            
+
             // If not found, try as name (string)
             if (!category && typeof categoryIdentifier === 'string') {
                 category = await categoryCollection.findOne({ name: categoryIdentifier })
@@ -278,7 +275,7 @@ async function create(itemData) {
 async function update(itemId, updateData) {
     try {
         const collection = await dbService.getCollection(COLLECTION_NAME)
-        
+
         const itemToUpdate = {
             name: updateData.name,
             nameEn: updateData.nameEn || updateData.name,
@@ -289,10 +286,13 @@ async function update(itemId, updateData) {
             isAvailable: updateData.isAvailable !== undefined ? updateData.isAvailable : true,
             stockQuantity: updateData.stockQuantity !== undefined ? updateData.stockQuantity : 0,
             minStockLevel: updateData.minStockLevel !== undefined ? updateData.minStockLevel : 0,
-            optimalStockLevel: updateData.optimalStockLevel !== undefined ? Number(updateData.optimalStockLevel) : 0,
             tags: updateData.tags || [],
             quantity: updateData.quantity !== undefined ? updateData.quantity : null,
             updatedAt: Date.now()
+        }
+        // optimalStockLevel: only update when explicitly provided by user. Never overwrite from other sources.
+        if (updateData.optimalStockLevel !== undefined) {
+            itemToUpdate.optimalStockLevel = Number(updateData.optimalStockLevel)
         }
 
         // Handle categoryId (ObjectId) or category (string)
@@ -308,27 +308,13 @@ async function update(itemId, updateData) {
             itemToUpdate.category = updateData.category
             delete itemToUpdate.categoryId
         }
-        
-        let result
-        try {
-            result = await collection.updateOne(
-                { _id: ObjectId.createFromHexString(itemId) },
-                { $set: itemToUpdate }
-            )
-        } catch {
-            // Try as string ID
-            result = await collection.updateOne(
-                { _id: itemId },
-                { $set: itemToUpdate }
-            )
-        }
-        
-        if (result.matchedCount === 0) {
-            return null
-        }
-        
-        // getById will populate the category
-        return await getById(itemId)
+
+        const objId = toObjectId(itemId)
+        const filter = objId ? { _id: objId } : { _id: itemId }
+        const result = await collection.updateOne(filter, { $set: itemToUpdate })
+
+        if (result.matchedCount === 0) return null
+        return getById(itemId)
     } catch (error) {
         console.error('[ItemModel] Error updating item:', error)
         throw error
@@ -338,25 +324,11 @@ async function update(itemId, updateData) {
 async function updateStock(itemId, quantity) {
     try {
         const collection = await dbService.getCollection(COLLECTION_NAME)
-        
-        let result
-        try {
-            result = await collection.updateOne(
-                { _id: ObjectId.createFromHexString(itemId) },
-                { $set: { stockQuantity: quantity, updatedAt: Date.now() } }
-            )
-        } catch {
-            result = await collection.updateOne(
-                { _id: itemId },
-                { $set: { stockQuantity: quantity, updatedAt: Date.now() } }
-            )
-        }
-        
-        if (result.matchedCount === 0) {
-            return null
-        }
-        
-        return await getById(itemId)
+        const objId = toObjectId(itemId)
+        const filter = objId ? { _id: objId } : { _id: itemId }
+        const result = await collection.updateOne(filter, { $set: { stockQuantity: quantity, updatedAt: Date.now() } })
+        if (result.matchedCount === 0) return null
+        return getById(itemId)
     } catch (error) {
         console.error('[ItemModel] Error updating stock:', error)
         throw error
@@ -366,12 +338,9 @@ async function updateStock(itemId, quantity) {
 async function remove(itemId) {
     try {
         const collection = await dbService.getCollection(COLLECTION_NAME)
-        let result
-        try {
-            result = await collection.deleteOne({ _id: ObjectId.createFromHexString(itemId) })
-        } catch {
-            result = await collection.deleteOne({ _id: itemId })
-        }
+        const objId = toObjectId(itemId)
+        const filter = objId ? { _id: objId } : { _id: itemId }
+        const result = await collection.deleteOne(filter)
         return result.deletedCount
     } catch (error) {
         console.error('[ItemModel] Error removing item:', error)

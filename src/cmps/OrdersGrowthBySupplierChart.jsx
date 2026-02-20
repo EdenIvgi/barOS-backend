@@ -19,7 +19,7 @@ ChartJS.register(
   Legend
 )
 
-// צבעים ברורים ומקצועיים – כל ספק מובחן
+// Distinct colors per supplier
 const SUPPLIER_COLORS = [
   { main: 'rgb(15, 118, 110)', fill: 'rgba(15, 118, 110, 0.85)' },   // teal
   { main: 'rgb(217, 119, 6)', fill: 'rgba(217, 119, 6, 0.85)' },     // amber
@@ -108,7 +108,7 @@ function buildChartData(orders, inventoryItems = []) {
   }
 
   let sortedDates = Array.from(dateSet).sort()
-  // מינימום 10 ימים: אם יש פחות – מוסיפים ימים לאחור עד ל־10
+  // Minimum 10 days: if fewer, extend backwards
   if (sortedDates.length < MIN_DAYS_TO_SHOW) {
     const lastDate = new Date(sortedDates[sortedDates.length - 1] + 'T12:00:00')
     const dayMs = 24 * 60 * 60 * 1000
@@ -120,7 +120,7 @@ function buildChartData(orders, inventoryItems = []) {
     sortedDates = extended
   }
 
-  // סדר משמאל לימין: תאריך ישן ראשון (שמאל), תאריך חדש אחרון (ימין)
+  // Order: oldest date first (left), newest last (right)
   const labels = sortedDates.map(d => getDisplayDate(d + 'T12:00:00'))
   const suppliers = Object.keys(dateQuantityBySupplier).sort()
   const datasets = suppliers.map((supplier, idx) => {

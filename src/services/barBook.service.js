@@ -2,7 +2,7 @@ import { httpService } from './http.service'
 
 const BASE_URL = 'barBook/'
 
-/** מבנה ריק של תוכן ספר הבר – ללא דמו דאטה */
+/** Empty bar book content structure (no demo data). */
 export function getEmptyContent() {
   return {
     checklists: {
@@ -30,7 +30,7 @@ async function saveContent(content) {
   return httpService.put(BASE_URL, content)
 }
 
-/** מנקה את כל התוכן בדאטה בייס (מבנה ריק) */
+/** Clears all bar book content in DB (empty structure). */
 async function clear() {
   const res = await httpService.post(BASE_URL + 'clear')
   return res.content

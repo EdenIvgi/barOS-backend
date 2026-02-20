@@ -20,6 +20,7 @@
     gap: 1rem;
     width: 100%;
     position: relative;
+    direction: ltr; /* מיקום קבוע: לוגו משמאל, פעולות מימין */
   }
 
   .header-brand {
@@ -28,7 +29,7 @@
     gap: 0.75rem;
     direction: ltr;
     position: absolute;
-    left: 0px; // align with centered 44px icons inside 60px sidebar
+    left: 0;
     top: 50%;
     transform: translateY(-50%);
   }
@@ -79,9 +80,22 @@
   }
 
   .header-actions {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
     display: flex;
     align-items: center;
     gap: 1rem;
+
+    .cart-icon {
+      color: $white;
+
+      &:hover {
+        color: $white;
+        opacity: 0.9;
+      }
+    }
 
     section {
       display: flex;

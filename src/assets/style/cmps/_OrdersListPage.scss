@@ -20,7 +20,7 @@
     font-size: 1.2rem;
   }
 
-  // --- טבלה: שורה = תאריך, עמודה = ספק ---
+  // Table: row = date, column = supplier
   .orders-grid-wrapper {
     overflow-x: auto;
     border: 1px solid $border-color;
@@ -50,8 +50,8 @@
 
         .col-date {
           min-width: 100px;
-          text-align: right;
-          padding-right: 1rem;
+          text-align: start;
+          padding-inline-end: 1rem;
         }
 
         .col-supplier {
@@ -74,7 +74,7 @@
       }
 
       .cell-date {
-        text-align: right;
+        text-align: start;
         padding: 0.6rem 1rem;
         font-weight: 600;
         color: $black-dark;
@@ -245,7 +245,7 @@
             }
 
             thead th {
-              text-align: right;
+              text-align: start;
               padding: 0.35rem 0.5rem;
               font-weight: 700;
               color: $black-dark;
@@ -256,13 +256,13 @@
 
               td {
                 padding: 0.35rem 0.5rem;
-                text-align: right;
+                text-align: start;
               }
 
               .item-removed {
                 text-decoration: line-through;
                 color: $gray-600;
-                margin-left: 0.5rem;
+                margin-inline-start: 0.5rem;
               }
 
               .btn-undo-item {
@@ -285,7 +285,7 @@
             }
 
             tbody td {
-              text-align: right;
+              text-align: start;
               padding: 0.35rem 0.5rem;
 
               &:nth-child(2) {

@@ -1,8 +1,10 @@
 import { useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 import { removeFromCart, updateCartItem, clearCart, checkout } from '../store/actions/order.actions'
 import { Loader } from '../cmps/Loader'
 
 export function OrderPage() {
+  const { t } = useTranslation()
   const cart = useSelector((storeState) => storeState.orderModule.cart)
   const isLoading = useSelector((storeState) => storeState.orderModule.flag.isLoading)
 
@@ -24,9 +26,9 @@ export function OrderPage() {
 
   return (
     <div className="order-page">
-      <h1>עגלת קניות</h1>
+      <h1>{t('cartTitle')}</h1>
       {cart.length === 0 ? (
-        <p>העגלה ריקה</p>
+        <p>{t('cartEmpty')}</p>
       ) : (
         <>
           <div className="cart-items">
@@ -34,12 +36,12 @@ export function OrderPage() {
               <div key={item.itemId} className="cart-item">
                 <h3>{item.itemName}</h3>
                 {item.supplier && (
-                  <p className="cart-item-supplier">ספק: {item.supplier}</p>
+                  <p className="cart-item-supplier">{t('supplierLabel')}: {item.supplier}</p>
                 )}
-                <p>מחיר: ₪{item.price}</p>
+                <p>{t('price')}: ₪{item.price}</p>
                 <div>
                   <label>
-                    כמות:
+                    {t('quantityLabel')}:
                     <input
                       type="number"
                       min="1"
@@ -48,17 +50,17 @@ export function OrderPage() {
                     />
                   </label>
                 </div>
-                <p>סה"כ: ₪{item.subtotal}</p>
-                <button onClick={() => removeFromCart(item.itemId)}>הסר</button>
+                <p>{t('totalLabel')}: ₪{item.subtotal}</p>
+                <button onClick={() => removeFromCart(item.itemId)}>{t('remove')}</button>
               </div>
             ))}
           </div>
           <div className="cart-summary">
-            <h2>סה"כ: ₪{totalAmount}</h2>
+            <h2>{t('totalLabel')}: ₪{totalAmount}</h2>
             <button onClick={handleCheckout} disabled={isLoading}>
-              הזמן עכשיו (לפי ספק)
+              {t('checkoutNow')}
             </button>
-            <button onClick={clearCart}>נקה עגלה</button>
+            <button onClick={clearCart}>{t('clearCart')}</button>
           </div>
         </>
       )}

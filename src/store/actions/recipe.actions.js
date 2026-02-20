@@ -1,66 +1,81 @@
 import { recipeService } from '../../services/recipe.service'
 import {
-  SET_RECIPES,
-  ADD_RECIPE,
-  UPDATE_RECIPE,
-  REMOVE_RECIPE,
-  SET_IS_LOADING,
-  SET_ERROR,
-} from '../reducers/recipe.reducer'
+  setRecipes as setRecipesAction,
+  addRecipe as addRecipeAction,
+  updateRecipe as updateRecipeAction,
+  removeRecipe as removeRecipeAction,
+  setIsLoading,
+  setError,
+} from '../slices/recipe.slice'
 import { store } from '../store'
 
 export async function loadRecipes() {
   try {
-    store.dispatch({ type: SET_IS_LOADING, isLoading: true })
+    store.dispatch(setIsLoading(true))
     const data = await recipeService.query()
-    const recipesArray = Array.isArray(data) ? data : (data?.recipes ?? data?.data ?? [])
-    const list = Array.isArray(recipesArray) ? recipesArray : []
-    store.dispatch({ type: SET_RECIPES, recipes: list })
-    store.dispatch({ type: SET_ERROR, error: null })
+    const list = Array.isArray(data)
+      ? data
+      : Array.isArray(data?.recipes ?? data?.data)
+        ? (data.recipes ?? data.data)
+        : []
+    store.dispatch(setRecipesAction(list))
+    store.dispatch(setError(null))
     return list
   } catch (error) {
-    store.dispatch({
-      type: SET_ERROR,
-      error: error?.response?.data?.details || error?.response?.data?.error || error?.message || 'טעינת המתכונים נכשלה',
-    })
-    store.dispatch({ type: SET_RECIPES, recipes: [] })
+    store.dispatch(
+      setError(
+        error?.response?.data?.details ||
+        error?.response?.data?.error ||
+        error?.message ||
+        'Failed to load recipes'
+      )
+    )
+    store.dispatch(setRecipesAction([]))
     throw error
   } finally {
     setTimeout(() => {
-      store.dispatch({ type: SET_IS_LOADING, isLoading: false })
+      store.dispatch(setIsLoading(false))
     }, 350)
   }
 }
 
 export async function saveRecipe(recipe) {
   try {
-    store.dispatch({ type: SET_ERROR, error: null })
+    store.dispatch(setError(null))
     const saved = await recipeService.save(recipe)
     if (recipe._id) {
-      store.dispatch({ type: UPDATE_RECIPE, recipe: saved })
+      store.dispatch(updateRecipeAction(saved))
     } else {
-      store.dispatch({ type: ADD_RECIPE, recipe: saved })
+      store.dispatch(addRecipeAction(saved))
     }
     return saved
   } catch (error) {
-    store.dispatch({
-      type: SET_ERROR,
-      error: error?.response?.data?.details || error?.response?.data?.error || error?.message || 'שמירת המתכון נכשלה',
-    })
+    store.dispatch(
+      setError(
+        error?.response?.data?.details ||
+        error?.response?.data?.error ||
+        error?.message ||
+        'Failed to save recipe'
+      )
+    )
     throw error
   }
 }
 
 export async function removeRecipe(recipeId) {
   try {
-    store.dispatch({ type: SET_ERROR, error: null })
+    store.dispatch(setError(null))
     await recipeService.remove(recipeId)
-    store.dispatch({ type: REMOVE_RECIPE, recipeId })
+    store.dispatch(removeRecipeAction(recipeId))
   } catch (error) {
-    store.dispatch({
-      type: SET_ERROR,
-      error: error?.response?.data?.details || error?.response?.data?.error || error?.message || 'מחיקת המתכון נכשלה',
-    })
+    store.dispatch(
+      setError(
+        error?.response?.data?.details ||
+        error?.response?.data?.error ||
+        error?.message ||
+        'Failed to remove recipe'
+      )
+    )
     throw error
   }
 }

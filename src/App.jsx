@@ -34,7 +34,11 @@ export function App() {
     <Provider store={store}>
       <Router>
         <section className={`main-layout app ${isSidebarExpanded ? 'sidebar-expanded' : ''}`}>
-          <Sidebar isExpanded={isSidebarExpanded} />
+          <Sidebar
+            isExpanded={isSidebarExpanded}
+            onHover={() => setIsSidebarExpanded(true)}
+            onLeave={() => setIsSidebarExpanded(false)}
+          />
           <div className="main-content">
             <AppHeader
               isSidebarExpanded={isSidebarExpanded}

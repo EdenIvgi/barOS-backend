@@ -4,7 +4,7 @@
   display: flex;
   min-height: 100vh;
   background: $gray-800;
-  direction: rtl;
+  /* direction inherited from html[dir] set by i18n */
 
   .main-content {
     flex: 1;

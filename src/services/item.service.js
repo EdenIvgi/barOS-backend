@@ -59,6 +59,7 @@ function getEmptyItem() {
     nameEn: '',
     description: '',
     categoryId: '',
+    supplier: '',
     price: 0,
     imageUrl: '',
     isAvailable: true,

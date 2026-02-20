@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 import { Formik, Form, Field, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
 import { loadRecipes, saveRecipe, removeRecipe } from '../store/actions/recipe.actions.js'
@@ -7,9 +8,15 @@ import { barBookService } from '../services/barBook.service.js'
 
 function normalizeBarBookContent(data) {
   if (!data) return barBookService.getEmptyContent()
+  const rawDaily = Array.isArray(data.dailyTasks) ? data.dailyTasks : []
+  const dailyTasks = rawDaily.map((d) => {
+    if (d.task !== undefined) return { day: d.day || '', task: String(d.task ?? '') }
+    if (Array.isArray(d.items)) return { day: d.day || '', task: d.items.join('\n') }
+    return { day: d.day || '', task: '' }
+  })
   return {
     checklists: data.checklists || barBookService.getEmptyContent().checklists,
-    dailyTasks: Array.isArray(data.dailyTasks) ? data.dailyTasks : [],
+    dailyTasks,
     stockTable: data.stockTable || barBookService.getEmptyContent().stockTable,
   }
 }
@@ -26,33 +33,31 @@ function arrayToLines(arr) {
   return Array.isArray(arr) ? arr.join('\n') : ''
 }
 
-const recipeSchema = Yup.object().shape({
-  title: Yup.string().trim().required('שם המתכון חובה'),
-  ingredientsText: Yup.string()
-    .trim()
-    .required('יש להזין לפחות מרכיב אחד')
-    .test('minLines', 'יש להזין לפחות מרכיב אחד', (val) => linesToArray(val || '').length > 0),
-  instructionsText: Yup.string()
-    .trim()
-    .required('יש להזין לפחות שלב אחד')
-    .test('minLines', 'יש להזין לפחות שלב אחד', (val) => linesToArray(val || '').length > 0),
-})
+function getRecipeSchema(t) {
+  return Yup.object().shape({
+    title: Yup.string().trim().required(t('recipeTitleRequired')),
+    ingredientsText: Yup.string()
+      .trim()
+      .required(t('minOneIngredient'))
+      .test('minLines', t('minOneIngredient'), (val) => linesToArray(val || '').length > 0),
+    instructionsText: Yup.string()
+      .trim()
+      .required(t('minOneStep'))
+      .test('minLines', t('minOneStep'), (val) => linesToArray(val || '').length > 0),
+  })
+}
 
-const TABS = [
-  { id: 'checklists', label: 'צ\'קליסטים' },
-  { id: 'pages', label: 'דפי מלאים' },
-  { id: 'daily', label: 'משימות יומיות' },
-  { id: 'recipes', label: 'מתכונים' },
-]
+const TAB_IDS = ['recipes', 'checklists', 'pages', 'daily']
 
 export function BarBookPage() {
-  const [activeTab, setActiveTab] = useState('recipes')
+  const { t } = useTranslation()
+  const [activeTab, setActiveTab] = useState('checklists')
   const [content, setContent] = useState(null)
   const [isLoadingBarBook, setIsLoadingBarBook] = useState(true)
   const [barBookError, setBarBookError] = useState(null)
   const skipSaveRef = useRef(true)
   const [editingChecklist, setEditingChecklist] = useState({ key: null, index: null, value: '' })
-  const [editingDaily, setEditingDaily] = useState({ dayIndex: null, taskIndex: null, value: '' })
+  const [editingDailyTask, setEditingDailyTask] = useState({ dayIndex: null, value: '' })
   const [editingStockCell, setEditingStockCell] = useState({ row: null, col: null, value: '' })
   const [editingSectionTitle, setEditingSectionTitle] = useState({ key: null, value: '' })
   const [editingStockTitle, setEditingStockTitle] = useState(null)
@@ -77,7 +82,7 @@ export function BarBookPage() {
         setBarBookError(null)
       })
       .catch((err) => {
-        setBarBookError(err?.response?.data?.error || err?.message || 'שגיאה בטעינת ספר הבר')
+        setBarBookError(err?.response?.data?.error || err?.message || t('errorLoadBarBook'))
       })
       .finally(() => setIsLoadingBarBook(false))
   }, [])
@@ -97,12 +102,12 @@ export function BarBookPage() {
   }, [content])
 
   async function clearBarBookContent() {
-    if (!window.confirm('לנקות את כל תוכן ספר הבר? כל התוכן יימחק.')) return
+    if (!window.confirm(t('confirmClearBarBook'))) return
     try {
       const content = await barBookService.clear()
       setContent(normalizeBarBookContent(content))
       setEditingChecklist({ key: null, index: null, value: '' })
-      setEditingDaily({ dayIndex: null, taskIndex: null, value: '' })
+      setEditingDailyTask({ dayIndex: null, value: '' })
       setEditingStockCell({ row: null, col: null, value: '' })
       setEditingSectionTitle({ key: null, value: '' })
       setEditingStockTitle(null)
@@ -222,56 +227,24 @@ export function BarBookPage() {
     setContent((prev) => ({ ...prev, dailyTasks: updater(prev.dailyTasks) }))
   }
 
-  function saveDailyTaskEdit() {
-    const { dayIndex, taskIndex, value } = editingDaily
-    if (dayIndex == null || taskIndex == null) return
-    const trimmed = (value ?? '').trim()
-    dailyTasksUpdate((tasks) => {
-      const next = tasks.map((d, i) =>
-        i === dayIndex
-          ? {
-              ...d,
-              items: trimmed
-                ? d.items.map((item, j) => (j === taskIndex ? trimmed : item))
-                : d.items.filter((_, j) => j !== taskIndex),
-            }
-          : d
-      )
-      return next
-    })
-    setEditingDaily({ dayIndex: null, taskIndex: null, value: '' })
-  }
-
-  function addDailyTask(dayIndex) {
-    dailyTasksUpdate((tasks) => {
-      const next = tasks.map((d, i) =>
-        i === dayIndex ? { ...d, items: [...d.items, ''] } : d
-      )
-      return next
-    })
-    const len = content.dailyTasks[dayIndex]?.items?.length ?? 0
-    setEditingDaily({ dayIndex, taskIndex: len, value: '' })
-  }
-
-  function removeDailyTask(dayIndex, taskIndex) {
+  function saveDailyTask(dayIndex) {
+    const { value } = editingDailyTask
+    if (editingDailyTask.dayIndex !== dayIndex) return
     dailyTasksUpdate((tasks) =>
-      tasks.map((d, i) =>
-        i === dayIndex ? { ...d, items: d.items.filter((_, j) => j !== taskIndex) } : d
-      )
+      tasks.map((d, i) => (i === dayIndex ? { ...d, task: value ?? '' } : d))
     )
-    setEditingDaily({ dayIndex: null, taskIndex: null, value: '' })
+    setEditingDailyTask({ dayIndex: null, value: '' })
   }
 
   function addDailyDay() {
-    dailyTasksUpdate((tasks) => [...tasks, { day: 'יום חדש', items: [''] }])
-    setEditingDayName({ index: content.dailyTasks.length, value: 'יום חדש' })
-    setEditingDaily({ dayIndex: content.dailyTasks.length, taskIndex: 0, value: '' })
+    dailyTasksUpdate((tasks) => [...tasks, { day: t('newDay'), task: '' }])
+    setEditingDayName({ index: content.dailyTasks.length, value: t('newDay') })
   }
 
   function removeDailyDay(dayIndex) {
     dailyTasksUpdate((tasks) => tasks.filter((_, i) => i !== dayIndex))
     setEditingDayName({ index: null, value: '' })
-    if (editingDaily.dayIndex === dayIndex) setEditingDaily({ dayIndex: null, taskIndex: null, value: '' })
+    if (editingDailyTask.dayIndex === dayIndex) setEditingDailyTask({ dayIndex: null, value: '' })
   }
 
   function saveDayName(index) {
@@ -338,7 +311,7 @@ export function BarBookPage() {
   }
 
   async function handleDelete(recipe) {
-    if (!window.confirm(`למחוק את המתכון "${recipe.title}"?`)) return
+    if (!window.confirm(`${t('confirmDeleteRecipe')} "${recipe.title}"?`)) return
     const id = recipe._id
     try {
       await removeRecipe(id)
@@ -350,24 +323,24 @@ export function BarBookPage() {
 
   return (
     <section className="bar-book-page">
-      <h1 className="page-title">ספר בר</h1>
+      <h1 className="page-title">{t('barBookTitle')}</h1>
 
       <div className="bar-book-tabs">
-        {TABS.map((tab) => (
+        {TAB_IDS.map((tabId) => (
           <button
-            key={tab.id}
+            key={tabId}
             type="button"
-            className={`bar-book-tab ${activeTab === tab.id ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
+            className={`bar-book-tab ${activeTab === tabId ? 'active' : ''}`}
+            onClick={() => setActiveTab(tabId)}
           >
-            {tab.label}
+            {t(tabId === 'checklists' ? 'tabChecklists' : tabId === 'pages' ? 'tabPages' : tabId === 'daily' ? 'tabDaily' : 'tabRecipes')}
           </button>
         ))}
       </div>
 
       <div className="bar-book-content">
         {isLoadingBarBook && (
-          <p className="bar-book-loading">טוען ספר בר...</p>
+          <p className="bar-book-loading">{t('loadingBarBook')}</p>
         )}
         {!isLoadingBarBook && barBookError && (
           <p className="bar-book-error">{barBookError}</p>
@@ -396,7 +369,7 @@ export function BarBookPage() {
                     <h2
                       className="checklist-title editable"
                       onClick={() => setEditingSectionTitle({ key, value: list.title })}
-                      title="לחץ לעריכה"
+                      title={t('clickToEdit')}
                     >
                       {list.title}
                     </h2>
@@ -429,9 +402,9 @@ export function BarBookPage() {
                                 e.stopPropagation()
                                 startEditChecklistItem(key, i, item)
                               }}
-                              title="לחץ לעריכה"
+                              title={t('clickToEdit')}
                             >
-                              {item || '(ריק)'}
+                              {item || t('emptyCell')}
                             </span>
                             <button
                               type="button"
@@ -441,8 +414,8 @@ export function BarBookPage() {
                                 e.stopPropagation()
                                 removeChecklistItem(key, i)
                               }}
-                              title="מחק משימה"
-                              aria-label="מחק"
+                              title={t('deleteItem')}
+                              aria-label={t('delete')}
                             >
                               ×
                             </button>
@@ -456,14 +429,14 @@ export function BarBookPage() {
                     className="btn-add-item"
                     onClick={() => addChecklistItem(key)}
                   >
-                    + הוסף משימה
+                    + {t('addTask')}
                   </button>
                 </section>
               )
             })}
             <div className="bar-book-reset-wrap">
               <button type="button" className="btn-reset-default" onClick={clearBarBookContent}>
-                נקה תוכן
+                {t('clearContent')}
               </button>
             </div>
           </div>
@@ -472,14 +445,14 @@ export function BarBookPage() {
         {!isLoadingBarBook && !barBookError && content && activeTab === 'daily' && (
           <div className="bar-book-full-pages">
             <section className="daily-tasks-section">
-              <h2 className="section-title">משימות יומיות</h2>
-              <p className="section-intro">משימות יומיות מתבצעות בכל משמרת. המשימה מתבצעת לפי יום בשבוע.</p>
+              <h2 className="section-title">{t('dailyTasksTitle')}</h2>
+              <p className="section-intro">{t('dailyTasksIntro')}</p>
               <div className="daily-tasks-table-wrap">
                 <table className="daily-tasks-table daily-tasks-vertical editable-table">
                   <thead>
                     <tr>
-                      <th>יום</th>
-                      <th>משימה יומית</th>
+                      <th>{t('dayColumn')}</th>
+                      <th>{t('dailyTaskColumn')}</th>
                       <th className="th-actions"></th>
                     </tr>
                   </thead>
@@ -501,70 +474,44 @@ export function BarBookPage() {
                             <span
                               className="editable"
                               onClick={() => setEditingDayName({ index: i, value: d.day })}
-                              title="לחץ לעריכה"
+                              title={t('clickToEdit')}
                             >
                               {d.day}
                             </span>
                           )}
                         </td>
                         <td className="daily-task-details-cell">
-                          <ul className="daily-task-items">
-                            {(d.items || []).map((item, j) => (
-                              <li key={j}>
-                                {editingDaily.dayIndex === i && editingDaily.taskIndex === j ? (
-                                  <input
-                                    type="text"
-                                    value={editingDaily.value}
-                                    onChange={(e) => setEditingDaily((p) => ({ ...p, value: e.target.value }))}
-                                    onBlur={saveDailyTaskEdit}
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter') saveDailyTaskEdit()
-                                      if (e.key === 'Escape') setEditingDaily({ dayIndex: null, taskIndex: null, value: '' })
-                                    }}
-                                    autoFocus
-                                    className="edit-input inline-edit"
-                                  />
-                                ) : (
-                                  <>
-                                    <span
-                                      className="editable"
-                                      onClick={() => setEditingDaily({ dayIndex: i, taskIndex: j, value: item })}
-                                      title="לחץ לעריכה"
-                                    >
-                                      {item || '(ריק)'}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      className="btn-icon btn-delete-item"
-                                      onClick={() => removeDailyTask(i, j)}
-                                      title="מחק"
-                                      aria-label="מחק"
-                                    >
-                                      ×
-                                    </button>
-                                  </>
-                                )}
-                              </li>
-                            ))}
-                            <li>
-                              <button
-                                type="button"
-                                className="btn-add-task-inline"
-                                onClick={() => addDailyTask(i)}
-                              >
-                                + הוסף משימה
-                              </button>
-                            </li>
-                          </ul>
+                          {editingDailyTask.dayIndex === i ? (
+                            <textarea
+                              value={editingDailyTask.value}
+                              onChange={(e) => setEditingDailyTask((p) => ({ ...p, value: e.target.value }))}
+                              onBlur={() => saveDailyTask(i)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Escape') setEditingDailyTask({ dayIndex: null, value: '' })
+                              }}
+                              autoFocus
+                              className="edit-input daily-task-textarea"
+                              rows={6}
+                              placeholder={t('dailyTaskPlaceholder')}
+                            />
+                          ) : (
+                            <div
+                              className="daily-task-text editable"
+                              onClick={() => setEditingDailyTask({ dayIndex: i, value: d.task ?? '' })}
+                              title={t('clickToEdit')}
+                            >
+                              {(d.task ?? '').trim() || t('emptyClickEdit')}
+                            </div>
+                          )}
                         </td>
                         <td className="td-actions">
                           <button
                             type="button"
                             className="btn-icon btn-delete-row"
                             onClick={() => removeDailyDay(i)}
-                            title="מחק יום"
+                            title={t('deleteDay')}
                           >
-                            מחק שורה
+                            {t('deleteRow')}
                           </button>
                         </td>
                       </tr>
@@ -573,12 +520,12 @@ export function BarBookPage() {
                 </table>
               </div>
               <button type="button" className="btn-add-item" onClick={addDailyDay}>
-                + הוסף יום
+                + {t('addDay')}
               </button>
             </section>
             <div className="bar-book-reset-wrap">
               <button type="button" className="btn-reset-default" onClick={clearBarBookContent}>
-                נקה תוכן
+                {t('clearContent')}
               </button>
             </div>
           </div>
@@ -690,7 +637,7 @@ export function BarBookPage() {
             </section>
             <div className="bar-book-reset-wrap">
               <button type="button" className="btn-reset-default" onClick={clearBarBookContent}>
-                נקה תוכן
+                {t('clearContent')}
               </button>
             </div>
           </div>
@@ -698,20 +645,20 @@ export function BarBookPage() {
 
         {activeTab === 'recipes' && (
           <div className="recipes-page bar-book-recipes">
-            <h2 className="section-title">מתכונים</h2>
+            <h2 className="section-title">{t('recipesTitle')}</h2>
             <div className="recipes-content">
               <div className="recipes-header-actions">
                 <button type="button" className="btn-add-recipe" onClick={openAddForm}>
-                  + הוסף מתכון
+                  + {t('addRecipe')}
                 </button>
               </div>
               <div className="recipes-grid">
                 {isLoading ? (
-                  <p className="recipes-loading">טוען מתכונים...</p>
+                  <p className="recipes-loading">{t('loadingRecipes')}</p>
                 ) : error ? (
                   <p className="recipes-error">{error}</p>
                 ) : recipes.length === 0 ? (
-                  <p className="recipes-empty">אין מתכונים. הוסף מתכון ראשון.</p>
+                  <p className="recipes-empty">{t('noRecipes')}</p>
                 ) : (
                   recipes.map((recipe) => (
                     <article key={recipe._id} className="recipe-card">
@@ -722,22 +669,22 @@ export function BarBookPage() {
                             type="button"
                             className="btn-edit-recipe"
                             onClick={() => openEditForm(recipe)}
-                            title="ערוך מתכון"
+                            title={t('editRecipe')}
                           >
-                            ערוך
+                            {t('edit')}
                           </button>
                           <button
                             type="button"
                             className="btn-delete-recipe"
                             onClick={() => handleDelete(recipe)}
-                            title="מחק מתכון"
+                            title={t('deleteRecipe')}
                           >
-                            מחק
+                            {t('delete')}
                           </button>
                         </div>
                       </div>
                       <div className="recipe-section">
-                        <h3>מרכיבים</h3>
+                        <h3>{t('ingredients')}</h3>
                         <ul>
                           {(recipe.ingredients || []).map((item, i) => (
                             <li key={i}>{item}</li>
@@ -745,7 +692,7 @@ export function BarBookPage() {
                         </ul>
                       </div>
                       <div className="recipe-section">
-                        <h3>אופן ההכנה</h3>
+                        <h3>{t('instructions')}</h3>
                         <ol>
                           {(recipe.instructions || []).map((step, i) => (
                             <li key={i}>{step}</li>
@@ -762,23 +709,23 @@ export function BarBookPage() {
       </div>
 
       {isFormOpen && (
-        <div className="recipe-form-overlay" onClick={closeForm}>
+        <div className="recipe-form-overlay" onClick={(e) => e.target === e.currentTarget && closeForm()}>
           <div className="recipe-form-container" onClick={(e) => e.stopPropagation()}>
-            <h2>{formRecipe ? 'עריכת מתכון' : 'הוספת מתכון'}</h2>
+            <h2>{formRecipe ? t('editingRecipe') : t('addingRecipe')}</h2>
             <Formik
               initialValues={getInitialValues()}
-              validationSchema={recipeSchema}
+              validationSchema={getRecipeSchema(t)}
               onSubmit={handleSubmit}
               enableReinitialize
             >
               <Form className="recipe-form">
                 <div className="form-group">
-                  <label htmlFor="recipe-title">שם המתכון</label>
-                  <Field id="recipe-title" name="title" type="text" className="form-input" placeholder="למשל: סירופ קינמון" />
+                  <label htmlFor="recipe-title">{t('recipeNameLabel')}</label>
+                  <Field id="recipe-title" name="title" type="text" className="form-input" placeholder={t('recipeNamePlaceholder')} />
                   <ErrorMessage name="title" component="div" className="form-error" />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="recipe-ingredients">מרכיבים (שורה אחת לכל מרכיב)</label>
+                  <label htmlFor="recipe-ingredients">{t('ingredientsLabel')}</label>
                   <Field
                     id="recipe-ingredients"
                     name="ingredientsText"
@@ -790,7 +737,7 @@ export function BarBookPage() {
                   <ErrorMessage name="ingredientsText" component="div" className="form-error" />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="recipe-instructions">אופן ההכנה (שורה אחת לכל שלב)</label>
+                  <label htmlFor="recipe-instructions">{t('instructionsLabel')}</label>
                   <Field
                     id="recipe-instructions"
                     name="instructionsText"
@@ -803,10 +750,10 @@ export function BarBookPage() {
                 </div>
                 <div className="form-actions">
                   <button type="submit" className="btn-save">
-                    {formRecipe ? 'שמור שינויים' : 'הוסף מתכון'}
+                    {formRecipe ? t('saveChanges') : t('addRecipe')}
                   </button>
                   <button type="button" className="btn-cancel" onClick={closeForm}>
-                    ביטול
+                    {t('cancel')}
                   </button>
                 </div>
               </Form>

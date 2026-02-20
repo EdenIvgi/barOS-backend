@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { itemService } from '../services/item.service'
 import { Loader } from '../cmps/Loader'
 import { showErrorMsg } from '../services/event-bus.service'
 import { addToCart } from '../store/actions/order.actions'
 
 export function ItemDetails() {
+  const { t } = useTranslation()
   const { itemId } = useParams()
   const [item, setItem] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -34,7 +36,7 @@ export function ItemDetails() {
   }
 
   if (!item) {
-    return <div className="item-details">Item not found</div>
+    return <div className="item-details">{t('itemNotFound')}</div>
   }
 
   return (
@@ -54,11 +56,11 @@ export function ItemDetails() {
               item.isAvailable ? 'available' : 'unavailable'
             }`}
           >
-            {item.isAvailable ? 'Available' : 'Unavailable'}
+            {item.isAvailable ? t('available') : t('unavailable')}
           </div>
           {item.stockQuantity > 0 && (
             <div className="item-detail-stock">
-              Stock: {item.stockQuantity}
+              {t('stockLabel')}: {item.stockQuantity}
             </div>
           )}
           {item.tags && item.tags.length > 0 && (
@@ -84,7 +86,7 @@ export function ItemDetails() {
                 />
               </div>
               <button onClick={handleAddToCart} className="btn-add-to-cart-large">
-                Add to Cart
+                {t('addToCartButton')}
               </button>
             </div>
           )}

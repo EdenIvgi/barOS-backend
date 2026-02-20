@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 import { Loader } from '../cmps/Loader'
 import { CategoryFilter } from '../cmps/CategoryFilter'
 import { ItemSearch } from '../cmps/ItemSearch'
@@ -9,6 +10,7 @@ import { loadItems, setFilterBy } from '../store/actions/item.actions'
 import { showErrorMsg } from '../services/event-bus.service'
 
 export function MenuPage() {
+  const { t } = useTranslation()
   const items = useSelector((storeState) => storeState.itemModule.items)
   const filterBy = useSelector((storeState) => storeState.itemModule.filterBy)
   const maxPage = useSelector((storeState) => storeState.itemModule.maxPage)
@@ -24,7 +26,7 @@ export function MenuPage() {
     try {
       await loadItems()
     } catch (error) {
-      showErrorMsg('Cannot load products')
+      showErrorMsg(t('cannotLoadProducts'))
     }
   }
 

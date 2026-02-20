@@ -12,15 +12,13 @@ export function AppHeader({ isSidebarExpanded, onToggleSidebar }) {
 
   function toggleLanguage() {
     const currentLang = i18n.resolvedLanguage || 'he'
-    const nextLang = currentLang === 'en' ? 'es' : currentLang === 'es' ? 'he' : 'en'
+    const nextLang = currentLang === 'en' ? 'he' : 'en'
     i18n.changeLanguage(nextLang)
   }
 
   function getLanguageLabel() {
     const currentLang = i18n.resolvedLanguage || 'he'
-    if (currentLang === 'en') return 'EN'
-    if (currentLang === 'es') return 'ES'
-    return 'HE'
+    return currentLang === 'en' ? 'EN' : 'HE'
   }
 
   function onLogout() {
@@ -36,30 +34,30 @@ export function AppHeader({ isSidebarExpanded, onToggleSidebar }) {
     <section className="app-header full">
       <div className="header-content flex justify-between align-center">
         <div className="header-actions flex align-center gap-1">
+          <CartIcon />
           <button 
             className="language-toggle-btn"
             onClick={toggleLanguage}
-            title="Toggle Language"
+            title={t('toggleLanguage')}
           >
             {getLanguageLabel()}
           </button>
           {user ? (
             <section className="flex align-center gap-1">
-              <Link to={'/user'}>Hello {user.fullname}</Link>
-              <button onClick={onLogout}>Logout</button>
+              <Link to={'/user'}>{t('hello')} {user.fullname}</Link>
+              <button onClick={onLogout}>{t('logout')}</button>
             </section>
           ) : (
             <section>
               <LoginSignup />
             </section>
           )}
-          <CartIcon />
         </div>
         <div className="header-brand flex align-center gap-1">
           <button
             type="button"
             className="sidebar-toggle"
-            aria-label={isSidebarExpanded ? 'Close sidebar' : 'Open sidebar'}
+            aria-label={isSidebarExpanded ? t('closeSidebar') : t('openSidebar')}
             aria-expanded={!!isSidebarExpanded}
             onClick={onToggleSidebar}
           >

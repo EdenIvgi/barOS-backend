@@ -1,10 +1,12 @@
+import { useTranslation } from 'react-i18next'
 import { ItemPreview } from './ItemPreview'
 
 export function ItemList({ items }) {
+  const { t } = useTranslation()
   if (!items || !items.length) {
     return (
       <div className="item-list empty">
-        <p>No items found</p>
+        <p>{t('noItemsFound')}</p>
       </div>
     )
   }

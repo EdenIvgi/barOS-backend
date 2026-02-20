@@ -166,7 +166,7 @@ export function RecipesPage() {
       </div>
 
       {isFormOpen && (
-        <div className="recipe-form-overlay" onClick={closeForm}>
+        <div className="recipe-form-overlay" onClick={(e) => e.target === e.currentTarget && closeForm()}>
           <div className="recipe-form-container" onClick={(e) => e.stopPropagation()}>
             <h2>{formRecipe ? 'עריכת מתכון' : 'הוספת מתכון'}</h2>
             <Formik

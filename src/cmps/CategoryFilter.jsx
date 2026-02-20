@@ -1,9 +1,11 @@
 import { useMemo } from 'react'
 import { useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 // Categories are now loaded from items, so we don't need to load from backend
 // import { loadCategories } from '../store/actions/category.actions'
 
 export function CategoryFilter({ filterBy, onSetFilter, selectedCategoryId }) {
+  const { t, i18n } = useTranslation()
   const items = useSelector((storeState) => storeState.itemModule.items)
 
   // Extract unique category values from items
@@ -49,16 +51,21 @@ export function CategoryFilter({ filterBy, onSetFilter, selectedCategoryId }) {
   }
 
   return (
-    <section className="category-filter">
+    <section className="category-filter" aria-label={t('categoriesFilterTitle')}>
       <div className="category-buttons flex">
         <button
           className={`category-btn ${!selectedCategoryId ? 'active' : ''}`}
           onClick={() => handleCategoryClick('')}
         >
-          All
+          {t('allCategoriesFilter')}
         </button>
         {categories.map((category) => {
           const catId = typeof category._id === 'object' ? category._id.toString() : String(category._id)
+          const categoryKey = 'category_' + String(category.name).toUpperCase().replace(/\s+/g, '_')
+          const isHebrew = (i18n.language || '').startsWith('he')
+          const displayName = isHebrew
+            ? t(categoryKey, { defaultValue: category.name })
+            : (category.nameEn || category.name)
           return (
             <button
               key={catId}
@@ -68,7 +75,7 @@ export function CategoryFilter({ filterBy, onSetFilter, selectedCategoryId }) {
               onClick={() => handleCategoryClick(category.name)}
             >
               {category.icon && <span className="category-icon">{category.icon}</span>}
-              {category.name}
+              {displayName}
             </button>
           )
         })}

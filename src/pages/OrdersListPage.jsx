@@ -1,20 +1,21 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 import { loadOrders, removeOrder, updateOrder } from '../store/actions/order.actions'
 import { loadItems } from '../store/actions/item.actions'
 import { Loader } from '../cmps/Loader'
 import { showSuccessMsg, showErrorMsg } from '../services/event-bus.service'
 import { downloadOrderPdf } from '../services/orderPdf.service'
 
-const NO_SUPPLIER = 'ללא ספק'
+const NO_SUPPLIER_KEY = '__no_supplier__'
 
 function getOrderSupplier(order, inventoryItems = []) {
-  if (!order) return NO_SUPPLIER
+  if (!order) return NO_SUPPLIER_KEY
   const fromOrder = order.supplier
   if (fromOrder != null && String(fromOrder).trim() !== '') {
     return String(fromOrder).trim()
   }
-  if (!order.items?.length || !inventoryItems?.length) return NO_SUPPLIER
+  if (!order.items?.length || !inventoryItems?.length) return NO_SUPPLIER_KEY
   for (const orderItem of order.items) {
     const itemId = orderItem.itemId ?? orderItem._id
     if (!itemId) continue
@@ -24,7 +25,7 @@ function getOrderSupplier(order, inventoryItems = []) {
     const s = inv?.supplier ?? inv?.supplierName
     if (s != null && String(s).trim() !== '') return String(s).trim()
   }
-  return NO_SUPPLIER
+  return NO_SUPPLIER_KEY
 }
 
 function toDateKey(timestamp) {
@@ -75,6 +76,7 @@ const IconUndo = () => (
 )
 
 export function OrdersListPage() {
+  const { t } = useTranslation()
   const orders = useSelector((storeState) => storeState.orderModule.orders)
   const items = useSelector((storeState) => storeState.itemModule.items)
   const isLoading = useSelector((storeState) => storeState.orderModule.flag.isLoading)
@@ -98,7 +100,7 @@ export function OrdersListPage() {
       const s = getOrderSupplier(o, items)
       if (s) set.add(s)
     })
-    return Array.from(set).sort((a, b) => (a === NO_SUPPLIER ? 1 : b === NO_SUPPLIER ? -1 : a.localeCompare(b)))
+    return Array.from(set).sort((a, b) => (a === NO_SUPPLIER_KEY ? 1 : b === NO_SUPPLIER_KEY ? -1 : a.localeCompare(b)))
   }, [orders, items])
 
   const ordersByDateAndSupplier = useMemo(() => {
@@ -120,12 +122,12 @@ export function OrdersListPage() {
   }, [])
 
   async function handleDelete(orderId) {
-    if (!window.confirm('האם אתה בטוח שברצונך למחוק את ההזמנה?')) return
+    if (!window.confirm(t('confirmDeleteOrder'))) return
     try {
       await removeOrder(orderId)
-      showSuccessMsg('ההזמנה נמחקה בהצלחה')
+      showSuccessMsg(t('orderDeletedSuccess'))
     } catch {
-      showErrorMsg('שגיאה במחיקת ההזמנה')
+      showErrorMsg(t('orderDeleteError'))
     }
   }
 
@@ -195,7 +197,7 @@ export function OrdersListPage() {
           return next
         })
       } else {
-        showErrorMsg('שגיאה בעדכון ההזמנה')
+        showErrorMsg(t('orderUpdateError'))
         await loadOrders()
       }
     } catch {
@@ -211,7 +213,7 @@ export function OrdersListPage() {
     try {
       await downloadOrderPdf(order, name, supplier)
     } catch (e) {
-      showErrorMsg('שגיאה ביצירת הקובץ')
+      showErrorMsg(t('pdfError'))
     }
   }
 
@@ -225,19 +227,19 @@ export function OrdersListPage() {
 
   return (
     <div className="orders-list-page orders-grid-page">
-      <h1>רשימת הזמנות</h1>
+      <h1>{t('ordersListTitle')}</h1>
 
       {uniqueDates.length === 0 || uniqueSuppliers.length === 0 ? (
-        <p className="empty-message">אין הזמנות</p>
+        <p className="empty-message">{t('noOrders')}</p>
       ) : (
         <div className="orders-grid-wrapper">
           <table className="orders-grid-table">
             <thead>
               <tr>
-                <th className="col-date">תאריך</th>
+                <th className="col-date">{t('dateColumn')}</th>
                 {uniqueSuppliers.map((supplier) => (
                   <th key={supplier} className="col-supplier">
-                    {supplier}
+                    {supplier === NO_SUPPLIER_KEY ? t('noSupplier') : supplier}
                   </th>
                 ))}
               </tr>
@@ -267,32 +269,32 @@ export function OrdersListPage() {
                                       className="cell-order-summary"
                                       onClick={() => setExpandedOrderId((id) => (id === order._id ? null : order._id))}
                                     >
-                                      {count} פריטים
+                                      {count} {t('itemsCount')}
                                     </span>
                                     <div className="cell-order-actions" onClick={(e) => e.stopPropagation()}>
                                       <button
                                         type="button"
                                         className="btn-download-pdf btn-icon"
                                         onClick={() => handleDownloadPdf(order)}
-                                        title="הורד PDF"
+                                        title={t('downloadPdf')}
                                       >
                                         <IconDownload />
                                       </button>
                                       {editingOrder === order._id ? (
                                         <>
-                                          <button type="button" className="btn-save btn-icon" onClick={() => handleSaveEdit(order)} title="שמור">
+                                          <button type="button" className="btn-save btn-icon" onClick={() => handleSaveEdit(order)} title={t('saveChanges')}>
                                             <IconSave />
                                           </button>
-                                          <button type="button" className="btn-cancel btn-icon" onClick={handleCancelEdit} title="ביטול">
+                                          <button type="button" className="btn-cancel btn-icon" onClick={handleCancelEdit} title={t('cancel')}>
                                             <IconCancel />
                                           </button>
                                         </>
                                       ) : (
                                         <>
-                                          <button type="button" className="btn-edit btn-icon" onClick={() => handleEdit(order)} title="ערוך">
+                                          <button type="button" className="btn-edit btn-icon" onClick={() => handleEdit(order)} title={t('edit')}>
                                             <IconEdit />
                                           </button>
-                                          <button type="button" className="btn-delete btn-icon" onClick={() => handleDelete(order._id)} title="מחק הזמנה">
+                                          <button type="button" className="btn-delete btn-icon" onClick={() => handleDelete(order._id)} title={t('deleteOrder')}>
                                             <IconDelete />
                                           </button>
                                         </>
@@ -311,9 +313,9 @@ export function OrdersListPage() {
                                         <table className="order-items-table">
                                           <thead>
                                             <tr>
-                                              <th>פריט</th>
-                                              <th>כמות</th>
-                                              {editingOrder === order._id && <th className="th-actions" title="מחק"><IconDelete /></th>}
+                                              <th>{t('itemColumn')}</th>
+                                              <th>{t('quantityColumn')}</th>
+                                              {editingOrder === order._id && <th className="th-actions" title={t('delete')}><IconDelete /></th>}
                                             </tr>
                                           </thead>
                                           <tbody>
@@ -323,12 +325,12 @@ export function OrdersListPage() {
                                                 return (
                                                   <tr key={idx} className="row-deleted">
                                                     <td colSpan={editingOrder === order._id ? 3 : 2}>
-                                                      <span className="item-removed">{item.name || `פריט ${idx + 1}`} הוסר</span>
+                                                      <span className="item-removed">{item.name || t('itemNumber', { n: idx + 1 })} {t('itemRemoved')}</span>
                                                       <button
                                                         type="button"
                                                         className="btn-undo-item btn-icon"
                                                         onClick={() => handleUndoDeleteItem(order._id, idx)}
-                                                        title="החזר"
+                                                        title={t('undo')}
                                                       >
                                                         <IconUndo />
                                                       </button>
@@ -338,7 +340,7 @@ export function OrdersListPage() {
                                               }
                                               return (
                                                 <tr key={idx}>
-                                                  <td>{item.name || `פריט ${idx + 1}`}</td>
+                                                  <td>{item.name || t('itemNumber', { n: idx + 1 })}</td>
                                                   <td>
                                                     {editingOrder === order._id ? (
                                                       <input
@@ -357,7 +359,7 @@ export function OrdersListPage() {
                                                         type="button"
                                                         className="btn-delete-item btn-icon"
                                                         onClick={() => handleDeleteItem(order._id, idx)}
-                                                        title="הסר פריט מההזמנה"
+                                                        title={t('removeItemFromOrder')}
                                                       >
                                                         <IconDelete />
                                                       </button>
@@ -369,7 +371,7 @@ export function OrdersListPage() {
                                           </tbody>
                                         </table>
                                       ) : (
-                                        <p className="empty-message">אין פריטים</p>
+                                        <p className="empty-message">{t('noItems')}</p>
                                       )}
                                     </div>
                                   )}

@@ -1,37 +1,35 @@
 import { itemService } from '../../services/item.service'
 import {
-  SET_ITEMS,
-  REMOVE_ITEM,
-  ADD_ITEM,
-  UPDATE_ITEM,
-  SET_MAX_PAGE,
-  SET_FILTER_BY,
-  SET_IS_LOADING,
-  SET_ERROR,
-} from '../reducers/item.reducer'
+  setItems,
+  removeItem as removeItemAction,
+  addItem as addItemAction,
+  updateItem as updateItemAction,
+  setMaxPage,
+  setFilterBy as setFilterByAction,
+  setIsLoading,
+  setError,
+} from '../slices/item.slice'
 import { store } from '../store'
 
 export async function loadItems(filterBy) {
   const filter = filterBy || store.getState().itemModule.filterBy
   try {
-    store.dispatch({ type: SET_IS_LOADING, isLoading: true })
+    store.dispatch(setIsLoading(true))
     const result = await itemService.query(filter)
-    // Backend may return { items: [], maxPage: 0 } or just an array
     if (Array.isArray(result)) {
-      store.dispatch({ type: SET_ITEMS, items: result })
-      store.dispatch({ type: SET_MAX_PAGE, maxPage: 0 })
+      store.dispatch(setItems(result))
+      store.dispatch(setMaxPage(0))
     } else {
-      store.dispatch({ type: SET_ITEMS, items: result.items || [] })
-      store.dispatch({ type: SET_MAX_PAGE, maxPage: result.maxPage || 0 })
+      store.dispatch(setItems(result.items || []))
+      store.dispatch(setMaxPage(result.maxPage || 0))
     }
   } catch (error) {
-    store.dispatch({ type: SET_ERROR, error: 'Failed to load items' })
-    // Set empty array on error to prevent undefined
-    store.dispatch({ type: SET_ITEMS, items: [] })
+    store.dispatch(setError('Failed to load items'))
+    store.dispatch(setItems([]))
     throw error
   } finally {
     setTimeout(() => {
-      store.dispatch({ type: SET_IS_LOADING, isLoading: false })
+      store.dispatch(setIsLoading(false))
     }, 350)
   }
 }
@@ -39,25 +37,28 @@ export async function loadItems(filterBy) {
 export async function removeItem(itemId) {
   try {
     await itemService.remove(itemId)
-    store.dispatch({ type: REMOVE_ITEM, itemId })
+    store.dispatch(removeItemAction(itemId))
   } catch (error) {
-    store.dispatch({ type: SET_ERROR, error: 'Failed to remove item' })
+    store.dispatch(setError('Failed to remove item'))
     throw error
   }
 }
 
 export async function saveItem(item) {
   try {
-    const type = item._id ? UPDATE_ITEM : ADD_ITEM
     const savedItem = await itemService.save(item)
-    store.dispatch({ type, item: savedItem })
+    if (item._id) {
+      store.dispatch(updateItemAction(savedItem))
+    } else {
+      store.dispatch(addItemAction(savedItem))
+    }
     return savedItem
   } catch (error) {
-    store.dispatch({ type: SET_ERROR, error: 'Failed to save item' })
+    store.dispatch(setError('Failed to save item'))
     throw error
   }
 }
 
 export function setFilterBy(filterBy = itemService.getDefaultFilter()) {
-  store.dispatch({ type: SET_FILTER_BY, filterBy })
+  store.dispatch(setFilterByAction(filterBy))
 }

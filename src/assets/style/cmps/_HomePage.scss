@@ -6,6 +6,45 @@
   margin: 0 auto;
   background: $white-off;
 
+  // משימה יומית
+  .daily-task-card {
+    margin-bottom: 2rem;
+    padding: 1.5rem 2rem;
+    background: #f0f7f4;
+    color: $black-dark;
+    border-radius: $border-radius-lg;
+    box-shadow: $shadow-md;
+    border: 1px solid rgba(61, 122, 106, 0.2);
+
+    .daily-task-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .daily-task-badge {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #2d5f52;
+    }
+
+    .daily-task-day {
+      font-size: 0.95rem;
+      color: $gray-700;
+    }
+
+    .daily-task-text {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      line-height: 1.5;
+      color: $black-dark;
+    }
+  }
+
   // Dashboard Statistics
   .dashboard-stats {
     display: grid;
@@ -365,6 +404,14 @@
   // Responsive Design
   @media (max-width: 768px) {
     padding: 1rem;
+
+    .daily-task-card {
+      padding: 1.25rem 1.5rem;
+
+      .daily-task-text {
+        font-size: 1.1rem;
+      }
+    }
 
     .dashboard-stats {
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));

@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { loadItems, removeItem } from '../store/actions/item.actions'
+import { loadItems, removeItem, saveItem } from '../store/actions/item.actions'
 // Categories are now loaded from items, so we don't need to load from backend
 // import { loadCategories } from '../store/actions/category.actions'
 import { itemService } from '../services/item.service'
@@ -10,7 +11,20 @@ import { Loader } from '../cmps/Loader'
 import { showSuccessMsg, showErrorMsg } from '../services/event-bus.service'
 import * as XLSX from 'xlsx'
 
+function getCategoryNameFromItem(item) {
+  if (item?.category?.name) return item.category.name
+  if (item?.category && typeof item.category === 'string') return item.category
+  const categoryId = item?.categoryId
+  if (categoryId) {
+    if (typeof categoryId === 'string' && categoryId.length < 24) return categoryId
+    if (typeof categoryId === 'string') return categoryId
+    if (typeof categoryId === 'object') return categoryId.toString()
+  }
+  return null
+}
+
 export function ItemsManagementPage() {
+  const { t } = useTranslation()
   const items = useSelector((storeState) => storeState.itemModule.items)
   const user = useSelector((storeState) => storeState.userModule.loggedInUser)
   // Categories are now loaded from items, so we don't need categories from store
@@ -30,10 +44,12 @@ export function ItemsManagementPage() {
   const [createOrderModal, setCreateOrderModal] = useState({
     isOpen: false,
     bySupplier: null,
-    selectedSuppliers: {}
+    selectedSuppliers: {},
+    createCombined: false
   })
 
   const fileInputRef = useRef(null)
+  const overlayMouseDownRef = useRef(false)
   const [importState, setImportState] = useState({
     isOpen: false,
     isLoading: false,
@@ -45,23 +61,58 @@ export function ItemsManagementPage() {
 
   useEffect(() => {
     loadItems()
-    // Categories are now loaded from items, so we don't need to load from backend
-    // loadCategories().catch((error) => {
-    //   console.error('Failed to load categories:', error)
-    //   // Don't show error - categories are loaded from items
-    // })
   }, [])
 
+  const uniqueCategories = useMemo(() => {
+    if (!items || !Array.isArray(items)) return []
+    const categorySet = new Set()
+    items.forEach((item) => {
+      if (item.category) {
+        if (typeof item.category === 'string') categorySet.add(item.category)
+        else if (item.category.name) categorySet.add(item.category.name)
+      }
+      if (item.categoryId && typeof item.categoryId === 'string' && item.categoryId.length < 24) {
+        categorySet.add(item.categoryId)
+      }
+    })
+    return Array.from(categorySet).sort()
+  }, [items])
+
+  const uniqueSuppliers = useMemo(() => {
+    if (!items || !Array.isArray(items)) return []
+    const supplierSet = new Set()
+    items.forEach((item) => {
+      if (item.supplier && item.supplier.trim()) supplierSet.add(item.supplier.trim())
+    })
+    return Array.from(supplierSet).sort()
+  }, [items])
+
+  const filteredItems = useMemo(() => {
+    if (!items || !Array.isArray(items)) return []
+    return items.filter((item) => {
+      if (filters.category && getCategoryNameFromItem(item) !== filters.category) return false
+      if (filters.supplier && (!item.supplier || item.supplier !== filters.supplier)) return false
+      if (filters.stockStatus !== '') {
+        const stockQuantity = item.stockQuantity ?? 0
+        const minStockLevel = item.minStockLevel || 0
+        if (filters.stockStatus === 'inStock' && stockQuantity <= 0) return false
+        if (filters.stockStatus === 'outOfStock' && stockQuantity > 0) return false
+        if (filters.stockStatus === 'lowStock' && stockQuantity > minStockLevel) return false
+      }
+      return true
+    })
+  }, [items, filters])
+
   async function handleDelete(itemId) {
-    if (!window.confirm('האם אתה בטוח שברצונך למחוק את הפריט?')) {
+    if (!window.confirm(t('confirmDeleteItem'))) {
       return
     }
 
     try {
       await removeItem(itemId)
-      showSuccessMsg('הפריט נמחק בהצלחה')
+      showSuccessMsg(t('itemDeletedSuccess'))
     } catch (error) {
-      showErrorMsg('שגיאה במחיקת הפריט')
+      showErrorMsg(t('itemDeleteError'))
     }
   }
 
@@ -127,18 +178,11 @@ export function ItemsManagementPage() {
         }
       }
 
-      if (isEditing) {
-        await itemService.save(itemToSave)
-        showSuccessMsg('הפריט עודכן בהצלחה')
-      } else {
-        await itemService.save(itemToSave)
-        showSuccessMsg('הפריט נוסף בהצלחה')
-      }
-
-      await loadItems()
+      await saveItem(itemToSave)
+      showSuccessMsg(isEditing ? t('itemUpdatedSuccess') : t('itemSavedSuccess'))
       handleCancel()
     } catch (error) {
-      showErrorMsg('שגיאה בשמירת הפריט')
+      showErrorMsg(t('itemSaveError'))
     }
   }
 
@@ -151,103 +195,6 @@ export function ItemsManagementPage() {
   }
 
   if (isLoading) return <Loader />
-
-  // Extract unique category values from items
-  const getUniqueCategoriesFromItems = () => {
-    if (!items || !Array.isArray(items)) return []
-    
-    const categorySet = new Set()
-    items.forEach((item) => {
-      // Try to get category from different sources
-      if (item.category) {
-        if (typeof item.category === 'string') {
-          categorySet.add(item.category)
-        } else if (item.category.name) {
-          categorySet.add(item.category.name)
-        }
-      }
-      if (item.categoryId && typeof item.categoryId === 'string' && item.categoryId.length < 24) {
-        // If categoryId is a short string (not ObjectId), it might be a category name
-        categorySet.add(item.categoryId)
-      }
-    })
-    
-    return Array.from(categorySet).sort()
-  }
-
-  const uniqueCategories = getUniqueCategoriesFromItems()
-
-  // Extract unique supplier values from items
-  const getUniqueSuppliersFromItems = () => {
-    if (!items || !Array.isArray(items)) return []
-    
-    const supplierSet = new Set()
-    items.forEach((item) => {
-      if (item.supplier && item.supplier.trim()) {
-        supplierSet.add(item.supplier.trim())
-      }
-    })
-    
-    return Array.from(supplierSet).sort()
-  }
-
-  const uniqueSuppliers = getUniqueSuppliersFromItems()
-
-  // Helper function to get category name from item
-  const getCategoryName = (item) => {
-    // First try to get category from embedded category object
-    if (item?.category?.name) {
-      return item.category.name
-    }
-    
-    // If category is a string (from database), use it directly
-    if (item?.category && typeof item.category === 'string') {
-      return item.category
-    }
-    
-    // Fallback: use categoryId if it's a string (category name)
-    const categoryId = item?.categoryId
-    if (categoryId) {
-      if (typeof categoryId === 'string' && categoryId.length < 24) {
-        // If categoryId is a short string (not ObjectId), it's likely a category name
-        return categoryId
-      } else if (typeof categoryId === 'string') {
-        return categoryId
-      } else if (typeof categoryId === 'object') {
-        return categoryId.toString()
-      }
-    }
-    
-    return 'ללא קטגוריה'
-  }
-
-  // Filter items based on filters
-  const filteredItems = items?.filter((item) => {
-    // Category filter
-    if (filters.category) {
-      const categoryName = getCategoryName(item)
-      if (categoryName !== filters.category) return false
-    }
-
-    // Supplier filter
-    if (filters.supplier) {
-      if (!item.supplier || item.supplier !== filters.supplier) {
-        return false
-      }
-    }
-
-    // Stock status filter (in stock / out of stock / low stock)
-    if (filters.stockStatus !== '') {
-      const stockQuantity = item.stockQuantity ?? 0
-      const minStockLevel = item.minStockLevel || 0
-      
-      if (filters.stockStatus === 'inStock' && stockQuantity <= 0) return false
-      if (filters.stockStatus === 'outOfStock' && stockQuantity > 0) return false
-      if (filters.stockStatus === 'lowStock' && stockQuantity > minStockLevel) return false
-    }
-
-    return true
-  }) || []
 
   function handleFilterChange(ev) {
     const { name, value } = ev.target
@@ -270,18 +217,11 @@ export function ItemsManagementPage() {
       const newToOrder = Math.max(0, Number(newToOrderValue) || 0)
       const currentStock = item.stockQuantity || 0
       const newOptimalStock = currentStock + newToOrder
-      
-      // Update the item's optimalStockLevel
-      const updatedItem = {
-        ...item,
-        optimalStockLevel: newOptimalStock
-      }
-      
-      await itemService.save(updatedItem)
-      await loadItems()
-      showSuccessMsg('כמות אופטימלית עודכנה')
+      const updatedItem = { ...item, optimalStockLevel: newOptimalStock }
+      await saveItem(updatedItem)
+      showSuccessMsg(t('optimalUpdated'))
     } catch (error) {
-      showErrorMsg('שגיאה בעדכון הכמות האופטימלית')
+      showErrorMsg(t('optimalUpdateError'))
     }
   }
 
@@ -307,15 +247,14 @@ export function ItemsManagementPage() {
     return Number(s)
   }
 
-  /** כמות להזמין = השלמה לכמות אופטימלית: optimal - current. מקרה קצה: פחות ממוצר אחד במלאי ואופטימלי ≥ 1 → מזמינים לפחות 1 */
+  /** Order quantity = optimal - current. Rounded up to whole number. */
   function getToOrderQuantity(item) {
     const optimal = parseFloat(item?.optimalStockLevel)
     const current = parseFloat(item?.stockQuantity)
     if (Number.isNaN(optimal) || optimal <= 0) return 0
     const stock = Number.isNaN(current) ? 0 : current
-    let toOrder = Math.max(0, optimal - stock)
-    if (stock < 1 && optimal >= 1 && toOrder > 0 && toOrder < 1) toOrder = 1
-    return toOrder
+    const toOrder = Math.max(0, optimal - stock)
+    return toOrder > 0 ? Math.ceil(toOrder) : 0
   }
 
   async function handleImportFile(ev) {
@@ -338,7 +277,7 @@ export function ItemsManagementPage() {
       const sheet = wb.Sheets[wb.SheetNames[0]]
       const rawRows = XLSX.utils.sheet_to_json(sheet, { defval: '' })
 
-      // Find header row (first row with "שם המוצר" or "ספק")
+      // Find header row (first row with product name / supplier columns)
       let headerRowIndex = -1
       let headers = {}
 
@@ -439,7 +378,7 @@ export function ItemsManagementPage() {
         const stockQty = row[headers.stockQuantity] !== undefined && row[headers.stockQuantity] !== '' 
           ? Number(row[headers.stockQuantity]) 
           : 0
-        // Extract order quantity (כמה להזמין) - always from file column; empty = 0
+        // Extract order quantity from file column; empty = 0
         const orderQtyRaw = row[headers.orderQuantity]
         let orderQty = 0
         if (orderQtyRaw !== undefined && orderQtyRaw !== '' && orderQtyRaw !== null) {
@@ -477,7 +416,7 @@ export function ItemsManagementPage() {
       setImportState(prev => ({
         ...prev,
         isLoading: false,
-        error: err?.message || 'שגיאה בקריאת הקובץ',
+        error: err?.message || t('readFileError'),
       }))
     } finally {
       // allow re-uploading same file
@@ -488,12 +427,12 @@ export function ItemsManagementPage() {
   async function handleApplyImport() {
     try {
       setImportState(prev => ({ ...prev, isLoading: true, error: null }))
-      const report = await itemService.importStock(importState.rows, { dryRun: false, mode: 'set' })
+      await itemService.importStock(importState.rows, { dryRun: false, mode: 'set' })
       await loadItems()
-      setImportState(prev => ({ ...prev, isLoading: false, report }))
-      showSuccessMsg('המלאי עודכן בהצלחה')
+      showSuccessMsg(t('stockUpdatedSuccess'))
+      closeImportModal()
     } catch (err) {
-      setImportState(prev => ({ ...prev, isLoading: false, error: err?.message || 'שגיאה בעדכון המלאי' }))
+      setImportState(prev => ({ ...prev, isLoading: false, error: err?.message || t('stockUpdateError') }))
     }
   }
 
@@ -536,7 +475,7 @@ export function ItemsManagementPage() {
       .filter(Boolean)
 
     if (rows.length === 0) {
-      showErrorMsg('אין מוצרים להזמין')
+      showErrorMsg(t('noProductsToOrder'))
       return
     }
 
@@ -557,11 +496,15 @@ export function ItemsManagementPage() {
     for (const key of Object.keys(bySupplier)) {
       selectedSuppliers[key] = true
     }
-    setCreateOrderModal({ isOpen: true, bySupplier, selectedSuppliers })
+    setCreateOrderModal({ isOpen: true, bySupplier, selectedSuppliers, createCombined: false })
   }
 
   function closeCreateOrderModal() {
-    setCreateOrderModal({ isOpen: false, bySupplier: null, selectedSuppliers: {} })
+    setCreateOrderModal({ isOpen: false, bySupplier: null, selectedSuppliers: {}, createCombined: false })
+  }
+
+  function setCreateCombined(createCombined) {
+    setCreateOrderModal((prev) => ({ ...prev, createCombined }))
   }
 
   function toggleCreateOrderSupplier(supplierName) {
@@ -575,37 +518,50 @@ export function ItemsManagementPage() {
   }
 
   async function confirmCreateSelectedOrders() {
-    const { bySupplier, selectedSuppliers } = createOrderModal
+    const { bySupplier, selectedSuppliers, createCombined } = createOrderModal
     if (!bySupplier) return
     const toCreate = Object.entries(bySupplier).filter(([name]) => selectedSuppliers[name])
     if (toCreate.length === 0) {
-      showErrorMsg('נא לבחור לפחות ספק אחד')
+      showErrorMsg(t('selectAtLeastOneSupplier'))
       return
     }
     try {
       let created = 0
       let totalProducts = 0
-      for (const [supplierName, orderItems] of toCreate) {
-        const firstItemId = orderItems[0]?.itemId
-        const firstItem = filteredItems.find((i) => i._id === firstItemId || String(i._id) === String(firstItemId))
-        const supplierToSave = (getSupplierFromItem(firstItem) || supplierName || NO_SUPPLIER).trim() || supplierName
+      if (createCombined && toCreate.length > 0) {
+        const allItems = toCreate.flatMap(([, orderItems]) => orderItems)
         await orderService.save({
-          items: orderItems,
-          supplier: supplierToSave,
+          items: allItems,
+          supplier: t('combinedOrderLabel'),
           userId: user?._id || null,
           status: 'pending',
           type: 'stock_order'
         })
-        created++
-        totalProducts += orderItems.length
+        created = 1
+        totalProducts = allItems.length
+      } else {
+        for (const [supplierName, orderItems] of toCreate) {
+          const firstItemId = orderItems[0]?.itemId
+          const firstItem = filteredItems.find((i) => i._id === firstItemId || String(i._id) === String(firstItemId))
+          const supplierToSave = (getSupplierFromItem(firstItem) || supplierName || NO_SUPPLIER).trim() || supplierName
+          await orderService.save({
+            items: orderItems,
+            supplier: supplierToSave,
+            userId: user?._id || null,
+            status: 'pending',
+            type: 'stock_order'
+          })
+          created++
+          totalProducts += orderItems.length
+        }
       }
       closeCreateOrderModal()
       showSuccessMsg(created === 1
-        ? `הזמנה נוצרה – ${totalProducts} מוצרים`
-        : `נוצרו ${created} הזמנות – ${totalProducts} מוצרים`)
+        ? t('orderCreatedProducts', { n: totalProducts })
+        : t('ordersCreatedProducts', { c: created, n: totalProducts }))
       navigate('/orders')
     } catch (error) {
-      showErrorMsg('שגיאה ביצירת ההזמנות')
+      showErrorMsg(t('createOrdersError'))
     }
   }
 
@@ -618,20 +574,20 @@ export function ItemsManagementPage() {
   return (
     <div className="items-management-page">
       {!items || items.length === 0 ? (
-        <p className="empty-message">אין מוצרים במערכת</p>
+        <p className="empty-message">{t('noProductsInSystem')}</p>
       ) : (
         <>
           <div className="filters-container">
             <div>
               <label>
-                קטגוריה
+                {t('category')}
               </label>
               <select
                 name="category"
                 value={filters.category}
                 onChange={handleFilterChange}
               >
-                <option value="">כל הקטגוריות</option>
+                <option value="">{t('allCategories')}</option>
                 {uniqueCategories.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
@@ -642,14 +598,14 @@ export function ItemsManagementPage() {
 
             <div>
               <label>
-                ספק
+                {t('supplier')}
               </label>
               <select
                 name="supplier"
                 value={filters.supplier}
                 onChange={handleFilterChange}
               >
-                <option value="">כל הספקים</option>
+                <option value="">{t('allSuppliers')}</option>
                 {uniqueSuppliers.map((supplier) => (
                   <option key={supplier} value={supplier}>
                     {supplier}
@@ -660,22 +616,22 @@ export function ItemsManagementPage() {
 
             <div>
               <label>
-                מלאי
+                {t('stock')}
               </label>
               <select
                 name="stockStatus"
                 value={filters.stockStatus}
                 onChange={handleFilterChange}
               >
-                <option value="">הכל</option>
-                <option value="inStock">במלאי</option>
-                <option value="outOfStock">לא במלאי</option>
-                <option value="lowStock">מלאי נמוך</option>
+                <option value="">{t('all')}</option>
+                <option value="inStock">{t('inStock')}</option>
+                <option value="outOfStock">{t('outOfStock')}</option>
+                <option value="lowStock">{t('lowStockFilter')}</option>
               </select>
             </div>
 
             <div className="filter-info">
-              מציג {filteredItems.length} מתוך {items.length} מוצרים
+              {t('showingProducts', { count: filteredItems.length, total: items.length })}
             </div>
 
             <div>
@@ -683,7 +639,7 @@ export function ItemsManagementPage() {
                 onClick={handleClearFilters}
                 className="clear-filters-btn"
               >
-                נקה פילטרים
+                {t('clearFilters')}
               </button>
             </div>
           </div>
@@ -704,26 +660,26 @@ export function ItemsManagementPage() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M20 7L12 3L4 7M20 7L12 11M20 7V17L12 21M12 11L4 7M12 11V21M4 7V17L12 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                צור הזמנה ({totalItemsToOrder})
+                {t('createOrder', { n: totalItemsToOrder })}
               </button>
             )}
             <button
               className="btn-import"
               onClick={() => fileInputRef.current?.click()}
-              title="ייבוא מלאי מאקסל"
+              title={t('importStockExcel')}
             >
-              העלאת מסמך
+              {t('uploadDocument')}
             </button>
             <button className="btn-add" onClick={handleAdd}>
-              + הוסף מוצר
+              + {t('addProduct')}
             </button>
           </div>
 
           {createOrderModal.isOpen && createOrderModal.bySupplier && (
-            <div className="form-overlay" onClick={closeCreateOrderModal}>
+            <div className="form-overlay" onClick={(e) => e.target === e.currentTarget && closeCreateOrderModal()}>
               <div className="form-container create-order-modal" onClick={(e) => e.stopPropagation()}>
-                <h2>בחר אילו הזמנות ליצור</h2>
-                <p className="create-order-modal-desc">נבחרו מוצרים להזמנה לפי ספק. סמן את הספקים שאליהם תרצה לשלוח הזמנה.</p>
+                <h2>{t('selectOrdersToCreate')}</h2>
+                <p className="create-order-modal-desc">{t('createOrderModalDesc')}</p>
                 <ul className="create-order-supplier-list">
                   {Object.entries(createOrderModal.bySupplier).map(([supplierName, orderItems]) => (
                     <li key={supplierName} className="create-order-supplier-item">
@@ -734,21 +690,29 @@ export function ItemsManagementPage() {
                           onChange={() => toggleCreateOrderSupplier(supplierName)}
                         />
                         <span className="supplier-name">{supplierName}</span>
-                        <span className="supplier-summary"> — {orderItems.length} מוצרים</span>
+                        <span className="supplier-summary"> — {t('productsCount', { n: orderItems.length })}</span>
                       </label>
                     </li>
                   ))}
                 </ul>
+                <label className="create-order-combined-option">
+                  <input
+                    type="checkbox"
+                    checked={!!createOrderModal.createCombined}
+                    onChange={(e) => setCreateCombined(e.target.checked)}
+                  />
+                  <span>{t('combinedOrderOption')}</span>
+                </label>
                 <div className="form-actions" style={{ marginTop: '1rem' }}>
                   <button
                     type="button"
                     className="btn-save"
                     onClick={confirmCreateSelectedOrders}
                   >
-                    צור הזמנות נבחרות
+                    {t('createSelectedOrders')}
                   </button>
                   <button type="button" className="btn-cancel" onClick={closeCreateOrderModal}>
-                    בטל
+                    {t('cancel')}
                   </button>
                 </div>
               </div>
@@ -756,26 +720,26 @@ export function ItemsManagementPage() {
           )}
 
           {importState.isOpen && (
-            <div className="form-overlay" onClick={closeImportModal}>
+            <div className="form-overlay" onClick={(e) => e.target === e.currentTarget && closeImportModal()}>
               <div className="form-container" onClick={(e) => e.stopPropagation()}>
-                <h2>ייבוא מלאי מאקסל</h2>
-                {importState.fileName && <p style={{ marginTop: '0.5rem' }}>קובץ: {importState.fileName}</p>}
+                <h2>{t('importStockTitle')}</h2>
+                {importState.fileName && <p style={{ marginTop: '0.5rem' }}>{t('fileLabel')}: {importState.fileName}</p>}
 
-                {importState.isLoading && <p>טוען...</p>}
+                {importState.isLoading && <p>{t('loading')}</p>}
                 {importState.error && <p style={{ color: 'crimson' }}>{importState.error}</p>}
 
                 {!!importState.report && (
                   <>
                     <div style={{ marginTop: '1rem' }}>
-                      <div>סה״כ שורות: {importState.report.summary?.totalRows}</div>
-                      <div>שורות שנמצאה התאמה: {importState.report.summary?.matchedRows}</div>
-                      <div>פריטים ייחודיים שיעודכנו: {importState.report.summary?.uniqueMatchedItems}</div>
-                      <div>שורות ללא התאמה: {importState.report.summary?.unmatchedRows}</div>
+                      <div>{t('totalRows')}: {importState.report.summary?.totalRows}</div>
+                      <div>{t('matchedRows')}: {importState.report.summary?.matchedRows}</div>
+                      <div>{t('uniqueItemsToUpdate')}: {importState.report.summary?.uniqueMatchedItems}</div>
+                      <div>{t('unmatchedRows')}: {importState.report.summary?.unmatchedRows}</div>
                     </div>
 
                     {Array.isArray(importState.report.unmatched) && importState.report.unmatched.length > 0 && (
                       <details style={{ marginTop: '1rem' }}>
-                        <summary>הצג שורות ללא התאמה</summary>
+                        <summary>{t('showUnmatched')}</summary>
                         <ul style={{ marginTop: '0.5rem' }}>
                           {importState.report.unmatched.slice(0, 20).map((u) => (
                             <li key={`${u.rowIndex}-${u.inputName}`}>
@@ -783,7 +747,7 @@ export function ItemsManagementPage() {
                             </li>
                           ))}
                           {importState.report.unmatched.length > 20 && (
-                            <li>... ועוד {importState.report.unmatched.length - 20}</li>
+                            <li>{t('andMore', { n: importState.report.unmatched.length - 20 })}</li>
                           )}
                         </ul>
                       </details>
@@ -798,10 +762,10 @@ export function ItemsManagementPage() {
                     disabled={importState.isLoading || !importState.rows.length}
                     onClick={handleApplyImport}
                   >
-                    החל עדכון מלאי
+                    {t('applyStockUpdate')}
                   </button>
                   <button type="button" className="btn-cancel" onClick={closeImportModal}>
-                    סגור
+                    {t('close')}
                   </button>
                 </div>
               </div>
@@ -809,12 +773,19 @@ export function ItemsManagementPage() {
           )}
 
       {showForm && (
-        <div className="form-overlay" onClick={handleCancel}>
-          <div className="form-container" onClick={(e) => e.stopPropagation()}>
-            <h2>{isEditing ? 'ערוך מוצר' : 'הוסף מוצר חדש'}</h2>
+        <div
+          className="form-overlay"
+          onMouseDown={(e) => { overlayMouseDownRef.current = (e.target === e.currentTarget) }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && overlayMouseDownRef.current) handleCancel()
+            overlayMouseDownRef.current = false
+          }}
+        >
+          <div className="form-container" onMouseDown={() => { overlayMouseDownRef.current = false }} onClick={(e) => e.stopPropagation()}>
+            <h2>{isEditing ? t('editProduct') : t('addNewProduct')}</h2>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label>שם (עברית):</label>
+                <label>{t('nameHe')}:</label>
                 <input
                   type="text"
                   name="name"
@@ -825,35 +796,24 @@ export function ItemsManagementPage() {
               </div>
 
               <div className="form-group">
-                <label>שם (אנגלית):</label>
+                <label>{t('nameEn')}:</label>
                 <input
                   type="text"
                   name="nameEn"
                   value={editingItem?.nameEn || ''}
                   onChange={handleChange}
-                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>תיאור:</label>
-                <textarea
-                  name="description"
-                  value={editingItem?.description || ''}
-                  onChange={handleChange}
-                  rows="3"
-                />
-              </div>
-
-              <div className="form-group">
-                <label>קטגוריה:</label>
+                <label>{t('category')}:</label>
                 <select
                   name="categoryId"
                   value={editingItem?.categoryId || editingItem?.category || ''}
                   onChange={handleChange}
                   required
                 >
-                  <option value="">בחר קטגוריה</option>
+                  <option value="">{t('selectCategory')}</option>
                   {uniqueCategories.length > 0 ? (
                     uniqueCategories.map((categoryName) => (
                       <option key={categoryName} value={categoryName}>
@@ -862,25 +822,47 @@ export function ItemsManagementPage() {
                     ))
                   ) : (
                     <option value="" disabled>
-                      אין קטגוריות זמינות
+                      {t('noCategoriesAvailable')}
                     </option>
                   )}
                 </select>
                 {uniqueCategories.length > 0 && (
                   <div className="form-hint" style={{ color: '#666', fontSize: '0.85em', marginTop: '5px' }}>
-                    נמצאו {uniqueCategories.length} קטגוריות מהמוצרים הקיימים
+                    {t('categoriesFromProducts', { n: uniqueCategories.length })}
                   </div>
                 )}
                 {uniqueCategories.length === 0 && items && items.length > 0 && (
                   <div className="form-hint" style={{ color: '#999', fontSize: '0.85em', marginTop: '5px' }}>
-                    לא נמצאו קטגוריות במוצרים הקיימים
+                    {t('noCategoriesInProducts')}
                   </div>
                 )}
               </div>
 
+              <div className="form-group">
+                <label>{t('supplier')}:</label>
+                <select
+                  name="supplier"
+                  value={editingItem?.supplier || ''}
+                  onChange={handleChange}
+                >
+                  <option value="">{t('noSupplier')}</option>
+                  {(() => {
+                    const opts = [...uniqueSuppliers]
+                    const current = (editingItem?.supplier || '').trim()
+                    if (current && !opts.includes(current)) opts.push(current)
+                    opts.sort()
+                    return opts.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))
+                  })()}
+                </select>
+              </div>
+
               <div className="form-row">
                 <div className="form-group">
-                  <label>מחיר:</label>
+                  <label>{t('price')}:</label>
                   <input
                     type="number"
                     name="price"
@@ -893,7 +875,7 @@ export function ItemsManagementPage() {
                 </div>
 
                 <div className="form-group">
-                  <label>כמות במלאי:</label>
+                  <label>{t('stockQuantity')}:</label>
                   <input
                     type="number"
                     name="stockQuantity"
@@ -906,7 +888,7 @@ export function ItemsManagementPage() {
                 </div>
 
                 <div className="form-group">
-                  <label>רף התראה:</label>
+                  <label>{t('alertThresholdLabel')}:</label>
                   <input
                     type="number"
                     name="minStockLevel"
@@ -918,7 +900,7 @@ export function ItemsManagementPage() {
                 </div>
 
                 <div className="form-group">
-                  <label>כמות אופטימלית למלאי:</label>
+                  <label>{t('optimalStock')}:</label>
                   <input
                     type="number"
                     name="optimalStockLevel"
@@ -932,7 +914,7 @@ export function ItemsManagementPage() {
               </div>
 
               <div className="form-group">
-                <label>תמונה (URL):</label>
+                <label>{t('imageUrl')}:</label>
                 <input
                   type="url"
                   name="imageUrl"
@@ -949,16 +931,16 @@ export function ItemsManagementPage() {
                     checked={editingItem?.isAvailable || false}
                     onChange={handleChange}
                   />
-                  זמין להזמנה
+                  {t('availableForOrder')}
                 </label>
               </div>
 
               <div className="form-actions">
                 <button type="submit" className="btn-save">
-                  {isEditing ? 'עדכן' : 'שמור'}
+                  {isEditing ? t('update') : t('save')}
                 </button>
                 <button type="button" className="btn-cancel" onClick={handleCancel}>
-                  ביטול
+                  {t('cancel')}
                 </button>
               </div>
             </form>
@@ -970,20 +952,20 @@ export function ItemsManagementPage() {
             <table className="items-table">
             <thead>
               <tr>
-                <th>שם</th>
-                <th>קטגוריה</th>
-                <th>ספק</th>
-                <th>מחיר</th>
-                <th>מלאי</th>
-                <th>כמה להזמין</th>
-                <th>פעולות</th>
+                <th>{t('nameColumn')}</th>
+                <th>{t('category')}</th>
+                <th>{t('supplier')}</th>
+                <th>{t('price')}</th>
+                <th>{t('stock')}</th>
+                <th>{t('orderQuantity')}</th>
+                <th>{t('actions')}</th>
               </tr>
             </thead>
             <tbody>
               {filteredItems.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="empty-table-message">
-                    לא נמצאו מוצרים התואמים לפילטרים שנבחרו
+                    {t('noProductsMatchFilters')}
                   </td>
                 </tr>
               ) : (
@@ -1002,7 +984,7 @@ export function ItemsManagementPage() {
                       </div>
                     </div>
                   </td>
-                  <td>{getCategoryName(item)}</td>
+                  <td>{getCategoryNameFromItem(item) ?? t('noCategory')}</td>
                   <td>{item.supplier || '-'}</td>
                   <td>₪{item.price}</td>
                   <td>
@@ -1064,7 +1046,7 @@ export function ItemsManagementPage() {
                           onClick={() => {
                             setEditingToOrder(prev => ({ ...prev, [itemId]: true }))
                           }}
-                          title="לחץ לעריכה"
+                          title={t('clickToEdit')}
                         >
                           {toOrder}
                         </span>
@@ -1076,7 +1058,7 @@ export function ItemsManagementPage() {
                       <button
                         className="btn-edit"
                         onClick={() => handleEdit(item)}
-                        title="ערוך"
+                        title={t('edit')}
                       >
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M11.333 2.00001C11.5084 1.82445 11.7163 1.68506 11.9447 1.59123C12.1731 1.4974 12.4173 1.45117 12.6637 1.45534C12.9101 1.45951 13.1523 1.51398 13.3763 1.61538C13.6003 1.71678 13.8012 1.8628 13.9667 2.04445C14.1321 2.2261 14.2585 2.43937 14.3384 2.67091C14.4182 2.90245 14.4497 3.14762 14.4307 3.39068C14.4117 3.63374 14.3426 3.86975 14.2277 4.08334L6.12001 13.3333L2.00001 14L2.66668 9.88001L10.7733 0.63001C10.8882 0.416421 11.0439 0.228215 11.2313 0.0764062C11.4187 -0.0754026 11.6339 -0.188281 11.8637 -0.25534C12.0935 -0.322399 12.3333 -0.342399 12.57 -0.31423C12.8067 -0.286061 13.0353 -0.21023 13.24 -0.09134L11.333 2.00001Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1085,7 +1067,7 @@ export function ItemsManagementPage() {
                       <button
                         className="btn-delete"
                         onClick={() => handleDelete(item._id)}
-                        title="מחק"
+                        title={t('delete')}
                       >
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M2 4H14M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2761 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66667C4.31305 14.6667 3.97391 14.5262 3.72386 14.2761C3.47381 14.0261 3.33333 13.687 3.33333 13.3333V4M5.33333 4V2.66667C5.33333 2.31305 5.47381 1.97391 5.72386 1.72386C5.97391 1.47381 6.31305 1.33333 6.66667 1.33333H9.33333C9.68696 1.33333 10.0261 1.47381 10.2761 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4M6.66667 7.33333V11.3333M9.33333 7.33333V11.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

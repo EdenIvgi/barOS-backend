@@ -10,6 +10,7 @@ import { orderService } from '../services/order.service'
 import { Loader } from '../cmps/Loader'
 import { showSuccessMsg, showErrorMsg } from '../services/event-bus.service'
 import * as XLSX from 'xlsx'
+import { NO_SUPPLIER_KEY } from '../services/constants'
 
 function getCategoryNameFromItem(item) {
   if (item?.category?.name) return item.category.name
@@ -320,7 +321,7 @@ export function ItemsManagementPage() {
           .filter(r => r.name && !Number.isNaN(r.quantity))
 
         if (!parsedRows.length) {
-          throw new Error('לא נמצאו שורות תקינות. בדוק שיש עמודות שם + מלאי (כמות).')
+          throw new Error(t('noValidRows'))
         }
 
         const report = await itemService.importStock(parsedRows, { dryRun: true, mode: 'set' })
@@ -401,7 +402,7 @@ export function ItemsManagementPage() {
       }
 
       if (!parsedRows.length) {
-        throw new Error('לא נמצאו שורות תקינות. בדוק שיש עמודות שם + מלאי (כמות).')
+        throw new Error(t('noValidRows'))
       }
 
       const report = await itemService.importStock(parsedRows, { dryRun: true, mode: 'set' })
@@ -413,10 +414,12 @@ export function ItemsManagementPage() {
         report,
       }))
     } catch (err) {
+      const serverMsg = err?.response?.data?.error
+      const message = serverMsg || err?.message || t('readFileError')
       setImportState(prev => ({
         ...prev,
         isLoading: false,
-        error: err?.message || t('readFileError'),
+        error: message,
       }))
     } finally {
       // allow re-uploading same file
@@ -447,7 +450,7 @@ export function ItemsManagementPage() {
     })
   }
 
-  const NO_SUPPLIER = 'ללא ספק'
+  const NO_SUPPLIER = NO_SUPPLIER_KEY
 
   function getSupplierFromItem(item) {
     if (!item) return ''

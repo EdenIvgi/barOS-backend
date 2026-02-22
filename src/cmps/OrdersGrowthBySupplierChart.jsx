@@ -8,7 +8,9 @@ import {
   Tooltip,
 } from 'chart.js'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Bar } from 'react-chartjs-2'
+import { NO_SUPPLIER_KEY } from '../services/constants'
 
 ChartJS.register(
   CategoryScale,
@@ -31,7 +33,7 @@ const SUPPLIER_COLORS = [
   { main: 'rgb(20, 184, 166)', fill: 'rgba(20, 184, 166, 0.85)' },   // cyan
 ]
 
-const EMPTY_SUPPLIER_LABEL = 'ללא ספק'
+const EMPTY_SUPPLIER_LABEL = NO_SUPPLIER_KEY
 
 function getDateKey(ts) {
   if (!ts) return null
@@ -142,6 +144,7 @@ const PX_PER_DAY = 44
 const CHART_HEIGHT = 320
 
 export function OrdersGrowthBySupplierChart({ orders, items = [] }) {
+  const { t } = useTranslation()
   const chartData = useMemo(
     () => buildChartData(orders, items),
     [orders, items]
@@ -166,7 +169,7 @@ export function OrdersGrowthBySupplierChart({ orders, items = [] }) {
       },
       title: {
         display: true,
-        text: 'כמות הפריטים שהוזמנה מכל ספק בכל יום',
+        text: t('chartTitle'),
         font: { size: 15, weight: '600' },
         padding: { bottom: 14 },
       },
@@ -176,7 +179,7 @@ export function OrdersGrowthBySupplierChart({ orders, items = [] }) {
         titleFont: { size: 11 },
         bodyFont: { size: 12 },
         callbacks: {
-          label: (context) => ` ${context.dataset.label}: ${context.raw} פריטים`,
+          label: (context) => ` ${context.dataset.label}: ${context.raw} ${t('chartItemsSuffix')}`,
         },
       },
     },
@@ -190,7 +193,7 @@ export function OrdersGrowthBySupplierChart({ orders, items = [] }) {
         },
         title: {
           display: true,
-          text: 'כמות פריטים',
+          text: t('chartItemsAxis'),
           font: { size: 11, weight: '600' },
         },
         grid: { color: 'rgba(0, 0, 0, 0.08)' },
@@ -201,7 +204,7 @@ export function OrdersGrowthBySupplierChart({ orders, items = [] }) {
         reverse: false,
         title: {
           display: true,
-          text: 'תאריך',
+          text: t('chartDateAxis'),
           font: { size: 11, weight: '600' },
         },
         ticks: {
@@ -219,13 +222,13 @@ export function OrdersGrowthBySupplierChart({ orders, items = [] }) {
         categoryPercentage: 0.78,
       },
     },
-  }), [])
+  }), [t])
 
   if (!chartData.labels.length) {
     return (
       <div className="orders-growth-chart empty">
-        <h2>צמיחה בהזמנות לפי ספק</h2>
-        <p>אין עדיין נתוני הזמנות להצגה.</p>
+        <h2>{t('chartTitle')}</h2>
+        <p>{t('noOrderDataYet')}</p>
       </div>
     )
   }

@@ -188,7 +188,7 @@ export function OrdersListPage() {
       }
       const result = await updateOrder(updatedOrder)
       if (result) {
-        showSuccessMsg('ההזמנה עודכנה בהצלחה')
+        showSuccessMsg(t('orderUpdatedSuccess'))
         setEditingOrder(null)
         setEditingQuantities({})
         setDeletedItemIndices((prev) => {
@@ -201,7 +201,7 @@ export function OrdersListPage() {
         await loadOrders()
       }
     } catch {
-      showErrorMsg('שגיאה בעדכון ההזמנה')
+      showErrorMsg(t('orderUpdateError'))
       await loadOrders()
     }
   }

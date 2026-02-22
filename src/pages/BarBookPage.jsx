@@ -732,7 +732,7 @@ export function BarBookPage() {
                     as="textarea"
                     className="form-textarea"
                     rows={6}
-                    placeholder={'מי סוכר\nכוסברה\nמחית פסיפלורה'}
+                    placeholder={t('ingredientsPlaceholder')}
                   />
                   <ErrorMessage name="ingredientsText" component="div" className="form-error" />
                 </div>
@@ -744,7 +744,7 @@ export function BarBookPage() {
                     as="textarea"
                     className="form-textarea"
                     rows={8}
-                    placeholder={'נערבל את המרכיבים.\nנסנן ונסיים.'}
+                    placeholder={t('instructionsPlaceholder')}
                   />
                   <ErrorMessage name="instructionsText" component="div" className="form-error" />
                 </div>

@@ -94,6 +94,8 @@ const resources = {
       minOneIngredient: 'יש להזין לפחות מרכיב אחד',
       minOneStep: 'יש להזין לפחות שלב אחד',
       confirmDeleteRecipe: 'למחוק את המתכון',
+      ingredientsPlaceholder: 'מי סוכר\nכוסברה\nמחית פסיפלורה',
+      instructionsPlaceholder: 'נערבל את המרכיבים.\nנסנן ונסיים.',
       // Orders list
       ordersListTitle: 'רשימת הזמנות',
       noOrders: 'אין הזמנות',
@@ -187,6 +189,7 @@ const resources = {
       stockUpdateError: 'שגיאה בעדכון המלאי',
       readFileError: 'שגיאה בקריאת הקובץ',
       noCategory: 'ללא קטגוריה',
+      noValidRows: 'לא נמצאו שורות תקינות. בדוק שיש עמודות שם + מלאי (כמות).',
       // Order page (cart)
       cartTitle: 'עגלת קניות',
       cartEmpty: 'העגלה ריקה',
@@ -214,6 +217,11 @@ const resources = {
       // Category names (filter buttons – when data has English name)
       category_ALCOHOL: 'אלכוהול',
       category_WINE: 'יין',
+      chartTitle: 'כמות הפריטים שהוזמנה מכל ספק בכל יום',
+      chartItemsAxis: 'כמות פריטים',
+      chartDateAxis: 'תאריך',
+      chartItemsSuffix: 'פריטים',
+      noOrderDataYet: 'אין עדיין נתוני הזמנות להצגה.',
     },
   },
   en: {
@@ -303,6 +311,8 @@ const resources = {
       minOneIngredient: 'Enter at least one ingredient',
       minOneStep: 'Enter at least one step',
       confirmDeleteRecipe: 'Delete recipe',
+      ingredientsPlaceholder: 'Sugar water\nCoriander\nPassion fruit puree',
+      instructionsPlaceholder: 'Mix the ingredients.\nStrain and finish.',
       // Orders list
       ordersListTitle: 'Orders List',
       noOrders: 'No orders',
@@ -396,6 +406,7 @@ const resources = {
       stockUpdateError: 'Error updating stock',
       readFileError: 'Error reading file',
       noCategory: 'No category',
+      noValidRows: 'No valid rows found. Make sure there are name + stock (quantity) columns.',
       // Order page (cart)
       cartTitle: 'Shopping cart',
       cartEmpty: 'Cart is empty',
@@ -420,6 +431,11 @@ const resources = {
       paginationNext: 'Next',
       noItemsFound: 'No items found',
       addToCartButton: 'Add to Cart',
+      chartTitle: 'Items ordered per supplier per day',
+      chartItemsAxis: 'Item count',
+      chartDateAxis: 'Date',
+      chartItemsSuffix: 'items',
+      noOrderDataYet: 'No order data to display yet.',
     },
   },
 }

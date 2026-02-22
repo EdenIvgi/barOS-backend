@@ -13,8 +13,10 @@ import { asyncStorageService } from '../../services/async-storage.service'
 import { orderService } from '../../services/order.service'
 import { showSuccessMsg, showErrorMsg } from '../../services/event-bus.service'
 
+import { NO_SUPPLIER_KEY } from '../../services/constants'
+import i18n from '../../services/i18.js'
+
 const STORAGE_KEY = 'cart'
-const NO_SUPPLIER = 'ללא ספק'
 
 export function addToCart(item, quantity = 1) {
   store.dispatch(addToCartAction({ item, quantity }))
@@ -104,7 +106,7 @@ export async function updateOrder(order) {
 export async function checkout() {
   const cart = store.getState().orderModule.cart
   if (!cart || cart.length === 0) {
-    showErrorMsg('העגלה ריקה')
+    showErrorMsg(i18n.t('cartEmpty'))
     return 0
   }
 
@@ -113,7 +115,7 @@ export async function checkout() {
     const key =
       item.supplier != null && String(item.supplier).trim() !== ''
         ? String(item.supplier).trim()
-        : NO_SUPPLIER
+        : NO_SUPPLIER_KEY
     if (!bySupplier[key]) bySupplier[key] = []
     bySupplier[key].push(item)
   }
@@ -140,12 +142,12 @@ export async function checkout() {
     await loadOrders()
     showSuccessMsg(
       created === 1
-        ? 'ההזמנה נוצרה בהצלחה'
-        : `נוצרו ${created} הזמנות בהצלחה (לפי ספק)`
+        ? i18n.t('orderCreatedProducts', { n: 1 })
+        : i18n.t('ordersCreatedProducts', { c: created, n: created })
     )
     return created
   } catch (error) {
-    showErrorMsg('שגיאה ביצירת ההזמנות. נסה שוב.')
+    showErrorMsg(i18n.t('createOrdersError'))
     throw error
   } finally {
     store.dispatch(setIsLoading(false))

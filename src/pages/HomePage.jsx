@@ -67,7 +67,7 @@ export function HomePage() {
 
   // משימה יומית מטבלת המשימות בספר הבר – התאמה לפי שם היום (כמו בטבלה: יום שני, יום שלישי...)
   const dayIndex = new Date().getDay()
-  const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת']
+  const dayNames = [t('day_0'), t('day_1'), t('day_2'), t('day_3'), t('day_4'), t('day_5'), t('day_6')]
   const todayNameKey = dayNames[dayIndex]
   const todayEntry = barBookDailyTasks.find(
     (entry) => (entry?.day || '').includes(todayNameKey)

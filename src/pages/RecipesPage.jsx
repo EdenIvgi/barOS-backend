@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import { Formik, Form, Field, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
 import { loadRecipes, saveRecipe, removeRecipe } from '../store/actions/recipe.actions.js'
+import i18n from '../services/i18.js'
 
 function linesToArray(text) {
   if (!text || typeof text !== 'string') return []
@@ -16,19 +18,22 @@ function arrayToLines(arr) {
   return Array.isArray(arr) ? arr.join('\n') : ''
 }
 
-const recipeSchema = Yup.object().shape({
-  title: Yup.string().trim().required('שם המתכון חובה'),
-  ingredientsText: Yup.string()
-    .trim()
-    .required('יש להזין לפחות מרכיב אחד')
-    .test('minLines', 'יש להזין לפחות מרכיב אחד', (val) => linesToArray(val || '').length > 0),
-  instructionsText: Yup.string()
-    .trim()
-    .required('יש להזין לפחות שלב אחד')
-    .test('minLines', 'יש להזין לפחות שלב אחד', (val) => linesToArray(val || '').length > 0),
-})
+function getRecipeSchema() {
+  return Yup.object().shape({
+    title: Yup.string().trim().required(i18n.t('recipeTitleRequired')),
+    ingredientsText: Yup.string()
+      .trim()
+      .required(i18n.t('minOneIngredient'))
+      .test('minLines', i18n.t('minOneIngredient'), (val) => linesToArray(val || '').length > 0),
+    instructionsText: Yup.string()
+      .trim()
+      .required(i18n.t('minOneStep'))
+      .test('minLines', i18n.t('minOneStep'), (val) => linesToArray(val || '').length > 0),
+  })
+}
 
 export function RecipesPage() {
+  const { t } = useTranslation()
   const recipes = useSelector((storeState) => storeState.recipeModule.recipes)
   const isLoading = useSelector((storeState) => storeState.recipeModule.flag.isLoading)
   const error = useSelector((storeState) => storeState.recipeModule.flag.error)
@@ -168,46 +173,46 @@ export function RecipesPage() {
       {isFormOpen && (
         <div className="recipe-form-overlay" onClick={(e) => e.target === e.currentTarget && closeForm()}>
           <div className="recipe-form-container" onClick={(e) => e.stopPropagation()}>
-            <h2>{formRecipe ? 'עריכת מתכון' : 'הוספת מתכון'}</h2>
+            <h2>{formRecipe ? t('editingRecipe') : t('addingRecipe')}</h2>
             <Formik
               initialValues={getInitialValues()}
-              validationSchema={recipeSchema}
+              validationSchema={getRecipeSchema()}
               onSubmit={handleSubmit}
               enableReinitialize
             >
               <Form className="recipe-form">
                 <div className="form-group">
-                  <label htmlFor="recipe-title">שם המתכון</label>
-                  <Field id="recipe-title" name="title" type="text" className="form-input" placeholder="למשל: סירופ קינמון" />
+                  <label htmlFor="recipe-title">{t('recipeNameLabel')}</label>
+                  <Field id="recipe-title" name="title" type="text" className="form-input" placeholder={t('recipeNamePlaceholder')} />
                   <ErrorMessage name="title" component="div" className="form-error" />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="recipe-ingredients">מרכיבים (שורה אחת לכל מרכיב)</label>
+                  <label htmlFor="recipe-ingredients">{t('ingredientsLabel')}</label>
                   <Field
                     id="recipe-ingredients"
                     name="ingredientsText"
                     as="textarea"
                     className="form-textarea"
                     rows={6}
-                    placeholder={'מי סוכר\nכוסברה\nמחית פסיפלורה'}
+                    placeholder={t('ingredientsPlaceholder')}
                   />
                   <ErrorMessage name="ingredientsText" component="div" className="form-error" />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="recipe-instructions">אופן ההכנה (שורה אחת לכל שלב)</label>
+                  <label htmlFor="recipe-instructions">{t('instructionsLabel')}</label>
                   <Field
                     id="recipe-instructions"
                     name="instructionsText"
                     as="textarea"
                     className="form-textarea"
                     rows={8}
-                    placeholder={'נערבל את המרכיבים.\nנסנן ונסיים.'}
+                    placeholder={t('instructionsPlaceholder')}
                   />
                   <ErrorMessage name="instructionsText" component="div" className="form-error" />
                 </div>
                 <div className="form-actions">
                   <button type="submit" className="btn-save">
-                    {formRecipe ? 'שמור שינויים' : 'הוסף מתכון'}
+                    {formRecipe ? t('saveChanges') : t('addRecipe')}
                   </button>
                   <button type="button" className="btn-cancel" onClick={closeForm}>
                     ביטול

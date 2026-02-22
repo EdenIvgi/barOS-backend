@@ -1,4 +1,4 @@
-# 🍺 Bar App - Backend
+# 🍺 BarOS - Backend
 
 Bar management application - Backend API
 

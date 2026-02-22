@@ -13,7 +13,7 @@ export async function login(req, res, next) {
         const { username, password } = req.body
         const user = await authService.login(username, password)
         const token = signToken({ _id: user._id, username: user.username, role: user.role || 'bartender' })
-        res.cookie('barapp_token', token, COOKIE_OPTIONS)
+        res.cookie('baros_token', token, COOKIE_OPTIONS)
         res.json(user)
     } catch (error) {
         next(error)
@@ -24,7 +24,7 @@ export async function signup(req, res, next) {
     try {
         const user = await authService.signup(req.body)
         const token = signToken({ _id: user._id, username: user.username, role: user.role || 'bartender' })
-        res.cookie('barapp_token', token, COOKIE_OPTIONS)
+        res.cookie('baros_token', token, COOKIE_OPTIONS)
         res.status(201).json(user)
     } catch (error) {
         next(error)
@@ -33,7 +33,7 @@ export async function signup(req, res, next) {
 
 export async function logout(req, res, next) {
     try {
-        res.clearCookie('barapp_token')
+        res.clearCookie('baros_token')
         res.json({ message: 'Logged out successfully' })
     } catch (error) {
         next(error)

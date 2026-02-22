@@ -11,11 +11,18 @@ import {
 } from '../slices/item.slice'
 import { store } from '../store'
 
-export async function loadItems(filterBy) {
+const STALE_MS = 30_000
+let _lastFetchAt = 0
+
+export async function loadItems(filterBy, { force = false } = {}) {
   const filter = filterBy || store.getState().itemModule.filterBy
+  if (!force && Date.now() - _lastFetchAt < STALE_MS && store.getState().itemModule.items.length) {
+    return
+  }
   try {
     store.dispatch(setIsLoading(true))
     const result = await itemService.query(filter)
+    _lastFetchAt = Date.now()
     if (Array.isArray(result)) {
       store.dispatch(setItems(result))
       store.dispatch(setMaxPage(0))

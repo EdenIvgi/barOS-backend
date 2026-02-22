@@ -16,6 +16,7 @@ import { OrderPage } from './pages/OrderPage'
 import { OrdersListPage } from './pages/OrdersListPage'
 import { ItemsManagementPage } from './pages/ItemsManagementPage'
 import { BarBookPage } from './pages/BarBookPage'
+import { ProtectedRoute } from './cmps/ProtectedRoute'
 import { store } from './store/store'
 import { loadCartFromStorage } from './store/actions/order.actions'
 
@@ -44,14 +45,14 @@ export function App() {
               <Routes>
                 <Route element={<HomePage />} path="/" />
                 <Route element={<About />} path="/about" />
-                <Route element={<UserDetails />} path="/user" />
+                <Route element={<ProtectedRoute><UserDetails /></ProtectedRoute>} path="/user" />
                 <Route element={<MenuPage />} path="/products" />
                 <Route element={<ItemDetails />} path="/products/:itemId" />
-                <Route element={<OrderPage />} path="/order" />
-                <Route element={<OrdersListPage />} path="/orders" />
-                <Route element={<ItemsManagementPage />} path="/items-management" />
-                <Route element={<BarBookPage />} path="/bar-book" />
-                <Route element={<BarBookPage />} path="/recipes" />
+                <Route element={<ProtectedRoute><OrderPage /></ProtectedRoute>} path="/order" />
+                <Route element={<ProtectedRoute><OrdersListPage /></ProtectedRoute>} path="/orders" />
+                <Route element={<ProtectedRoute><ItemsManagementPage /></ProtectedRoute>} path="/items-management" />
+                <Route element={<ProtectedRoute><BarBookPage /></ProtectedRoute>} path="/bar-book" />
+                <Route element={<ProtectedRoute><BarBookPage /></ProtectedRoute>} path="/recipes" />
               </Routes>
             </main>
             <AppFooter />

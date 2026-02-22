@@ -56,10 +56,17 @@ function saveCartToStorage() {
   }
 }
 
-export async function loadOrders(filterBy = {}) {
+const ORDER_STALE_MS = 30_000
+let _lastOrderFetchAt = 0
+
+export async function loadOrders(filterBy = {}, { force = false } = {}) {
+  if (!force && Date.now() - _lastOrderFetchAt < ORDER_STALE_MS && store.getState().orderModule.orders.length) {
+    return
+  }
   try {
     store.dispatch(setIsLoading(true))
     const orders = await orderService.query(filterBy)
+    _lastOrderFetchAt = Date.now()
     store.dispatch(setOrdersAction(orders))
   } catch (error) {
     store.dispatch(setError('Failed to load orders'))

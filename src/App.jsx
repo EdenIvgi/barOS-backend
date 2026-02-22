@@ -18,15 +18,11 @@ import { ItemsManagementPage } from './pages/ItemsManagementPage'
 import { BarBookPage } from './pages/BarBookPage'
 import { store } from './store/store'
 import { loadCartFromStorage } from './store/actions/order.actions'
-import { initLocalData } from './services/localData'
 
 export function App() {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
 
   useEffect(() => {
-    // Initialize demo data in localStorage if empty
-    initLocalData()
-    // Load cart from localStorage on app start
     loadCartFromStorage()
   }, [])
 

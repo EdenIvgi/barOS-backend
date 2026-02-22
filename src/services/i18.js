@@ -44,6 +44,7 @@ const resources = {
       // Header
       hello: 'שלום',
       logout: 'התנתק',
+      loginRequired: 'יש להתחבר תחילה',
       toggleLanguage: 'החלף שפה',
       openSidebar: 'פתח תפריט',
       closeSidebar: 'סגור תפריט',
@@ -263,6 +264,7 @@ const resources = {
       status_delivered: 'delivered',
       hello: 'Hello',
       logout: 'Logout',
+      loginRequired: 'Please sign in first',
       toggleLanguage: 'Toggle language',
       openSidebar: 'Open menu',
       closeSidebar: 'Close menu',

@@ -54,6 +54,34 @@ async function _populateCategory(item, categoryCollection) {
     return item
 }
 
+function _buildCategoryMaps(categories) {
+    const byId = new Map()
+    const byName = new Map()
+    for (const cat of categories) {
+        byId.set(cat._id.toString(), cat)
+        if (cat.name) byName.set(cat.name, cat)
+        if (cat.nameEn) byName.set(cat.nameEn, cat)
+    }
+    return { byId, byName }
+}
+
+function _populateCategoryFromMap(item, { byId, byName }) {
+    const identifier = item.categoryId || item.category
+    if (!identifier) return item
+
+    let cat = null
+    const idStr = typeof identifier === 'object'
+        ? identifier.toString()
+        : typeof identifier === 'string' && identifier.length === 24
+            ? identifier
+            : null
+
+    if (idStr) cat = byId.get(idStr)
+    if (!cat && typeof identifier === 'string') cat = byName.get(identifier)
+    if (cat) _embedCategory(item, cat)
+    return item
+}
+
 async function getAll(filterBy = {}) {
     try {
         const collection = await dbService.getCollection(COLLECTION_NAME)
@@ -97,8 +125,12 @@ async function getAll(filterBy = {}) {
             if (filterBy.maxPrice) criteria.price.$lte = Number(filterBy.maxPrice)
         }
 
-        const items = await collection.find(criteria).sort({ name: 1 }).toArray()
-        return Promise.all(items.map(item => _populateCategory(item, categoryCollection)))
+        const [items, allCategories] = await Promise.all([
+            collection.find(criteria).sort({ name: 1 }).toArray(),
+            categoryCollection.find({}).toArray(),
+        ])
+        const catMaps = _buildCategoryMaps(allCategories)
+        return items.map(item => _populateCategoryFromMap(item, catMaps))
     } catch (error) {
         console.error('[ItemModel] Error getting items:', error)
         throw error

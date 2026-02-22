@@ -13,6 +13,7 @@ import { userRoutes } from './api/user/user.routes.js'
 import { orderRoutes } from './api/order/order.routes.js'
 import { recipeRoutes } from './api/recipe/recipe.routes.js'
 import { barBookRoutes } from './api/barBook/barBook.routes.js'
+import mongoSanitize from 'mongo-sanitize'
 
 const app = express()
 const PORT = process.env.PORT || 3031
@@ -41,6 +42,12 @@ const corsOptions = {
 }
 app.use(cors(corsOptions))
 app.use(express.json({ limit: '5mb' }))
+app.use((req, _res, next) => {
+    if (req.body) req.body = mongoSanitize(req.body)
+    if (req.query) req.query = mongoSanitize(req.query)
+    if (req.params) req.params = mongoSanitize(req.params)
+    next()
+})
 
 // Rate limiting — strict on auth, general on all API
 const authLimiter = rateLimit({

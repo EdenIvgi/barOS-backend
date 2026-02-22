@@ -1,4 +1,5 @@
 import { categoryModel } from './category.model.js'
+import { serializeDoc } from '../../services/serialize.service.js'
 
 export const categoryService = {
     query,
@@ -8,22 +9,10 @@ export const categoryService = {
     remove
 }
 
-// Helper function to convert ObjectId to string
-function serializeCategory(category) {
-    if (!category) return category
-    const serialized = { ...category }
-    // Convert _id to string if it's an ObjectId
-    if (serialized._id) {
-        serialized._id = serialized._id.toString()
-    }
-    return serialized
-}
-
 async function query() {
     try {
         const categories = await categoryModel.getAll()
-        // Serialize all categories to convert ObjectIds to strings
-        return categories.map(serializeCategory)
+        return categories.map(serializeDoc)
     } catch (error) {
         console.error('[CategoryService] Error in query:', error)
         throw error
@@ -33,7 +22,7 @@ async function query() {
 async function getById(categoryId) {
     try {
         const category = await categoryModel.getById(categoryId)
-        return serializeCategory(category)
+        return serializeDoc(category)
     } catch (error) {
         console.error('[CategoryService] Error in getById:', error)
         throw error
@@ -43,7 +32,7 @@ async function getById(categoryId) {
 async function add(category) {
     try {
         const addedCategory = await categoryModel.create(category)
-        return serializeCategory(addedCategory)
+        return serializeDoc(addedCategory)
     } catch (error) {
         console.error('[CategoryService] Error in add:', error)
         throw error
@@ -53,7 +42,7 @@ async function add(category) {
 async function update(categoryId, category) {
     try {
         const updatedCategory = await categoryModel.update(categoryId, category)
-        return serializeCategory(updatedCategory)
+        return serializeDoc(updatedCategory)
     } catch (error) {
         console.error('[CategoryService] Error in update:', error)
         throw error

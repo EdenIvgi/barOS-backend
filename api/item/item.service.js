@@ -1,6 +1,7 @@
 import { itemModel } from './item.model.js'
 import { dbService } from '../../services/mongo.service.js'
 import { ObjectId } from 'mongodb'
+import { serializeDoc } from '../../services/serialize.service.js'
 
 export const itemService = {
     query,
@@ -12,32 +13,10 @@ export const itemService = {
     importStock
 }
 
-// Helper function to convert ObjectId to string and preserve embedded category
-function serializeItem(item) {
-    if (!item) return item
-    const serialized = { ...item }
-    // Convert _id to string if it's an ObjectId
-    if (serialized._id) {
-        serialized._id = serialized._id.toString()
-    }
-    // Convert categoryId to string if it's an ObjectId
-    if (serialized.categoryId) {
-        serialized.categoryId = serialized.categoryId.toString()
-    }
-    // Serialize embedded category if it exists
-    if (serialized.category) {
-        if (serialized.category._id) {
-            serialized.category._id = serialized.category._id.toString()
-        }
-    }
-    return serialized
-}
-
 async function query(filterBy = {}) {
     try {
         const items = await itemModel.getAll(filterBy)
-        // Serialize all items to convert ObjectIds to strings
-        const serializedItems = items.map(serializeItem)
+        const serializedItems = items.map(serializeDoc)
         // Return in format expected by frontend: { items: [], maxPage: 0 }
         // For now, we don't implement pagination, so maxPage is 0
         return { items: serializedItems, maxPage: 0 }
@@ -50,7 +29,7 @@ async function query(filterBy = {}) {
 async function getById(itemId) {
     try {
         const item = await itemModel.getById(itemId)
-        return serializeItem(item)
+        return serializeDoc(item)
     } catch (error) {
         console.error('[ItemService] Error in getById:', error)
         throw error
@@ -60,7 +39,7 @@ async function getById(itemId) {
 async function add(item) {
     try {
         const addedItem = await itemModel.create(item)
-        return serializeItem(addedItem)
+        return serializeDoc(addedItem)
     } catch (error) {
         console.error('[ItemService] Error in add:', error)
         throw error
@@ -70,7 +49,7 @@ async function add(item) {
 async function update(itemId, item) {
     try {
         const updatedItem = await itemModel.update(itemId, item)
-        return serializeItem(updatedItem)
+        return serializeDoc(updatedItem)
     } catch (error) {
         console.error('[ItemService] Error in update:', error)
         throw error
@@ -90,7 +69,7 @@ async function remove(itemId) {
 async function updateStock(itemId, quantity) {
     try {
         const updatedItem = await itemModel.updateStock(itemId, quantity)
-        return serializeItem(updatedItem)
+        return serializeDoc(updatedItem)
     } catch (error) {
         console.error('[ItemService] Error in updateStock:', error)
         throw error

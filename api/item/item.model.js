@@ -13,6 +13,47 @@ export const itemModel = {
     updateStock
 }
 
+async function _resolveCategory(identifier, categoryCollection) {
+    if (!identifier) return null
+
+    if (typeof identifier === 'object' || (typeof identifier === 'string' && identifier.length === 24)) {
+        try {
+            const oid = typeof identifier === 'string'
+                ? ObjectId.createFromHexString(identifier)
+                : identifier
+            const cat = await categoryCollection.findOne({ _id: oid })
+            if (cat) return cat
+        } catch { /* not a valid ObjectId */ }
+    }
+
+    if (typeof identifier === 'string') {
+        return (
+            await categoryCollection.findOne({ name: identifier }) ||
+            await categoryCollection.findOne({ nameEn: identifier })
+        )
+    }
+    return null
+}
+
+function _embedCategory(item, category) {
+    if (!category) return
+    item.category = {
+        _id: category._id,
+        name: category.name,
+        nameEn: category.nameEn,
+        icon: category.icon || '',
+        order: category.order || 0,
+        isActive: category.isActive !== false,
+    }
+}
+
+async function _populateCategory(item, categoryCollection) {
+    const id = item.categoryId || item.category
+    const cat = await _resolveCategory(id, categoryCollection)
+    if (cat) _embedCategory(item, cat)
+    return item
+}
+
 async function getAll(filterBy = {}) {
     try {
         const collection = await dbService.getCollection(COLLECTION_NAME)
@@ -20,7 +61,6 @@ async function getAll(filterBy = {}) {
 
         const criteria = {}
 
-        // Text search - search in name, nameEn, description, and supplier
         if (filterBy.txt) {
             criteria.$or = [
                 { name: { $regex: filterBy.txt, $options: 'i' } },
@@ -30,13 +70,10 @@ async function getAll(filterBy = {}) {
             ]
         }
 
-        // Category filter - support both categoryId (ObjectId) and category (string)
         if (filterBy.categoryId) {
             try {
-                // Try as ObjectId first
                 criteria.categoryId = ObjectId.createFromHexString(filterBy.categoryId)
-            } catch (e) {
-                // If not a valid ObjectId, try as string category
+            } catch {
                 criteria.$or = [
                     { categoryId: filterBy.categoryId },
                     { category: filterBy.categoryId }
@@ -46,73 +83,22 @@ async function getAll(filterBy = {}) {
             criteria.category = filterBy.category
         }
 
-        // Supplier filter
         if (filterBy.supplier) {
             criteria.supplier = filterBy.supplier
         }
 
-        // Availability filter
         if (filterBy.isAvailable !== null && filterBy.isAvailable !== undefined) {
             criteria.isAvailable = filterBy.isAvailable === 'true' || filterBy.isAvailable === true
         }
 
-        // Price filters
         if (filterBy.minPrice || filterBy.maxPrice) {
             criteria.price = {}
-            if (filterBy.minPrice) {
-                criteria.price.$gte = Number(filterBy.minPrice)
-            }
-            if (filterBy.maxPrice) {
-                criteria.price.$lte = Number(filterBy.maxPrice)
-            }
+            if (filterBy.minPrice) criteria.price.$gte = Number(filterBy.minPrice)
+            if (filterBy.maxPrice) criteria.price.$lte = Number(filterBy.maxPrice)
         }
 
         const items = await collection.find(criteria).sort({ name: 1 }).toArray()
-
-        // Populate category for each item
-        const itemsWithCategory = await Promise.all(items.map(async (item) => {
-            let category = null
-
-            // Try to load category by categoryId or category string
-            const categoryIdentifier = item.categoryId || item.category
-
-            if (categoryIdentifier) {
-                // First try as ObjectId
-                if (typeof categoryIdentifier === 'object' || (typeof categoryIdentifier === 'string' && categoryIdentifier.length === 24)) {
-                    try {
-                        const categoryIdObj = typeof categoryIdentifier === 'string'
-                            ? ObjectId.createFromHexString(categoryIdentifier)
-                            : categoryIdentifier
-                        category = await categoryCollection.findOne({ _id: categoryIdObj })
-                    } catch (e) {
-                        // Not a valid ObjectId, continue to try as name
-                    }
-                }
-
-                // If not found, try as name (string)
-                if (!category && typeof categoryIdentifier === 'string') {
-                    category = await categoryCollection.findOne({ name: categoryIdentifier })
-                    if (!category) {
-                        category = await categoryCollection.findOne({ nameEn: categoryIdentifier })
-                    }
-                }
-
-                if (category) {
-                    item.category = {
-                        _id: category._id,
-                        name: category.name,
-                        nameEn: category.nameEn,
-                        icon: category.icon || '',
-                        order: category.order || 0,
-                        isActive: category.isActive !== false
-                    }
-                }
-            }
-
-            return item
-        }))
-
-        return itemsWithCategory
+        return Promise.all(items.map(item => _populateCategory(item, categoryCollection)))
     } catch (error) {
         console.error('[ItemModel] Error getting items:', error)
         throw error
@@ -126,48 +112,9 @@ async function getById(itemId) {
 
         const objId = toObjectId(itemId)
         const item = await collection.findOne(objId ? { _id: objId } : { _id: itemId })
-
         if (!item) return null
 
-        // Populate category if categoryId or category exists
-        const categoryIdentifier = item.categoryId || item.category
-
-        if (categoryIdentifier) {
-            let category = null
-
-            // First try as ObjectId
-            if (typeof categoryIdentifier === 'object' || (typeof categoryIdentifier === 'string' && categoryIdentifier.length === 24)) {
-                try {
-                    const categoryIdObj = typeof categoryIdentifier === 'string'
-                        ? ObjectId.createFromHexString(categoryIdentifier)
-                        : categoryIdentifier
-                    category = await categoryCollection.findOne({ _id: categoryIdObj })
-                } catch (e) {
-                    // Not a valid ObjectId, continue to try as name
-                }
-            }
-
-            // If not found, try as name (string)
-            if (!category && typeof categoryIdentifier === 'string') {
-                category = await categoryCollection.findOne({ name: categoryIdentifier })
-                if (!category) {
-                    category = await categoryCollection.findOne({ nameEn: categoryIdentifier })
-                }
-            }
-
-            if (category) {
-                item.category = {
-                    _id: category._id,
-                    name: category.name,
-                    nameEn: category.nameEn,
-                    icon: category.icon || '',
-                    order: category.order || 0,
-                    isActive: category.isActive !== false
-                }
-            }
-        }
-
-        return item
+        return _populateCategory(item, categoryCollection)
     } catch (error) {
         console.error('[ItemModel] Error getting item by id:', error)
         throw error
@@ -177,6 +124,7 @@ async function getById(itemId) {
 async function create(itemData) {
     try {
         const collection = await dbService.getCollection(COLLECTION_NAME)
+        const categoryCollection = await dbService.getCollection('category')
 
         const itemToAdd = {
             name: itemData.name || '',
@@ -195,75 +143,19 @@ async function create(itemData) {
             updatedAt: Date.now()
         }
 
-        // Handle categoryId - try to find category and save both categoryId (ObjectId) and category (string)
-        const categoryCollection = await dbService.getCollection('category')
-        let category = null
-        const categoryIdentifier = itemData.categoryId || itemData.category
-
-        if (categoryIdentifier) {
-            // First try as ObjectId
-            if (typeof categoryIdentifier === 'object' || (typeof categoryIdentifier === 'string' && categoryIdentifier.length === 24)) {
-                try {
-                    const categoryIdObj = typeof categoryIdentifier === 'string'
-                        ? ObjectId.createFromHexString(categoryIdentifier)
-                        : categoryIdentifier
-                    category = await categoryCollection.findOne({ _id: categoryIdObj })
-                    if (category) {
-                        itemToAdd.categoryId = category._id
-                        itemToAdd.category = category.name // Keep string for backward compatibility
-                    }
-                } catch (e) {
-                    // Not a valid ObjectId, continue to try as name
-                }
-            }
-
-            // If not found, try as name (string)
-            if (!category && typeof categoryIdentifier === 'string') {
-                category = await categoryCollection.findOne({ name: categoryIdentifier })
-                if (!category) {
-                    category = await categoryCollection.findOne({ nameEn: categoryIdentifier })
-                }
-                if (category) {
-                    itemToAdd.categoryId = category._id
-                    itemToAdd.category = category.name // Keep string for backward compatibility
-                } else {
-                    // If category not found, save as string
-                    itemToAdd.category = categoryIdentifier
-                }
-            }
+        const identifier = itemData.categoryId || itemData.category
+        const category = await _resolveCategory(identifier, categoryCollection)
+        if (category) {
+            itemToAdd.categoryId = category._id
+            itemToAdd.category = category.name
+        } else if (typeof identifier === 'string') {
+            itemToAdd.category = identifier
         }
 
         const result = await collection.insertOne(itemToAdd)
         itemToAdd._id = result.insertedId
 
-        // Populate embedded category object
-        if (category) {
-            itemToAdd.category = {
-                _id: category._id,
-                name: category.name,
-                nameEn: category.nameEn,
-                icon: category.icon || '',
-                order: category.order || 0,
-                isActive: category.isActive !== false
-            }
-        } else if (itemToAdd.categoryId) {
-            // Try to load category by categoryId if we have it
-            try {
-                category = await categoryCollection.findOne({ _id: itemToAdd.categoryId })
-                if (category) {
-                    itemToAdd.category = {
-                        _id: category._id,
-                        name: category.name,
-                        nameEn: category.nameEn,
-                        icon: category.icon || '',
-                        order: category.order || 0,
-                        isActive: category.isActive !== false
-                    }
-                }
-            } catch (e) {
-                // Category not found
-            }
-        }
+        if (category) _embedCategory(itemToAdd, category)
 
         return itemToAdd
     } catch (error) {

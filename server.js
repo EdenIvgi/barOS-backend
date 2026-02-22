@@ -13,15 +13,18 @@ import { userRoutes } from './api/user/user.routes.js'
 import { orderRoutes } from './api/order/order.routes.js'
 import { recipeRoutes } from './api/recipe/recipe.routes.js'
 import { barBookRoutes } from './api/barBook/barBook.routes.js'
+import { recipeModel } from './api/recipe/recipe.model.js'
 import mongoSanitize from 'mongo-sanitize'
 
 const app = express()
 const PORT = process.env.PORT || 3031
 
-// Pre-connect to DB on startup
-dbService.getCollection('items').catch(err => {
-    console.error('Failed to connect to database on startup:', err)
-})
+// Pre-connect to DB and seed defaults on startup
+dbService.getCollection('items')
+    .then(() => recipeModel.ensureDefaultRecipes())
+    .catch(err => {
+        console.error('Failed to connect to database on startup:', err)
+    })
 
 // ==================== MIDDLEWARE ====================
 

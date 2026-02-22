@@ -69,7 +69,6 @@ async function ensureDefaultRecipes() {
 
 async function getAll() {
   const collection = await dbService.getCollection(COLLECTION_NAME)
-  await ensureDefaultRecipes()
   return collection.find({}).sort({ createdAt: -1 }).toArray()
 }
 

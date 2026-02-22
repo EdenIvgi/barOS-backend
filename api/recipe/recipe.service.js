@@ -1,4 +1,5 @@
 import { recipeModel } from './recipe.model.js'
+import { serializeDoc } from '../../services/serialize.service.js'
 
 export const recipeService = {
   query,
@@ -13,17 +14,10 @@ async function ensureDefaultRecipes() {
   await recipeModel.ensureDefaultRecipes()
 }
 
-function serialize(recipe) {
-  if (!recipe) return recipe
-  const s = { ...recipe }
-  if (s._id) s._id = s._id.toString()
-  return s
-}
-
 async function query() {
   try {
     const recipes = await recipeModel.getAll()
-    return recipes.map(serialize)
+    return recipes.map(serializeDoc)
   } catch (error) {
     console.error('[RecipeService] Error in query:', error)
     throw error
@@ -33,7 +27,7 @@ async function query() {
 async function getById(recipeId) {
   try {
     const recipe = await recipeModel.getById(recipeId)
-    return serialize(recipe)
+    return serializeDoc(recipe)
   } catch (error) {
     console.error('[RecipeService] Error in getById:', error)
     throw error
@@ -43,7 +37,7 @@ async function getById(recipeId) {
 async function add(recipe) {
   try {
     const added = await recipeModel.create(recipe)
-    return serialize(added)
+    return serializeDoc(added)
   } catch (error) {
     console.error('[RecipeService] Error in add:', error)
     throw error
@@ -53,7 +47,7 @@ async function add(recipe) {
 async function update(recipeId, recipe) {
   try {
     const updated = await recipeModel.update(recipeId, recipe)
-    return serialize(updated)
+    return serializeDoc(updated)
   } catch (error) {
     console.error('[RecipeService] Error in update:', error)
     throw error

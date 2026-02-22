@@ -27,10 +27,14 @@ async function create(userData) {
         const saltRounds = 10
         const hashedPassword = await bcrypt.hash(userData.password, saltRounds)
         
+        const VALID_ROLES = ['admin', 'manager', 'bartender']
+        const role = VALID_ROLES.includes(userData.role) ? userData.role : 'bartender'
+
         const userToAdd = {
             username: userData.username,
             password: hashedPassword,
             fullname: userData.fullname,
+            role,
             createdAt: Date.now()
         }
 

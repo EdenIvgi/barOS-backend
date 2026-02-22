@@ -21,3 +21,22 @@ export function requireAuth(req, res, next) {
         res.status(401).json({ error: 'Invalid or expired token' })
     }
 }
+
+export function requireRole(...roles) {
+    return (req, res, next) => {
+        if (!req.loggedInUser) return res.status(401).json({ error: 'Authentication required' })
+        const userRole = req.loggedInUser.role || 'bartender'
+        if (!roles.includes(userRole)) {
+            return res.status(403).json({ error: 'Insufficient permissions' })
+        }
+        next()
+    }
+}
+
+export function requireAdmin(req, res, next) {
+    return requireRole('admin')(req, res, next)
+}
+
+export function requireManager(req, res, next) {
+    return requireRole('admin', 'manager')(req, res, next)
+}

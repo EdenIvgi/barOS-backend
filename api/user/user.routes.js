@@ -1,9 +1,9 @@
 import express from 'express'
 import { getUsers } from './user.controller.js'
-import { requireAuth } from '../../middleware/auth.middleware.js'
+import { requireAuth, requireAdmin } from '../../middleware/auth.middleware.js'
 
 const router = express.Router()
 
-router.get('/', requireAuth, getUsers)
+router.get('/', requireAuth, requireAdmin, getUsers)
 
 export const userRoutes = router

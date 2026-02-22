@@ -1,4 +1,4 @@
-# 🍺 Bar App - Frontend
+# 🍺 BarOS - Frontend
 
 Bar management application - Frontend
 

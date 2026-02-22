@@ -67,7 +67,7 @@ export function AppHeader({ isSidebarExpanded, onToggleSidebar }) {
               <span className="bar" />
             </span>
           </button>
-          <div className="logo">Bar App</div>
+          <div className="logo">BarOS</div>
         </div>
       </div>
     </section>

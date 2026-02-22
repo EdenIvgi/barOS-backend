@@ -1,18 +1,26 @@
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { itemService } from '../services/item.service'
 
 export function ItemSearch({ filterBy, onSetFilter }) {
   const { t } = useTranslation()
   const [searchTerm, setSearchTerm] = useState(filterBy.txt || '')
+  const debounceRef = useRef(null)
+
+  const debouncedSetFilter = useCallback((value) => {
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      onSetFilter({ txt: value, pageIdx: 0 })
+    }, 300)
+  }, [onSetFilter])
 
   function handleSearchChange(ev) {
     const value = ev.target.value
     setSearchTerm(value)
-    onSetFilter({ txt: value, pageIdx: 0 })
+    debouncedSetFilter(value)
   }
 
   function handleClearSearch() {
+    clearTimeout(debounceRef.current)
     setSearchTerm('')
     onSetFilter({ txt: '', pageIdx: 0 })
   }

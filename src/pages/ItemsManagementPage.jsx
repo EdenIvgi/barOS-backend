@@ -8,6 +8,10 @@ import { loadItems, removeItem, saveItem } from '../store/actions/item.actions'
 import { itemService } from '../services/item.service'
 import { orderService } from '../services/order.service'
 import { Loader } from '../cmps/Loader'
+import { ItemFilters } from '../cmps/ItemFilters'
+import { ImportStockModal } from '../cmps/ImportStockModal'
+import { CreateOrderModal } from '../cmps/CreateOrderModal'
+import { ItemForm } from '../cmps/ItemForm'
 import { showSuccessMsg, showErrorMsg } from '../services/event-bus.service'
 import * as XLSX from 'xlsx'
 import { NO_SUPPLIER_KEY } from '../services/constants'
@@ -51,7 +55,6 @@ export function ItemsManagementPage() {
   })
 
   const fileInputRef = useRef(null)
-  const overlayMouseDownRef = useRef(false)
   const [importState, setImportState] = useState({
     isOpen: false,
     isLoading: false,
@@ -581,72 +584,15 @@ export function ItemsManagementPage() {
         <p className="empty-message">{t('noProductsInSystem')}</p>
       ) : (
         <>
-          <div className="filters-container">
-            <div>
-              <label>
-                {t('category')}
-              </label>
-              <select
-                name="category"
-                value={filters.category}
-                onChange={handleFilterChange}
-              >
-                <option value="">{t('allCategories')}</option>
-                {uniqueCategories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label>
-                {t('supplier')}
-              </label>
-              <select
-                name="supplier"
-                value={filters.supplier}
-                onChange={handleFilterChange}
-              >
-                <option value="">{t('allSuppliers')}</option>
-                {uniqueSuppliers.map((supplier) => (
-                  <option key={supplier} value={supplier}>
-                    {supplier}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label>
-                {t('stock')}
-              </label>
-              <select
-                name="stockStatus"
-                value={filters.stockStatus}
-                onChange={handleFilterChange}
-              >
-                <option value="">{t('all')}</option>
-                <option value="inStock">{t('inStock')}</option>
-                <option value="outOfStock">{t('outOfStock')}</option>
-                <option value="lowStock">{t('lowStockFilter')}</option>
-              </select>
-            </div>
-
-            <div className="filter-info">
-              {t('showingProducts', { count: filteredItems.length, total: items.length })}
-            </div>
-
-            <div>
-              <button
-                onClick={handleClearFilters}
-                className="clear-filters-btn"
-              >
-                {t('clearFilters')}
-              </button>
-            </div>
-          </div>
+          <ItemFilters
+            filters={filters}
+            uniqueCategories={uniqueCategories}
+            uniqueSuppliers={uniqueSuppliers}
+            filteredCount={filteredItems.length}
+            totalCount={items.length}
+            onFilterChange={handleFilterChange}
+            onClearFilters={handleClearFilters}
+          />
 
           <div className="header-actions">
             <input
@@ -657,10 +603,7 @@ export function ItemsManagementPage() {
               onChange={handleImportFile}
             />
             {totalItemsToOrder > 0 && (
-              <button 
-                className="btn-create-order" 
-                onClick={openCreateOrderModal}
-              >
+              <button className="btn-create-order" onClick={openCreateOrderModal}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M20 7L12 3L4 7M20 7L12 11M20 7V17L12 21M12 11L4 7M12 11V21M4 7V17L12 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -679,278 +622,35 @@ export function ItemsManagementPage() {
             </button>
           </div>
 
-          {createOrderModal.isOpen && createOrderModal.bySupplier && (
-            <div className="form-overlay" onClick={(e) => e.target === e.currentTarget && closeCreateOrderModal()}>
-              <div className="form-container create-order-modal" onClick={(e) => e.stopPropagation()}>
-                <h2>{t('selectOrdersToCreate')}</h2>
-                <p className="create-order-modal-desc">{t('createOrderModalDesc')}</p>
-                <ul className="create-order-supplier-list">
-                  {Object.entries(createOrderModal.bySupplier).map(([supplierName, orderItems]) => (
-                    <li key={supplierName} className="create-order-supplier-item">
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={!!createOrderModal.selectedSuppliers[supplierName]}
-                          onChange={() => toggleCreateOrderSupplier(supplierName)}
-                        />
-                        <span className="supplier-name">{supplierName}</span>
-                        <span className="supplier-summary"> — {t('productsCount', { n: orderItems.length })}</span>
-                      </label>
-                    </li>
-                  ))}
-                </ul>
-                <label className="create-order-combined-option">
-                  <input
-                    type="checkbox"
-                    checked={!!createOrderModal.createCombined}
-                    onChange={(e) => setCreateCombined(e.target.checked)}
-                  />
-                  <span>{t('combinedOrderOption')}</span>
-                </label>
-                <div className="form-actions" style={{ marginTop: '1rem' }}>
-                  <button
-                    type="button"
-                    className="btn-save"
-                    onClick={confirmCreateSelectedOrders}
-                  >
-                    {t('createSelectedOrders')}
-                  </button>
-                  <button type="button" className="btn-cancel" onClick={closeCreateOrderModal}>
-                    {t('cancel')}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <CreateOrderModal
+            isOpen={createOrderModal.isOpen}
+            bySupplier={createOrderModal.bySupplier}
+            selectedSuppliers={createOrderModal.selectedSuppliers}
+            createCombined={createOrderModal.createCombined}
+            onToggleSupplier={toggleCreateOrderSupplier}
+            onSetCombined={setCreateCombined}
+            onConfirm={confirmCreateSelectedOrders}
+            onClose={closeCreateOrderModal}
+          />
 
-          {importState.isOpen && (
-            <div className="form-overlay" onClick={(e) => e.target === e.currentTarget && closeImportModal()}>
-              <div className="form-container" onClick={(e) => e.stopPropagation()}>
-                <h2>{t('importStockTitle')}</h2>
-                {importState.fileName && <p style={{ marginTop: '0.5rem' }}>{t('fileLabel')}: {importState.fileName}</p>}
+          <ImportStockModal
+            importState={importState}
+            onApply={handleApplyImport}
+            onClose={closeImportModal}
+          />
 
-                {importState.isLoading && <p>{t('loading')}</p>}
-                {importState.error && <p style={{ color: 'crimson' }}>{importState.error}</p>}
-
-                {!!importState.report && (
-                  <>
-                    <div style={{ marginTop: '1rem' }}>
-                      <div>{t('totalRows')}: {importState.report.summary?.totalRows}</div>
-                      <div>{t('matchedRows')}: {importState.report.summary?.matchedRows}</div>
-                      <div>{t('uniqueItemsToUpdate')}: {importState.report.summary?.uniqueMatchedItems}</div>
-                      <div>{t('unmatchedRows')}: {importState.report.summary?.unmatchedRows}</div>
-                    </div>
-
-                    {Array.isArray(importState.report.unmatched) && importState.report.unmatched.length > 0 && (
-                      <details style={{ marginTop: '1rem' }}>
-                        <summary>{t('showUnmatched')}</summary>
-                        <ul style={{ marginTop: '0.5rem' }}>
-                          {importState.report.unmatched.slice(0, 20).map((u) => (
-                            <li key={`${u.rowIndex}-${u.inputName}`}>
-                              #{u.rowIndex + 1} — {u.inputName} ({u.quantity})
-                            </li>
-                          ))}
-                          {importState.report.unmatched.length > 20 && (
-                            <li>{t('andMore', { n: importState.report.unmatched.length - 20 })}</li>
-                          )}
-                        </ul>
-                      </details>
-                    )}
-                  </>
-                )}
-
-                <div className="form-actions" style={{ marginTop: '1rem' }}>
-                  <button
-                    type="button"
-                    className="btn-save"
-                    disabled={importState.isLoading || !importState.rows.length}
-                    onClick={handleApplyImport}
-                  >
-                    {t('applyStockUpdate')}
-                  </button>
-                  <button type="button" className="btn-cancel" onClick={closeImportModal}>
-                    {t('close')}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-      {showForm && (
-        <div
-          className="form-overlay"
-          onMouseDown={(e) => { overlayMouseDownRef.current = (e.target === e.currentTarget) }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget && overlayMouseDownRef.current) handleCancel()
-            overlayMouseDownRef.current = false
-          }}
-        >
-          <div className="form-container" onMouseDown={() => { overlayMouseDownRef.current = false }} onClick={(e) => e.stopPropagation()}>
-            <h2>{isEditing ? t('editProduct') : t('addNewProduct')}</h2>
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>{t('nameHe')}:</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={editingItem?.name || ''}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>{t('nameEn')}:</label>
-                <input
-                  type="text"
-                  name="nameEn"
-                  value={editingItem?.nameEn || ''}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>{t('category')}:</label>
-                <select
-                  name="categoryId"
-                  value={editingItem?.categoryId || editingItem?.category || ''}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">{t('selectCategory')}</option>
-                  {uniqueCategories.length > 0 ? (
-                    uniqueCategories.map((categoryName) => (
-                      <option key={categoryName} value={categoryName}>
-                        {categoryName}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="" disabled>
-                      {t('noCategoriesAvailable')}
-                    </option>
-                  )}
-                </select>
-                {uniqueCategories.length > 0 && (
-                  <div className="form-hint" style={{ color: '#666', fontSize: '0.85em', marginTop: '5px' }}>
-                    {t('categoriesFromProducts', { n: uniqueCategories.length })}
-                  </div>
-                )}
-                {uniqueCategories.length === 0 && items && items.length > 0 && (
-                  <div className="form-hint" style={{ color: '#999', fontSize: '0.85em', marginTop: '5px' }}>
-                    {t('noCategoriesInProducts')}
-                  </div>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label>{t('supplier')}:</label>
-                <select
-                  name="supplier"
-                  value={editingItem?.supplier || ''}
-                  onChange={handleChange}
-                >
-                  <option value="">{t('noSupplier')}</option>
-                  {(() => {
-                    const opts = [...uniqueSuppliers]
-                    const current = (editingItem?.supplier || '').trim()
-                    if (current && !opts.includes(current)) opts.push(current)
-                    opts.sort()
-                    return opts.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))
-                  })()}
-                </select>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>{t('price')}:</label>
-                  <input
-                    type="number"
-                    name="price"
-                    value={editingItem?.price || 0}
-                    onChange={handleChange}
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>{t('stockQuantity')}:</label>
-                  <input
-                    type="number"
-                    name="stockQuantity"
-                    value={editingItem?.stockQuantity ?? ''}
-                    onChange={handleChange}
-                    min="0"
-                    step="any"
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>{t('alertThresholdLabel')}:</label>
-                  <input
-                    type="number"
-                    name="minStockLevel"
-                    value={editingItem?.minStockLevel ?? ''}
-                    onChange={handleChange}
-                    min="0"
-                    step="any"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>{t('optimalStock')}:</label>
-                  <input
-                    type="number"
-                    name="optimalStockLevel"
-                    value={editingItem?.optimalStockLevel ?? ''}
-                    onChange={handleChange}
-                    min="0"
-                    step="any"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>{t('imageUrl')}:</label>
-                <input
-                  type="url"
-                  name="imageUrl"
-                  value={editingItem?.imageUrl || ''}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="form-group checkbox-group">
-                <label>
-                  <input
-                    type="checkbox"
-                    name="isAvailable"
-                    checked={editingItem?.isAvailable || false}
-                    onChange={handleChange}
-                  />
-                  {t('availableForOrder')}
-                </label>
-              </div>
-
-              <div className="form-actions">
-                <button type="submit" className="btn-save" disabled={isSaving}>
-                  {isSaving ? t('loading') : isEditing ? t('update') : t('save')}
-                </button>
-                <button type="button" className="btn-cancel" onClick={handleCancel}>
-                  {t('cancel')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+          <ItemForm
+            isOpen={showForm}
+            isEditing={isEditing}
+            editingItem={editingItem}
+            isSaving={isSaving}
+            uniqueCategories={uniqueCategories}
+            uniqueSuppliers={uniqueSuppliers}
+            itemCount={items?.length || 0}
+            onSubmit={handleSubmit}
+            onChange={handleChange}
+            onCancel={handleCancel}
+          />
 
           <div className="table-container">
             <table className="items-table">
@@ -973,115 +673,78 @@ export function ItemsManagementPage() {
                   </td>
                 </tr>
               ) : (
-                filteredItems.map((item) => (
-                <tr key={item._id}>
-                  <td>
-                    <div className="item-name-cell">
-                      {item.imageUrl && (
-                        <img src={item.imageUrl} alt={item.name} className="item-thumb" />
-                      )}
-                      <div>
-                        <strong>{item.name}</strong>
-                        {item.description && (
-                          <div className="item-description">{item.description}</div>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                  <td>{getCategoryNameFromItem(item) ?? t('noCategory')}</td>
-                  <td>{item.supplier || '-'}</td>
-                  <td>₪{item.price}</td>
-                  <td>
-                    <span
-                      className={`stock-badge ${
-                        item.stockQuantity <= (item.minStockLevel || 0)
-                          ? 'low'
-                          : 'ok'
-                      }`}
-                    >
-                      {item.stockQuantity ?? 0}
-                    </span>
-                  </td>
-                  <td>
-                    {(() => {
-                      const toOrder = getToOrderQuantity(item)
-                      const itemId = item._id
-                      const isEditing = editingToOrder[itemId]
-                      
-                      if (isEditing) {
-                        return (
+                filteredItems.map((item) => {
+                  const toOrder = getToOrderQuantity(item)
+                  const itemId = item._id
+                  const isEditingOrder = editingToOrder[itemId]
+
+                  return (
+                    <tr key={itemId}>
+                      <td>
+                        <div className="item-name-cell">
+                          {item.imageUrl && <img src={item.imageUrl} alt={item.name} className="item-thumb" />}
+                          <div>
+                            <strong>{item.name}</strong>
+                            {item.description && <div className="item-description">{item.description}</div>}
+                          </div>
+                        </div>
+                      </td>
+                      <td>{getCategoryNameFromItem(item) ?? t('noCategory')}</td>
+                      <td>{item.supplier || '-'}</td>
+                      <td>₪{item.price}</td>
+                      <td>
+                        <span className={`stock-badge ${item.stockQuantity <= (item.minStockLevel || 0) ? 'low' : 'ok'}`}>
+                          {item.stockQuantity ?? 0}
+                        </span>
+                      </td>
+                      <td>
+                        {isEditingOrder ? (
                           <input
                             type="number"
                             min="0"
                             step="any"
                             defaultValue={toOrder}
                             onBlur={(e) => {
-                              const newValue = e.target.value
-                              handleToOrderChange(item, newValue)
-                              setEditingToOrder(prev => {
-                                const newState = { ...prev }
-                                delete newState[itemId]
-                                return newState
-                              })
+                              handleToOrderChange(item, e.target.value)
+                              setEditingToOrder(prev => { const s = { ...prev }; delete s[itemId]; return s })
                             }}
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.target.blur()
-                              } else if (e.key === 'Escape') {
-                                setEditingToOrder(prev => {
-                                  const newState = { ...prev }
-                                  delete newState[itemId]
-                                  return newState
-                                })
+                              if (e.key === 'Enter') e.target.blur()
+                              else if (e.key === 'Escape') {
+                                setEditingToOrder(prev => { const s = { ...prev }; delete s[itemId]; return s })
                                 e.target.blur()
                               }
                             }}
                             autoFocus
                             className="order-quantity-input"
                           />
-                        )
-                      }
-                      
-                      return (
-                        <span
-                          className={`order-badge ${
-                            toOrder > 0 ? 'needs-order' : 'ok'
-                          }`}
-                          onClick={() => {
-                            setEditingToOrder(prev => ({ ...prev, [itemId]: true }))
-                          }}
-                          title={t('clickToEdit')}
-                        >
-                          {toOrder}
-                        </span>
-                      )
-                    })()}
-                  </td>
-                  <td>
-                    <div className="action-buttons">
-                      <button
-                        className="btn-edit"
-                        onClick={() => handleEdit(item)}
-                        title={t('edit')}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M11.333 2.00001C11.5084 1.82445 11.7163 1.68506 11.9447 1.59123C12.1731 1.4974 12.4173 1.45117 12.6637 1.45534C12.9101 1.45951 13.1523 1.51398 13.3763 1.61538C13.6003 1.71678 13.8012 1.8628 13.9667 2.04445C14.1321 2.2261 14.2585 2.43937 14.3384 2.67091C14.4182 2.90245 14.4497 3.14762 14.4307 3.39068C14.4117 3.63374 14.3426 3.86975 14.2277 4.08334L6.12001 13.3333L2.00001 14L2.66668 9.88001L10.7733 0.63001C10.8882 0.416421 11.0439 0.228215 11.2313 0.0764062C11.4187 -0.0754026 11.6339 -0.188281 11.8637 -0.25534C12.0935 -0.322399 12.3333 -0.342399 12.57 -0.31423C12.8067 -0.286061 13.0353 -0.21023 13.24 -0.09134L11.333 2.00001Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </button>
-                      <button
-                        className="btn-delete"
-                        onClick={() => handleDelete(item._id)}
-                        title={t('delete')}
-                        disabled={isSaving}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M2 4H14M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2761 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66667C4.31305 14.6667 3.97391 14.5262 3.72386 14.2761C3.47381 14.0261 3.33333 13.687 3.33333 13.3333V4M5.33333 4V2.66667C5.33333 2.31305 5.47381 1.97391 5.72386 1.72386C5.97391 1.47381 6.31305 1.33333 6.66667 1.33333H9.33333C9.68696 1.33333 10.0261 1.47381 10.2761 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4M6.66667 7.33333V11.3333M9.33333 7.33333V11.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                ))
+                        ) : (
+                          <span
+                            className={`order-badge ${toOrder > 0 ? 'needs-order' : 'ok'}`}
+                            onClick={() => setEditingToOrder(prev => ({ ...prev, [itemId]: true }))}
+                            title={t('clickToEdit')}
+                          >
+                            {toOrder}
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <div className="action-buttons">
+                          <button className="btn-edit" onClick={() => handleEdit(item)} title={t('edit')}>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M11.333 2.00001C11.5084 1.82445 11.7163 1.68506 11.9447 1.59123C12.1731 1.4974 12.4173 1.45117 12.6637 1.45534C12.9101 1.45951 13.1523 1.51398 13.3763 1.61538C13.6003 1.71678 13.8012 1.8628 13.9667 2.04445C14.1321 2.2261 14.2585 2.43937 14.3384 2.67091C14.4182 2.90245 14.4497 3.14762 14.4307 3.39068C14.4117 3.63374 14.3426 3.86975 14.2277 4.08334L6.12001 13.3333L2.00001 14L2.66668 9.88001L10.7733 0.63001C10.8882 0.416421 11.0439 0.228215 11.2313 0.0764062C11.4187 -0.0754026 11.6339 -0.188281 11.8637 -0.25534C12.0935 -0.322399 12.3333 -0.342399 12.57 -0.31423C12.8067 -0.286061 13.0353 -0.21023 13.24 -0.09134L11.333 2.00001Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </button>
+                          <button className="btn-delete" onClick={() => handleDelete(itemId)} title={t('delete')} disabled={isSaving}>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M2 4H14M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2761 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66667C4.31305 14.6667 3.97391 14.5262 3.72386 14.2761C3.47381 14.0261 3.33333 13.687 3.33333 13.3333V4M5.33333 4V2.66667C5.33333 2.31305 5.47381 1.97391 5.72386 1.72386C5.97391 1.47381 6.31305 1.33333 6.66667 1.33333H9.33333C9.68696 1.33333 10.0261 1.47381 10.2761 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4M6.66667 7.33333V11.3333M9.33333 7.33333V11.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>

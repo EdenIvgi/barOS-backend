@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
@@ -24,7 +25,6 @@ dbService.getCollection('items').catch(err => {
 // ==================== MIDDLEWARE ====================
 
 app.use(cookieParser())
-app.use(express.json())
 
 const corsOptions = {
     origin: [
@@ -40,6 +40,7 @@ const corsOptions = {
     credentials: true
 }
 app.use(cors(corsOptions))
+app.use(express.json({ limit: '5mb' }))
 
 // Rate limiting — strict on auth, general on all API
 const authLimiter = rateLimit({

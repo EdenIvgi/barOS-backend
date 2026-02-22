@@ -28,9 +28,7 @@ export async function loadItems(filterBy) {
     store.dispatch(setItems([]))
     throw error
   } finally {
-    setTimeout(() => {
-      store.dispatch(setIsLoading(false))
-    }, 350)
+    store.dispatch(setIsLoading(false))
   }
 }
 

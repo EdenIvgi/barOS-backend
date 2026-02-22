@@ -33,9 +33,7 @@ export async function loadRecipes() {
     store.dispatch(setRecipesAction([]))
     throw error
   } finally {
-    setTimeout(() => {
-      store.dispatch(setIsLoading(false))
-    }, 350)
+    store.dispatch(setIsLoading(false))
   }
 }
 

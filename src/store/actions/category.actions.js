@@ -18,8 +18,6 @@ export async function loadCategories() {
     store.dispatch(setCategoriesAction([]))
     throw error
   } finally {
-    setTimeout(() => {
-      store.dispatch(setIsLoading(false))
-    }, 350)
+    store.dispatch(setIsLoading(false))
   }
 }

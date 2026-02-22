@@ -2,6 +2,7 @@ import { dbService } from '../../services/mongo.service.js'
 import { toObjectId } from '../../services/objectId.service.js'
 
 const COLLECTION_NAME = 'order'
+const NO_SUPPLIER_KEY = '__no_supplier__'
 
 export const orderModel = {
     getAll,
@@ -24,11 +25,10 @@ async function getAll(filterBy = {}) {
     if (filterBy.status) criteria.status = filterBy.status
     if (filterBy.supplier !== undefined && filterBy.supplier !== '') {
         const s = String(filterBy.supplier).trim()
-        if (s === 'ללא ספק') {
+        if (s === NO_SUPPLIER_KEY || s === '' ) {
             criteria.$or = [
                 { supplier: '' },
                 { supplier: null },
-                { supplier: 'ללא ספק' },
                 { supplier: { $exists: false } }
             ]
         } else {

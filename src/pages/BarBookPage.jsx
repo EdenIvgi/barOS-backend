@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { Formik, Form, Field, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
-import { loadRecipes, saveRecipe, removeRecipe } from '../store/actions/recipe.actions.js'
 import { barBookService } from '../services/barBook.service.js'
 
 function normalizeBarBookContent(data) {
@@ -18,6 +16,7 @@ function normalizeBarBookContent(data) {
     checklists: data.checklists || barBookService.getEmptyContent().checklists,
     dailyTasks,
     stockTable: data.stockTable || barBookService.getEmptyContent().stockTable,
+    recipes: Array.isArray(data.recipes) ? data.recipes : [],
   }
 }
 
@@ -55,6 +54,7 @@ export function BarBookPage() {
   const [content, setContent] = useState(null)
   const [isLoadingBarBook, setIsLoadingBarBook] = useState(true)
   const [barBookError, setBarBookError] = useState(null)
+  const [barBookShowTabs, setBarBookShowTabs] = useState(false)
   const skipSaveRef = useRef(true)
   const [editingChecklist, setEditingChecklist] = useState({ key: null, index: null, value: '' })
   const [editingDailyTask, setEditingDailyTask] = useState({ dayIndex: null, value: '' })
@@ -64,22 +64,17 @@ export function BarBookPage() {
   const [editingStockHeader, setEditingStockHeader] = useState({ index: null, value: '' })
   const [editingDayName, setEditingDayName] = useState({ index: null, value: '' })
 
-  const recipes = useSelector((storeState) => storeState.recipeModule.recipes)
-  const isLoading = useSelector((storeState) => storeState.recipeModule.flag.isLoading)
-  const error = useSelector((storeState) => storeState.recipeModule.flag.error)
   const [formRecipe, setFormRecipe] = useState(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
-
-  useEffect(() => {
-    loadRecipes()
-  }, [])
 
   useEffect(() => {
     barBookService
       .getContent()
       .then((data) => {
-        setContent(normalizeBarBookContent(data))
+        const normalized = normalizeBarBookContent(data)
+        setContent(normalized)
         setBarBookError(null)
+        if (!isBarBookEmpty(normalized)) setBarBookShowTabs(true)
       })
       .catch((err) => {
         setBarBookError(err?.response?.data?.error || err?.message || t('errorLoadBarBook'))
@@ -100,6 +95,18 @@ export function BarBookPage() {
   useEffect(() => {
     if (content) skipSaveRef.current = false
   }, [content])
+
+  function isBarBookEmpty(c) {
+    if (!c) return true
+    const allChecklistsEmpty = ['opening', 'closing', 'deep'].every(
+      (k) => !c.checklists?.[k]?.items?.length
+    )
+    return allChecklistsEmpty && !c.dailyTasks?.length && !c.stockTable?.rows?.length && !c.recipes?.length
+  }
+
+  function handleInitBarBook() {
+    setBarBookShowTabs(true)
+  }
 
   async function clearBarBookContent() {
     if (!window.confirm(t('confirmClearBarBook'))) return
@@ -287,7 +294,7 @@ export function BarBookPage() {
     }
   }
 
-  async function handleSubmit(values) {
+  function handleSubmit(values) {
     const ingredients = linesToArray(values.ingredientsText)
     const instructions = linesToArray(values.instructionsText)
     if (ingredients.length === 0 || instructions.length === 0) return
@@ -298,45 +305,59 @@ export function BarBookPage() {
       instructions,
     }
 
-    try {
-      if (formRecipe) {
-        await saveRecipe({ ...formRecipe, ...payload })
-      } else {
-        await saveRecipe(payload)
+    if (formRecipe) {
+      // Edit existing recipe in local state
+      setContent(prev => ({
+        ...prev,
+        recipes: (prev.recipes || []).map(r =>
+          String(r._id) === String(formRecipe._id)
+            ? { ...r, ...payload, updatedAt: Date.now() }
+            : r
+        )
+      }))
+    } else {
+      // Add new recipe to local state
+      const newRecipe = {
+        _id: Date.now().toString(),
+        ...payload,
+        createdAt: Date.now(),
       }
-      closeForm()
-    } catch (err) {
-      console.error('Recipe save failed', err)
+      setContent(prev => ({
+        ...prev,
+        recipes: [newRecipe, ...(prev.recipes || [])]
+      }))
     }
+    closeForm()
   }
 
-  async function handleDelete(recipe) {
+  function handleDelete(recipe) {
     if (!window.confirm(`${t('confirmDeleteRecipe')} "${recipe.title}"?`)) return
     const id = recipe._id
-    try {
-      await removeRecipe(id)
-      if (formRecipe && String(formRecipe._id) === String(id)) closeForm()
-    } catch (err) {
-      console.error('Recipe delete failed', err)
-    }
+    setContent(prev => ({
+      ...prev,
+      recipes: (prev.recipes || []).filter(r => String(r._id) !== String(id))
+    }))
+    if (formRecipe && String(formRecipe._id) === String(id)) closeForm()
   }
 
   return (
     <section className="bar-book-page">
       <h1 className="page-title">{t('barBookTitle')}</h1>
 
-      <div className="bar-book-tabs">
-        {TAB_IDS.map((tabId) => (
-          <button
-            key={tabId}
-            type="button"
-            className={`bar-book-tab ${activeTab === tabId ? 'active' : ''}`}
-            onClick={() => setActiveTab(tabId)}
-          >
-            {t(tabId === 'checklists' ? 'tabChecklists' : tabId === 'pages' ? 'tabPages' : tabId === 'daily' ? 'tabDaily' : 'tabRecipes')}
-          </button>
-        ))}
-      </div>
+      {barBookShowTabs && (
+        <div className="bar-book-tabs">
+          {TAB_IDS.map((tabId) => (
+            <button
+              key={tabId}
+              type="button"
+              className={`bar-book-tab ${activeTab === tabId ? 'active' : ''}`}
+              onClick={() => setActiveTab(tabId)}
+            >
+              {t(tabId === 'checklists' ? 'tabChecklists' : tabId === 'pages' ? 'tabPages' : tabId === 'daily' ? 'tabDaily' : 'tabRecipes')}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="bar-book-content">
         {isLoadingBarBook && (
@@ -345,7 +366,15 @@ export function BarBookPage() {
         {!isLoadingBarBook && barBookError && (
           <p className="bar-book-error">{barBookError}</p>
         )}
-        {!isLoadingBarBook && !barBookError && content && activeTab === 'checklists' && (
+        {!isLoadingBarBook && !barBookError && content && !barBookShowTabs && (
+          <div className="empty-state">
+            <p>{t('barBookEmpty')}</p>
+            <button type="button" className="btn-add" onClick={handleInitBarBook}>
+              {t('initBarBook')}
+            </button>
+          </div>
+        )}
+        {!isLoadingBarBook && !barBookError && content && barBookShowTabs && activeTab === 'checklists' && (
           <div className="bar-book-checklists">
             {['opening', 'closing', 'deep'].map((key) => {
               const list = content.checklists[key]
@@ -442,7 +471,7 @@ export function BarBookPage() {
           </div>
         )}
 
-        {!isLoadingBarBook && !barBookError && content && activeTab === 'daily' && (
+        {!isLoadingBarBook && !barBookError && content && barBookShowTabs && activeTab === 'daily' && (
           <div className="bar-book-full-pages">
             <section className="daily-tasks-section">
               <h2 className="section-title">{t('dailyTasksTitle')}</h2>
@@ -531,7 +560,7 @@ export function BarBookPage() {
           </div>
         )}
 
-        {!isLoadingBarBook && !barBookError && content && activeTab === 'pages' && (
+        {!isLoadingBarBook && !barBookError && content && barBookShowTabs && activeTab === 'pages' && (
           <div className="bar-book-full-pages">
             <section className="stock-section">
               {editingStockTitle !== null ? (
@@ -643,7 +672,7 @@ export function BarBookPage() {
           </div>
         )}
 
-        {activeTab === 'recipes' && (
+        {barBookShowTabs && activeTab === 'recipes' && (
           <div className="recipes-page bar-book-recipes">
             <h2 className="section-title">{t('recipesTitle')}</h2>
             <div className="recipes-content">
@@ -653,14 +682,10 @@ export function BarBookPage() {
                 </button>
               </div>
               <div className="recipes-grid">
-                {isLoading ? (
-                  <p className="recipes-loading">{t('loadingRecipes')}</p>
-                ) : error ? (
-                  <p className="recipes-error">{error}</p>
-                ) : recipes.length === 0 ? (
+                {(content?.recipes || []).length === 0 ? (
                   <p className="recipes-empty">{t('noRecipes')}</p>
                 ) : (
-                  recipes.map((recipe) => (
+                  (content?.recipes || []).map((recipe) => (
                     <article key={recipe._id} className="recipe-card">
                       <div className="recipe-card-header">
                         <h2 className="recipe-title">{recipe.title}</h2>

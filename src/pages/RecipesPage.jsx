@@ -123,7 +123,12 @@ export function RecipesPage() {
           ) : error ? (
             <p className="recipes-error">{error}</p>
           ) : recipes.length === 0 ? (
-            <p className="recipes-empty">אין מתכונים. הוסף מתכון ראשון.</p>
+            <div className="empty-state">
+              <p className="recipes-empty">{t('noRecipes')}</p>
+              <button type="button" className="btn-add-recipe" onClick={openAddForm}>
+                + {t('addFirstRecipe')}
+              </button>
+            </div>
           ) : (
             recipes.map((recipe) => (
               <article key={recipe._id} className="recipe-card">

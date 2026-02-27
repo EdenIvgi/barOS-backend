@@ -28,7 +28,7 @@ async function save(order) {
       userId: order.userId ?? null,
       status: order.status || 'pending',
       type: order.type || 'stock_order',
-      supplier: order.supplier != null ? String(order.supplier).trim() : ''
+      supplier: order.supplier?.toString().trim() ?? ''
     }
     return httpService.post(BASE_URL, body)
   }

@@ -1,12 +1,17 @@
 import { useTranslation } from 'react-i18next'
 import { ItemPreview } from './ItemPreview'
 
-export function ItemList({ items }) {
+export function ItemList({ items, onAdd }) {
   const { t } = useTranslation()
   if (!items || !items.length) {
     return (
       <div className="item-list empty">
         <p>{t('noItemsFound')}</p>
+        {onAdd && (
+          <button className="btn-add" onClick={onAdd}>
+            + {t('addFirstProduct')}
+          </button>
+        )}
       </div>
     )
   }

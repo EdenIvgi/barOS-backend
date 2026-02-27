@@ -11,14 +11,19 @@ export function HomePage() {
   const { t, i18n } = useTranslation()
   const items = useSelector((storeState) => storeState.itemModule.items)
   const orders = useSelector((storeState) => storeState.orderModule.orders)
+  const user = useSelector((storeState) => storeState.userModule.loggedInUser)
   const [barBookDailyTasks, setBarBookDailyTasks] = useState([])
 
   useEffect(() => {
-    loadItems()
-    loadOrders()
-  }, [])
+    if (user) loadItems()
+  }, [user])
 
   useEffect(() => {
+    if (user) loadOrders()
+  }, [user])
+
+  useEffect(() => {
+    if (!user) return
     barBookService
       .getContent()
       .then((data) => {
@@ -30,7 +35,7 @@ export function HomePage() {
         setBarBookDailyTasks(tasks)
       })
       .catch(() => setBarBookDailyTasks([]))
-  }, [])
+  }, [user])
 
   // Calculate statistics
   const stats = {
@@ -72,20 +77,22 @@ export function HomePage() {
   const todayEntry = barBookDailyTasks.find(
     (entry) => (entry?.day || '').includes(todayNameKey)
   )
-  const todayTask = todayEntry?.task?.trim() || t('dailyTaskFallback')
+  const todayTask = todayEntry?.task?.trim() || null
   const displayDayName = t('dayPrefix') ? `${t('dayPrefix')} ${t('day_' + dayIndex)}` : t('day_' + dayIndex)
 
   return (
     <section className="home-page">
 
       {/* משימה יומית */}
-      <div className="daily-task-card">
-        <div className="daily-task-header">
-          <span className="daily-task-badge">{t('dailyTask')}</span>
-          <span className="daily-task-day">{displayDayName}</span>
+      {todayTask && (
+        <div className="daily-task-card">
+          <div className="daily-task-header">
+            <span className="daily-task-badge">{t('dailyTask')}</span>
+            <span className="daily-task-day">{displayDayName}</span>
+          </div>
+          <p className="daily-task-text">{todayTask}</p>
         </div>
-        <p className="daily-task-text">{todayTask}</p>
-      </div>
+      )}
 
       {/* Dashboard Statistics */}
       <div className="dashboard-stats">

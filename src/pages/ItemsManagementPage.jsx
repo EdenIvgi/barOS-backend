@@ -581,7 +581,12 @@ export function ItemsManagementPage() {
   return (
     <div className="items-management-page">
       {!items || items.length === 0 ? (
-        <p className="empty-message">{t('noProductsInSystem')}</p>
+        <div className="empty-state">
+          <p className="empty-message">{t('noProductsInSystem')}</p>
+          <button className="btn-add" onClick={handleAdd}>
+            + {t('addFirstProduct')}
+          </button>
+        </div>
       ) : (
         <>
           <ItemFilters

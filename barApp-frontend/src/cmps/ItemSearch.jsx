@@ -1,0 +1,52 @@
+import { useState, useRef, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
+
+export function ItemSearch({ filterBy, onSetFilter }) {
+  const { t } = useTranslation()
+  const [searchTerm, setSearchTerm] = useState(filterBy.txt || '')
+  const debounceRef = useRef(null)
+
+  const debouncedSetFilter = useCallback((value) => {
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      onSetFilter({ txt: value, pageIdx: 0 })
+    }, 300)
+  }, [onSetFilter])
+
+  function handleSearchChange(ev) {
+    const value = ev.target.value
+    setSearchTerm(value)
+    debouncedSetFilter(value)
+  }
+
+  function handleClearSearch() {
+    clearTimeout(debounceRef.current)
+    setSearchTerm('')
+    onSetFilter({ txt: '', pageIdx: 0 })
+  }
+
+  return (
+    <section className="item-search" aria-label={t('searchSectionTitle')}>
+      <div className="search-input-wrapper">
+        <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M21 21L16.65 16.65" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        <input
+          type="text"
+          placeholder={t('searchProductsPlaceholder')}
+          value={searchTerm}
+          onChange={handleSearchChange}
+          className="search-input"
+        />
+        {searchTerm && (
+          <button className="clear-search-btn" onClick={handleClearSearch} title={t('clearSearch')}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        )}
+      </div>
+    </section>
+  )
+}

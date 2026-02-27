@@ -1,0 +1,11 @@
+---
+description: Project rule - no Hebrew in code or comments
+globs: ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx", "**/*.scss", "**/*.css", "**/*.mjs"]
+---
+
+# No Hebrew in Code or Comments
+
+- **Never** add Hebrew text in source code comments (e.g. `//`, `/* */`, `/** */`). Use English only.
+- **Never** add Hebrew in commit messages, JSDoc, or any developer-facing strings in the codebase.
+- User-facing UI strings (labels, buttons, placeholders, error messages shown to end users) may remain in any language the product uses; this rule applies only to **comments and developer-facing text**.
+- When editing or adding comments, always write them in English.

@@ -1,0 +1,24 @@
+.user-details {
+  ul.review-list {
+    display: flex;
+    gap: 1em;
+    flex-wrap: wrap;
+  }
+  .review-card {
+    width: fit-content;
+    padding: 1em;
+    margin-block: 1em;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+
+    pre.review-txt {
+      width: fit-content;
+      padding: 0.5em;
+      font-size: 1rem;
+      background-color: lightcoral;
+    }
+
+    a {
+      text-decoration: underline;
+    }
+  }
+}

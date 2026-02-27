@@ -1,0 +1,192 @@
+@import '../setup/vars';
+
+.app-header {
+  background-color: $gray-800;
+  color: $white;
+  box-shadow: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1001;
+  height: 70px;
+  display: flex;
+  align-items: center;
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    position: relative;
+    direction: ltr; /* מיקום קבוע: לוגו משמאל, פעולות מימין */
+  }
+
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    direction: ltr;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.05s ease;
+
+    &:hover {
+      background: $gray-700;
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+  }
+
+  .hamburger {
+    width: 20px;
+    height: 14px;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .hamburger .bar {
+    height: 2px;
+    width: 100%;
+    background: currentColor;
+    border-radius: 999px;
+    opacity: 0.9;
+  }
+
+  .logo {
+    font-family: libre, sans-serif;
+    font-size: 2.5rem;
+    color: $white;
+    font-weight: 400;
+  }
+
+  .header-actions {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .cart-icon {
+      color: $white;
+
+      &:hover {
+        color: $white;
+        opacity: 0.9;
+      }
+    }
+
+    section {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      a {
+        color: $white;
+        text-decoration: none;
+        transition: all 0.3s;
+
+        &:hover {
+          opacity: 0.8;
+        }
+      }
+
+      button {
+        padding: 0.5rem 1rem;
+        background: $gray-600;
+        color: $white;
+        border: none;
+        border-radius: $border-radius;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+
+        &:hover {
+          background: $gray-700;
+        }
+      }
+    }
+  }
+
+  .language-toggle-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: $gray-700;
+    color: $white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    &:hover {
+      background: $gray-600;
+      transform: scale(1.05);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  form {
+    flex-wrap: wrap;
+    display: flex;
+    gap: 0.5rem;
+
+    input {
+      min-height: 40px;
+      padding: 0.5rem 1rem;
+      border: 1px solid $gray-600;
+      border-radius: $border-radius;
+      background: $white;
+      color: $black-dark;
+
+      &:focus {
+        outline: none;
+        border-color: $gray-400;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+      }
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      background: $gray-600;
+      color: $white;
+      border: none;
+      border-radius: $border-radius;
+      cursor: pointer;
+      transition: all 0.3s;
+
+      &:hover {
+        background: $gray-700;
+      }
+    }
+  }
+}

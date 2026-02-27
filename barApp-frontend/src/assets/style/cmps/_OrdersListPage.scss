@@ -1,0 +1,331 @@
+@import '../setup/vars';
+
+.orders-list-page {
+  padding: 1.5rem;
+  max-width: 100%;
+  margin: 0 auto;
+  background: $white-off;
+
+  h1 {
+    margin-bottom: 1rem;
+    color: $black-dark;
+    font-weight: 700;
+    font-size: 2rem;
+  }
+
+  .empty-message {
+    text-align: center;
+    padding: 2rem;
+    color: $gray-600;
+    font-size: 1.2rem;
+  }
+
+  // Table: row = date, column = supplier
+  .orders-grid-wrapper {
+    overflow-x: auto;
+    border: 1px solid $border-color;
+    border-radius: $border-radius-lg;
+    background: $white;
+    box-shadow: $shadow-sm;
+  }
+
+  .orders-grid-table {
+    width: 100%;
+    min-width: 480px;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+
+    thead {
+      tr {
+        border-bottom: 2px solid $gray-600;
+        background: $gray-100;
+
+        th {
+          text-align: center;
+          padding: 0.75rem 0.5rem;
+          font-weight: 700;
+          color: $black-dark;
+          white-space: nowrap;
+        }
+
+        .col-date {
+          min-width: 100px;
+          text-align: start;
+          padding-inline-end: 1rem;
+        }
+
+        .col-supplier {
+          min-width: 140px;
+        }
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid $gray-200;
+
+        &:hover {
+          background: rgba(0, 0, 0, 0.02);
+        }
+
+        &:last-child {
+          border-bottom: none;
+        }
+      }
+
+      .cell-date {
+        text-align: start;
+        padding: 0.6rem 1rem;
+        font-weight: 600;
+        color: $black-dark;
+        vertical-align: top;
+        white-space: nowrap;
+      }
+
+      .cell-orders {
+        vertical-align: top;
+        padding: 0.5rem;
+        min-width: 160px;
+      }
+
+      .cell-empty {
+        color: $gray-400;
+        font-size: 1rem;
+      }
+
+      .cell-order-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .cell-order-card {
+        background: $white-off;
+        border: 1px solid $border-color;
+        border-radius: $border-radius;
+        overflow: hidden;
+        transition: box-shadow 0.2s;
+
+        &:hover {
+          box-shadow: $shadow-sm;
+        }
+
+        &.expanded {
+          box-shadow: $shadow-md;
+          border-color: $gray-400;
+        }
+
+        .cell-order-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.5rem;
+          padding: 0.5rem 0.6rem;
+          min-height: 36px;
+
+          .cell-order-summary {
+            font-weight: 600;
+            color: $black-dark;
+            font-size: 0.9rem;
+            cursor: pointer;
+            flex: 1;
+            min-width: 0;
+          }
+
+          .cell-order-toggle {
+            font-size: 0.7rem;
+            color: $gray-600;
+            cursor: pointer;
+            flex-shrink: 0;
+          }
+        }
+
+        .cell-order-actions {
+          display: flex;
+          gap: 2px;
+          flex-wrap: nowrap;
+          align-items: center;
+          flex-shrink: 0;
+          font-size: 0;
+
+          button {
+            margin: 0;
+            padding: 0.3rem 0.5rem;
+            border: none;
+            border-radius: $border-radius;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: background 0.2s;
+
+            &.btn-icon {
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              padding: 0.3rem;
+              min-width: 24px;
+              min-height: 24px;
+
+              svg {
+                flex-shrink: 0;
+              }
+            }
+
+            &.btn-download-pdf {
+              background: $gray-600;
+              color: $white;
+
+              &:hover {
+                background: $gray-700;
+              }
+            }
+
+            &.btn-edit {
+              background: $gray-600;
+              color: $white;
+
+              &:hover {
+                background: $gray-700;
+              }
+            }
+
+            &.btn-delete {
+              background: $gray-800;
+              color: $white;
+
+              &:hover {
+                background: $black-dark;
+              }
+            }
+
+            &.btn-save {
+              background: $gray-800;
+              color: $white;
+
+              &:hover {
+                background: $black-dark;
+              }
+            }
+
+            &.btn-cancel {
+              background: $gray-400;
+              color: $white;
+
+              &:hover {
+                background: $gray-500;
+              }
+            }
+          }
+        }
+
+        .cell-order-detail {
+          padding: 0.6rem;
+          border-top: 1px solid $gray-200;
+          background: $white;
+
+          .order-items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+
+            .th-actions,
+            .td-actions {
+              width: 44px;
+              text-align: center;
+
+              .btn-icon,
+              svg {
+                margin: 0 auto;
+              }
+            }
+
+            thead .th-actions svg {
+              display: inline-block;
+              vertical-align: middle;
+            }
+
+            thead th {
+              text-align: start;
+              padding: 0.35rem 0.5rem;
+              font-weight: 700;
+              color: $black-dark;
+            }
+
+            tbody tr.row-deleted {
+              background: rgba(0, 0, 0, 0.04);
+
+              td {
+                padding: 0.35rem 0.5rem;
+                text-align: start;
+              }
+
+              .item-removed {
+                text-decoration: line-through;
+                color: $gray-600;
+                margin-inline-start: 0.5rem;
+              }
+
+              .btn-undo-item {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0.35rem;
+                min-width: 26px;
+                min-height: 26px;
+                border: none;
+                border-radius: $border-radius;
+                cursor: pointer;
+                background: $gray-500;
+                color: $white;
+
+                &:hover {
+                  background: $gray-600;
+                }
+              }
+            }
+
+            tbody td {
+              text-align: start;
+              padding: 0.35rem 0.5rem;
+
+              &:nth-child(2) {
+                text-align: center;
+              }
+
+              input {
+                width: 56px;
+                padding: 0.2rem 0.35rem;
+                border: 1px solid $gray-500;
+                border-radius: $border-radius;
+                text-align: center;
+              }
+
+              .btn-delete-item {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0.35rem;
+                min-width: 26px;
+                min-height: 26px;
+                border: none;
+                border-radius: $border-radius;
+                cursor: pointer;
+                background: $gray-700;
+                color: $white;
+
+                &:hover {
+                  background: $black-dark;
+                }
+              }
+            }
+          }
+
+          .empty-message {
+            padding: 0.5rem;
+            font-size: 0.9rem;
+          }
+        }
+      }
+    }
+  }
+}

@@ -13,16 +13,19 @@ import { store } from '../store'
 
 const STALE_MS = 30_000
 let _lastFetchAt = 0
+let _lastFilter = null
 
 export async function loadItems(filterBy, { force = false } = {}) {
   const filter = filterBy || store.getState().itemModule.filterBy
-  if (!force && Date.now() - _lastFetchAt < STALE_MS && store.getState().itemModule.items.length) {
+  const filterChanged = JSON.stringify(filter) !== JSON.stringify(_lastFilter)
+  if (!force && !filterChanged && Date.now() - _lastFetchAt < STALE_MS && store.getState().itemModule.items.length) {
     return
   }
   try {
     store.dispatch(setIsLoading(true))
     const result = await itemService.query(filter)
     _lastFetchAt = Date.now()
+    _lastFilter = { ...filter }
     if (Array.isArray(result)) {
       store.dispatch(setItems(result))
       store.dispatch(setMaxPage(0))

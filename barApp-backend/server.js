@@ -4,6 +4,10 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import rateLimit from 'express-rate-limit'
 import morgan from 'morgan'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 import { config } from './config/index.js'
 import { dbService } from './services/mongo.service.js'
 import { errorHandler } from './middleware/error.middleware.js'
@@ -14,18 +18,10 @@ import { userRoutes } from './api/user/user.routes.js'
 import { orderRoutes } from './api/order/order.routes.js'
 import { recipeRoutes } from './api/recipe/recipe.routes.js'
 import { barBookRoutes } from './api/barBook/barBook.routes.js'
-import { recipeModel } from './api/recipe/recipe.model.js'
 import mongoSanitize from 'mongo-sanitize'
 
 const app = express()
 const PORT = process.env.PORT || 3031
-
-// Pre-connect to DB and seed defaults on startup
-dbService.getCollection('items')
-    .then(() => recipeModel.ensureDefaultRecipes())
-    .catch(err => {
-        console.error('Failed to connect to database on startup:', err)
-    })
 
 // ==================== MIDDLEWARE ====================
 
@@ -99,12 +95,18 @@ app.use('/api/barBook', barBookRoutes)
 app.get('/health', async (req, res) => {
     let dbStatus = 'disconnected'
     try {
-        await dbService.getCollection('items')
+        await dbService.getMasterCollection('user')
         dbStatus = 'connected'
     } catch {
         dbStatus = 'error'
     }
     res.json({ status: 'OK', database: dbStatus })
+})
+
+// ==================== STATIC FILES (React build) ====================
+app.use(express.static(join(__dirname, 'public')))
+app.get('*', (req, res) => {
+    res.sendFile(join(__dirname, 'public', 'index.html'))
 })
 
 // ==================== ERROR HANDLER ====================

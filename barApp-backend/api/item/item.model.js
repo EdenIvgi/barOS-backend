@@ -82,10 +82,10 @@ function _populateCategoryFromMap(item, { byId, byName }) {
     return item
 }
 
-async function getAll(filterBy = {}) {
+async function getAll(filterBy = {}, dbName) {
     try {
-        const collection = await dbService.getCollection(COLLECTION_NAME)
-        const categoryCollection = await dbService.getCollection('category')
+        const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
+        const categoryCollection = await dbService.getCollection('category', dbName)
 
         const criteria = {}
 
@@ -137,10 +137,10 @@ async function getAll(filterBy = {}) {
     }
 }
 
-async function getById(itemId) {
+async function getById(itemId, dbName) {
     try {
-        const collection = await dbService.getCollection(COLLECTION_NAME)
-        const categoryCollection = await dbService.getCollection('category')
+        const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
+        const categoryCollection = await dbService.getCollection('category', dbName)
 
         const objId = toObjectId(itemId)
         const item = await collection.findOne(objId ? { _id: objId } : { _id: itemId })
@@ -153,10 +153,10 @@ async function getById(itemId) {
     }
 }
 
-async function create(itemData) {
+async function create(itemData, dbName) {
     try {
-        const collection = await dbService.getCollection(COLLECTION_NAME)
-        const categoryCollection = await dbService.getCollection('category')
+        const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
+        const categoryCollection = await dbService.getCollection('category', dbName)
 
         const itemToAdd = {
             name: itemData.name || '',
@@ -196,9 +196,9 @@ async function create(itemData) {
     }
 }
 
-async function update(itemId, updateData) {
+async function update(itemId, updateData, dbName) {
     try {
-        const collection = await dbService.getCollection(COLLECTION_NAME)
+        const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
 
         const itemToUpdate = {
             name: updateData.name,
@@ -238,30 +238,30 @@ async function update(itemId, updateData) {
         const result = await collection.updateOne(filter, { $set: itemToUpdate })
 
         if (result.matchedCount === 0) return null
-        return getById(itemId)
+        return getById(itemId, dbName)
     } catch (error) {
         console.error('[ItemModel] Error updating item:', error)
         throw error
     }
 }
 
-async function updateStock(itemId, quantity) {
+async function updateStock(itemId, quantity, dbName) {
     try {
-        const collection = await dbService.getCollection(COLLECTION_NAME)
+        const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
         const objId = toObjectId(itemId)
         const filter = objId ? { _id: objId } : { _id: itemId }
         const result = await collection.updateOne(filter, { $set: { stockQuantity: quantity, updatedAt: Date.now() } })
         if (result.matchedCount === 0) return null
-        return getById(itemId)
+        return getById(itemId, dbName)
     } catch (error) {
         console.error('[ItemModel] Error updating stock:', error)
         throw error
     }
 }
 
-async function remove(itemId) {
+async function remove(itemId, dbName) {
     try {
-        const collection = await dbService.getCollection(COLLECTION_NAME)
+        const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
         const objId = toObjectId(itemId)
         const filter = objId ? { _id: objId } : { _id: itemId }
         const result = await collection.deleteOne(filter)

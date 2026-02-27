@@ -6,14 +6,14 @@ export const barBookService = {
   clear,
 }
 
-async function getContent() {
-  return barBookModel.get()
+async function getContent(dbName) {
+  return barBookModel.get(dbName)
 }
 
-async function saveContent(content) {
-  return barBookModel.save(content)
+async function saveContent(content, dbName) {
+  return barBookModel.save(content, dbName)
 }
 
-async function clear() {
-  return barBookModel.clear()
+async function clear(dbName) {
+  return barBookModel.clear(dbName)
 }

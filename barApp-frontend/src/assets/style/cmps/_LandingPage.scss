@@ -1,0 +1,268 @@
+.landing-page {
+  min-height: 100vh;
+  display: flex;
+  background: $black-dark;
+  color: $white;
+  position: relative;
+  overflow: hidden;
+
+  // Subtle background pattern
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(255, 255, 255, 0.02) 0%, transparent 50%);
+    pointer-events: none;
+  }
+}
+
+// Language toggle
+.landing-lang-btn {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: $gray-400;
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 10;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: $white;
+  }
+}
+
+// === LEFT / CONTENT SIDE ===
+.landing-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem 3rem 4rem 5rem;
+  max-width: 55%;
+  z-index: 1;
+}
+
+.landing-brand {
+  margin-bottom: 3.5rem;
+
+  .landing-logo-mark {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .landing-app-name {
+    font-size: 3.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: $white;
+    margin: 0 0 0.75rem;
+    line-height: 1;
+  }
+
+  .landing-tagline {
+    font-size: 1.15rem;
+    color: $gray-400;
+    margin: 0;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+}
+
+.landing-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+
+    .feature-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    div {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    strong {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: $gray-100;
+    }
+
+    span {
+      font-size: 0.85rem;
+      color: $gray-500;
+      line-height: 1.4;
+    }
+  }
+}
+
+// === RIGHT / AUTH SIDE ===
+.landing-auth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  min-width: 420px;
+  z-index: 1;
+}
+
+.landing-auth-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: $border-radius-lg;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 380px;
+  backdrop-filter: blur(12px);
+
+  .auth-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $white;
+    margin: 0 0 2rem;
+    text-align: center;
+  }
+}
+
+.landing-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  margin-bottom: 1.25rem;
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: $gray-400;
+      letter-spacing: 0.03em;
+    }
+
+    input {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.95rem;
+      color: $white;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+
+      &::placeholder {
+        color: $gray-600;
+      }
+
+      &:focus {
+        border-color: rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.1);
+      }
+    }
+  }
+}
+
+.landing-submit-btn {
+  width: 100%;
+  padding: 0.85rem;
+  background: $white;
+  color: $black-dark;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  margin-top: 0.5rem;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.landing-toggle-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  color: $gray-500;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: center;
+  padding: 0.5rem;
+  transition: color 0.2s;
+
+  &:hover {
+    color: $gray-300;
+  }
+}
+
+// Divider between content and auth
+.landing-content {
+  border-inline-end: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+// === RESPONSIVE ===
+@media (max-width: 768px) {
+  .landing-page {
+    flex-direction: column;
+  }
+
+  .landing-content {
+    max-width: 100%;
+    padding: 5rem 2rem 2rem;
+    border-inline-end: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .landing-brand {
+    margin-bottom: 2rem;
+
+    .landing-app-name {
+      font-size: 2.5rem;
+    }
+  }
+
+  .landing-features {
+    gap: 1rem;
+  }
+
+  .landing-auth {
+    min-width: unset;
+    padding: 2rem;
+  }
+
+  .landing-lang-btn {
+    top: 1rem;
+    left: 1rem;
+  }
+}

@@ -9,6 +9,7 @@ import { Sidebar } from './cmps/Sidebar'
 import { UserMsg } from './cmps/UserMsg'
 import { About } from './pages/About'
 import { HomePage } from './pages/HomePage'
+import { LandingPage } from './pages/LandingPage'
 import { UserDetails } from './pages/UserDetails'
 import { MenuPage } from './pages/MenuPage'
 import { ItemDetails } from './pages/ItemDetails'
@@ -20,7 +21,7 @@ import { ProtectedRoute } from './cmps/ProtectedRoute'
 import { store } from './store/store'
 import { loadCartFromStorage } from './store/actions/order.actions'
 
-export function App() {
+function AppLayout() {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
 
   useEffect(() => {
@@ -28,38 +29,46 @@ export function App() {
   }, [])
 
   return (
+    <section className={`main-layout app ${isSidebarExpanded ? 'sidebar-expanded' : ''}`}>
+      <Sidebar
+        isExpanded={isSidebarExpanded}
+        onHover={() => setIsSidebarExpanded(true)}
+        onLeave={() => setIsSidebarExpanded(false)}
+      />
+      <div className="main-content">
+        <AppHeader
+          isSidebarExpanded={isSidebarExpanded}
+          onToggleSidebar={() => setIsSidebarExpanded(prev => !prev)}
+        />
+        <main>
+          <Routes>
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/about" element={<About />} />
+            <Route element={<ProtectedRoute><UserDetails /></ProtectedRoute>} path="/user" />
+            <Route element={<MenuPage />} path="/products" />
+            <Route element={<ItemDetails />} path="/products/:itemId" />
+            <Route element={<ProtectedRoute><OrderPage /></ProtectedRoute>} path="/order" />
+            <Route element={<ProtectedRoute><OrdersListPage /></ProtectedRoute>} path="/orders" />
+            <Route element={<ProtectedRoute><ItemsManagementPage /></ProtectedRoute>} path="/items-management" />
+            <Route element={<ProtectedRoute><BarBookPage /></ProtectedRoute>} path="/bar-book" />
+          </Routes>
+        </main>
+        <AppFooter />
+      </div>
+    </section>
+  )
+}
+
+export function App() {
+  return (
     <Provider store={store}>
       <Router>
-        <section className={`main-layout app ${isSidebarExpanded ? 'sidebar-expanded' : ''}`}>
-          <Sidebar
-            isExpanded={isSidebarExpanded}
-            onHover={() => setIsSidebarExpanded(true)}
-            onLeave={() => setIsSidebarExpanded(false)}
-          />
-          <div className="main-content">
-            <AppHeader
-              isSidebarExpanded={isSidebarExpanded}
-              onToggleSidebar={() => setIsSidebarExpanded(prev => !prev)}
-            />
-            <main>
-              <Routes>
-                <Route element={<HomePage />} path="/" />
-                <Route element={<About />} path="/about" />
-                <Route element={<ProtectedRoute><UserDetails /></ProtectedRoute>} path="/user" />
-                <Route element={<MenuPage />} path="/products" />
-                <Route element={<ItemDetails />} path="/products/:itemId" />
-                <Route element={<ProtectedRoute><OrderPage /></ProtectedRoute>} path="/order" />
-                <Route element={<ProtectedRoute><OrdersListPage /></ProtectedRoute>} path="/orders" />
-                <Route element={<ProtectedRoute><ItemsManagementPage /></ProtectedRoute>} path="/items-management" />
-                <Route element={<ProtectedRoute><BarBookPage /></ProtectedRoute>} path="/bar-book" />
-                <Route element={<ProtectedRoute><BarBookPage /></ProtectedRoute>} path="/recipes" />
-              </Routes>
-            </main>
-            <AppFooter />
-          </div>
-        </section>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/*" element={<AppLayout />} />
+        </Routes>
+        <UserMsg />
       </Router>
-      <UserMsg />
     </Provider>
   )
 }

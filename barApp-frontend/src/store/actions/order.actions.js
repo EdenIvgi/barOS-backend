@@ -132,12 +132,13 @@ export async function checkout() {
     let created = 0
     for (const [supplier, items] of Object.entries(bySupplier)) {
       const saved = await orderService.save({
-        items: items.map(({ itemId, itemName, price, quantity, subtotal }) => ({
+        items: items.map(({ itemId, itemName, price, quantity, subtotal, supplier }) => ({
           itemId,
           name: itemName,
           price,
           quantity,
           subtotal,
+          supplier: supplier?.toString().trim() ?? '',
         })),
         supplier: supplier || '',
         status: 'pending',

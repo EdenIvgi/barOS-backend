@@ -12,6 +12,7 @@ export function getEmptyContent() {
     },
     dailyTasks: [],
     stockTable: { title: '', headers: [], rows: [] },
+    recipes: [],
   }
 }
 

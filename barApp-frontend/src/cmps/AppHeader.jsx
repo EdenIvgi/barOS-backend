@@ -1,14 +1,14 @@
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { showErrorMsg, showSuccessMsg } from '../services/event-bus.service'
 import { logout } from '../store/actions/user.actions'
-import { LoginSignup } from './LoginSignup'
 import { CartIcon } from './CartIcon'
 
 export function AppHeader({ isSidebarExpanded, onToggleSidebar }) {
   const user = useSelector(storeState => storeState.userModule.loggedInUser)
   const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
 
   function toggleLanguage() {
     const currentLang = i18n.resolvedLanguage || 'he'
@@ -21,10 +21,11 @@ export function AppHeader({ isSidebarExpanded, onToggleSidebar }) {
     return currentLang === 'en' ? 'EN' : 'HE'
   }
 
-  function onLogout() {
+  async function onLogout() {
     try {
-      logout()
-      showSuccessMsg('Bye Bye')
+      await logout()
+      showSuccessMsg(t('logoutSuccess'))
+      navigate('/')
     } catch (error) {
       showErrorMsg('OOPs try again')
     }
@@ -48,9 +49,7 @@ export function AppHeader({ isSidebarExpanded, onToggleSidebar }) {
               <button onClick={onLogout}>{t('logout')}</button>
             </section>
           ) : (
-            <section>
-              <LoginSignup />
-            </section>
+            <Link to="/" className="header-login-link">{t('landingLoginBtn')}</Link>
           )}
         </div>
         <div className="header-brand flex align-center gap-1">

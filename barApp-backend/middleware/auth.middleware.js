@@ -16,6 +16,7 @@ export function requireAuth(req, res, next) {
 
     try {
         req.loggedInUser = jwt.verify(token, secret)
+        req.userDbName = req.loggedInUser.dbName || `bar_${req.loggedInUser.barId}`
         next()
     } catch {
         res.status(401).json({ error: 'Invalid or expired token' })

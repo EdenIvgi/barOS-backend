@@ -9,9 +9,9 @@ export const categoryService = {
     remove
 }
 
-async function query() {
+async function query(dbName) {
     try {
-        const categories = await categoryModel.getAll()
+        const categories = await categoryModel.getAll(dbName)
         return categories.map(serializeDoc)
     } catch (error) {
         console.error('[CategoryService] Error in query:', error)
@@ -19,9 +19,9 @@ async function query() {
     }
 }
 
-async function getById(categoryId) {
+async function getById(categoryId, dbName) {
     try {
-        const category = await categoryModel.getById(categoryId)
+        const category = await categoryModel.getById(categoryId, dbName)
         return serializeDoc(category)
     } catch (error) {
         console.error('[CategoryService] Error in getById:', error)
@@ -29,9 +29,9 @@ async function getById(categoryId) {
     }
 }
 
-async function add(category) {
+async function add(category, dbName) {
     try {
-        const addedCategory = await categoryModel.create(category)
+        const addedCategory = await categoryModel.create(category, dbName)
         return serializeDoc(addedCategory)
     } catch (error) {
         console.error('[CategoryService] Error in add:', error)
@@ -39,9 +39,9 @@ async function add(category) {
     }
 }
 
-async function update(categoryId, category) {
+async function update(categoryId, category, dbName) {
     try {
-        const updatedCategory = await categoryModel.update(categoryId, category)
+        const updatedCategory = await categoryModel.update(categoryId, category, dbName)
         return serializeDoc(updatedCategory)
     } catch (error) {
         console.error('[CategoryService] Error in update:', error)
@@ -49,9 +49,9 @@ async function update(categoryId, category) {
     }
 }
 
-async function remove(categoryId) {
+async function remove(categoryId, dbName) {
     try {
-        const deletedCount = await categoryModel.remove(categoryId)
+        const deletedCount = await categoryModel.remove(categoryId, dbName)
         return deletedCount
     } catch (error) {
         console.error('[CategoryService] Error in remove:', error)

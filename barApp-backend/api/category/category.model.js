@@ -1,0 +1,67 @@
+import { dbService } from '../../services/mongo.service.js'
+import { toObjectId } from '../../services/objectId.service.js'
+
+const COLLECTION_NAME = 'category'
+
+export const categoryModel = {
+    getAll,
+    getById,
+    create,
+    update,
+    remove
+}
+
+async function getAll() {
+    const collection = await dbService.getCollection(COLLECTION_NAME)
+    return collection.find({ isActive: { $ne: false } }).sort({ order: 1, name: 1 }).toArray()
+}
+
+async function getById(categoryId) {
+    const collection = await dbService.getCollection(COLLECTION_NAME)
+    const objId = toObjectId(categoryId)
+    const filter = objId ? { _id: objId } : { _id: categoryId }
+    return collection.findOne(filter)
+}
+
+async function create(categoryData) {
+    const collection = await dbService.getCollection(COLLECTION_NAME)
+    const categoryToAdd = {
+        name: categoryData.name || '',
+        nameEn: categoryData.nameEn || categoryData.name || '',
+        icon: categoryData.icon || '',
+        order: categoryData.order !== undefined ? categoryData.order : 0,
+        isActive: categoryData.isActive !== undefined ? categoryData.isActive : true,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+    }
+    const result = await collection.insertOne(categoryToAdd)
+    categoryToAdd._id = result.insertedId
+    return categoryToAdd
+}
+
+async function update(categoryId, updateData) {
+    const collection = await dbService.getCollection(COLLECTION_NAME)
+    const objId = toObjectId(categoryId)
+    const filter = objId ? { _id: objId } : { _id: categoryId }
+
+    const categoryToUpdate = {
+        name: updateData.name,
+        nameEn: updateData.nameEn || updateData.name,
+        icon: updateData.icon || '',
+        order: updateData.order !== undefined ? updateData.order : 0,
+        isActive: updateData.isActive !== undefined ? updateData.isActive : true,
+        updatedAt: Date.now()
+    }
+
+    const result = await collection.updateOne(filter, { $set: categoryToUpdate })
+    if (result.matchedCount === 0) return null
+    return getById(categoryId)
+}
+
+async function remove(categoryId) {
+    const collection = await dbService.getCollection(COLLECTION_NAME)
+    const objId = toObjectId(categoryId)
+    const filter = objId ? { _id: objId } : { _id: categoryId }
+    const result = await collection.deleteOne(filter)
+    return result.deletedCount
+}

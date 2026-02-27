@@ -12,6 +12,7 @@ function emptyContent() {
     },
     dailyTasks: [],
     stockTable: { title: '', headers: [], rows: [] },
+    recipes: [],
   }
 }
 
@@ -22,8 +23,8 @@ export const barBookModel = {
 }
 
 /** Returns the single bar book document (slug: default), or null if none. */
-async function get() {
-  const collection = await dbService.getCollection(COLLECTION_NAME)
+async function get(dbName) {
+  const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
   const doc = await collection.findOne({ slug: DEFAULT_SLUG })
   if (!doc) return null
   const { _id, slug, createdAt, updatedAt, ...content } = doc
@@ -36,8 +37,8 @@ async function get() {
 }
 
 /** Saves full bar book content; creates document if missing, otherwise updates. */
-async function save(content) {
-  const collection = await dbService.getCollection(COLLECTION_NAME)
+async function save(content, dbName) {
+  const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
   const { _id, createdAt, updatedAt, ...payload } = content || {}
   const now = Date.now()
 
@@ -46,6 +47,7 @@ async function save(content) {
     checklists: payload.checklists ?? emptyContent().checklists,
     dailyTasks: Array.isArray(payload.dailyTasks) ? payload.dailyTasks : [],
     stockTable: payload.stockTable ?? emptyContent().stockTable,
+    recipes: Array.isArray(payload.recipes) ? payload.recipes : [],
     updatedAt: now,
   }
 
@@ -55,15 +57,15 @@ async function save(content) {
       { slug: DEFAULT_SLUG },
       { $set: dataToSave }
     )
-    return get()
+    return get(dbName)
   }
 
   dataToSave.createdAt = now
   await collection.insertOne(dataToSave)
-  return get()
+  return get(dbName)
 }
 
 /** Clears content to empty structure (no demo data). */
-async function clear() {
-  return save(emptyContent())
+async function clear(dbName) {
+  return save(emptyContent(), dbName)
 }

@@ -12,9 +12,9 @@ import { requireAuth, requireManager } from '../../middleware/auth.middleware.js
 
 const router = express.Router()
 
-router.get('/', getOrders)
-router.get('/active', getActiveOrders)
-router.get('/:id', getOrderById)
+router.get('/', requireAuth, getOrders)
+router.get('/active', requireAuth, getActiveOrders)
+router.get('/:id', requireAuth, getOrderById)
 router.post('/', requireAuth, addOrder)
 router.put('/:id', requireAuth, updateOrder)
 router.put('/:id/status', requireAuth, updateOrderStatus)

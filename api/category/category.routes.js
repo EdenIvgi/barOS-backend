@@ -15,8 +15,8 @@ const categorySchema = {
     name: { required: true, minLength: 1 },
 }
 
-router.get('/', getCategories)
-router.get('/:id', getCategoryById)
+router.get('/', requireAuth, getCategories)
+router.get('/:id', requireAuth, getCategoryById)
 router.post('/', requireAuth, validate(categorySchema), addCategory)
 router.put('/', requireAuth, validate(categorySchema), updateCategory)
 router.delete('/:id', requireAuth, deleteCategory)

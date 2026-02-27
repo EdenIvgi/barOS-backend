@@ -5,7 +5,6 @@ import {
   addRecipe,
   updateRecipe,
   deleteRecipe,
-  seedRecipes
 } from './recipe.controller.js'
 import { requireAuth } from '../../middleware/auth.middleware.js'
 import { validate } from '../../middleware/validate.middleware.js'
@@ -16,9 +15,8 @@ const recipeSchema = {
   title: { required: true, minLength: 1 },
 }
 
-router.get('/', getRecipes)
-router.get('/seed', requireAuth, seedRecipes)
-router.get('/:id', getRecipeById)
+router.get('/', requireAuth, getRecipes)
+router.get('/:id', requireAuth, getRecipeById)
 router.post('/', requireAuth, validate(recipeSchema), addRecipe)
 router.put('/:id', requireAuth, validate(recipeSchema), updateRecipe)
 router.delete('/:id', requireAuth, deleteRecipe)

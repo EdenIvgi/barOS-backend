@@ -21,8 +21,8 @@ const stockSchema = {
     quantity: { required: true, isNumber: true },
 }
 
-router.get('/', getItems)
-router.get('/:id', getItemById)
+router.get('/', requireAuth, getItems)
+router.get('/:id', requireAuth, getItemById)
 router.post('/', requireAuth, validate(itemSchema), addItem)
 router.put('/', requireAuth, validate(itemSchema), updateItem)
 router.put('/:id/stock', requireAuth, validate(stockSchema), updateItemStock)

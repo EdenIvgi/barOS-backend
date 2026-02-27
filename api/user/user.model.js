@@ -8,7 +8,7 @@ export const userModel = {
 
 async function getAll(filterBy = {}) {
     try {
-        const collection = await dbService.getCollection(COLLECTION_NAME)
+        const collection = await dbService.getMasterCollection(COLLECTION_NAME)
         
         const criteria = {}
         if (filterBy.username) {

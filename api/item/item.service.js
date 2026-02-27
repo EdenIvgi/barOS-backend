@@ -13,12 +13,10 @@ export const itemService = {
     importStock
 }
 
-async function query(filterBy = {}) {
+async function query(filterBy = {}, dbName) {
     try {
-        const items = await itemModel.getAll(filterBy)
+        const items = await itemModel.getAll(filterBy, dbName)
         const serializedItems = items.map(serializeDoc)
-        // Return in format expected by frontend: { items: [], maxPage: 0 }
-        // For now, we don't implement pagination, so maxPage is 0
         return { items: serializedItems, maxPage: 0 }
     } catch (error) {
         console.error('[ItemService] Error in query:', error)
@@ -26,9 +24,9 @@ async function query(filterBy = {}) {
     }
 }
 
-async function getById(itemId) {
+async function getById(itemId, dbName) {
     try {
-        const item = await itemModel.getById(itemId)
+        const item = await itemModel.getById(itemId, dbName)
         return serializeDoc(item)
     } catch (error) {
         console.error('[ItemService] Error in getById:', error)
@@ -36,9 +34,9 @@ async function getById(itemId) {
     }
 }
 
-async function add(item) {
+async function add(item, dbName) {
     try {
-        const addedItem = await itemModel.create(item)
+        const addedItem = await itemModel.create(item, dbName)
         return serializeDoc(addedItem)
     } catch (error) {
         console.error('[ItemService] Error in add:', error)
@@ -46,9 +44,9 @@ async function add(item) {
     }
 }
 
-async function update(itemId, item) {
+async function update(itemId, item, dbName) {
     try {
-        const updatedItem = await itemModel.update(itemId, item)
+        const updatedItem = await itemModel.update(itemId, item, dbName)
         return serializeDoc(updatedItem)
     } catch (error) {
         console.error('[ItemService] Error in update:', error)
@@ -56,9 +54,9 @@ async function update(itemId, item) {
     }
 }
 
-async function remove(itemId) {
+async function remove(itemId, dbName) {
     try {
-        const deletedCount = await itemModel.remove(itemId)
+        const deletedCount = await itemModel.remove(itemId, dbName)
         return deletedCount
     } catch (error) {
         console.error('[ItemService] Error in remove:', error)
@@ -66,9 +64,9 @@ async function remove(itemId) {
     }
 }
 
-async function updateStock(itemId, quantity) {
+async function updateStock(itemId, quantity, dbName) {
     try {
-        const updatedItem = await itemModel.updateStock(itemId, quantity)
+        const updatedItem = await itemModel.updateStock(itemId, quantity, dbName)
         return serializeDoc(updatedItem)
     } catch (error) {
         console.error('[ItemService] Error in updateStock:', error)
@@ -88,7 +86,7 @@ function normalizeName(input) {
     // Normalize separators/punctuation
     s = s
         .toLowerCase()
-        .replace(/[’'״"]/g, ' ')
+        .replace(/[''״"]/g, ' ')
         .replace(/[-_/\\.,:;(){}\[\]|+*?!]/g, ' ')
         .replace(/\s+/g, ' ')
         .trim()
@@ -153,8 +151,8 @@ function similarityScore(aRaw, bRaw) {
     return 0.6 * jaccard + 0.4 * lev
 }
 
-async function importStock(rows, { dryRun = true, mode = 'set' } = {}) {
-    const collection = await dbService.getCollection('items')
+async function importStock(rows, { dryRun = true, mode = 'set' } = {}, dbName) {
+    const collection = await dbService.getCollection('items', dbName)
     const items = await collection
         .find({}, { projection: { name: 1, nameEn: 1, stockQuantity: 1, supplier: 1, category: 1 } })
         .toArray()

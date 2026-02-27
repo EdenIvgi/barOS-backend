@@ -10,9 +10,9 @@ export const orderService = {
     getActiveOrders
 }
 
-async function query(filterBy = {}) {
+async function query(filterBy = {}, dbName) {
     try {
-        const orders = await orderModel.getAll(filterBy)
+        const orders = await orderModel.getAll(filterBy, dbName)
         return orders
     } catch (error) {
         console.error('[OrderService] Error in query:', error)
@@ -20,9 +20,9 @@ async function query(filterBy = {}) {
     }
 }
 
-async function getById(orderId) {
+async function getById(orderId, dbName) {
     try {
-        const order = await orderModel.getById(orderId)
+        const order = await orderModel.getById(orderId, dbName)
         return order
     } catch (error) {
         console.error('[OrderService] Error in getById:', error)
@@ -30,9 +30,9 @@ async function getById(orderId) {
     }
 }
 
-async function add(order) {
+async function add(order, dbName) {
     try {
-        const addedOrder = await orderModel.create(order)
+        const addedOrder = await orderModel.create(order, dbName)
         return addedOrder
     } catch (error) {
         console.error('[OrderService] Error in add:', error)
@@ -40,9 +40,9 @@ async function add(order) {
     }
 }
 
-async function update(orderId, order) {
+async function update(orderId, order, dbName) {
     try {
-        const updatedOrder = await orderModel.update(orderId, order)
+        const updatedOrder = await orderModel.update(orderId, order, dbName)
         return updatedOrder
     } catch (error) {
         console.error('[OrderService] Error in update:', error)
@@ -50,9 +50,9 @@ async function update(orderId, order) {
     }
 }
 
-async function remove(orderId) {
+async function remove(orderId, dbName) {
     try {
-        const deletedCount = await orderModel.remove(orderId)
+        const deletedCount = await orderModel.remove(orderId, dbName)
         return deletedCount
     } catch (error) {
         console.error('[OrderService] Error in remove:', error)
@@ -60,9 +60,9 @@ async function remove(orderId) {
     }
 }
 
-async function updateStatus(orderId, status) {
+async function updateStatus(orderId, status, dbName) {
     try {
-        const updatedOrder = await orderModel.updateStatus(orderId, status)
+        const updatedOrder = await orderModel.updateStatus(orderId, status, dbName)
         return updatedOrder
     } catch (error) {
         console.error('[OrderService] Error in updateStatus:', error)
@@ -70,9 +70,9 @@ async function updateStatus(orderId, status) {
     }
 }
 
-async function getActiveOrders() {
+async function getActiveOrders(dbName) {
     try {
-        const orders = await orderModel.getAll({ status: { $in: ['pending', 'processing', 'preparing'] } })
+        const orders = await orderModel.getAll({ status: { $in: ['pending', 'processing', 'preparing'] } }, dbName)
         return orders
     } catch (error) {
         console.error('[OrderService] Error in getActiveOrders:', error)

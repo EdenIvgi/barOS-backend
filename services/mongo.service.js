@@ -2,41 +2,42 @@ import { MongoClient } from 'mongodb'
 import { config } from '../config/index.js'
 import { logger } from './logger.service.js'
 
-export const dbService = { getCollection, close }
+const MASTER_DB = 'barapp_master'
 
-var dbConn = null
+export const dbService = { getCollection, getMasterCollection, close }
+
 var dbClient = null
 
-async function getCollection(collectionName) {
-    try {
-        const db = await _connect()
-        const collection = await db.collection(collectionName)
-        return collection
-    } catch (err) {
-        logger.error('Failed to get Mongo collection', err)
-        throw err
-    }
-}
-
-async function _connect() {
-    if (dbConn) return dbConn
-
+async function getClient() {
+    if (dbClient) return dbClient
     try {
         const client = await MongoClient.connect(config.dbURL)
         dbClient = client
-        const db = client.db(config.dbName)
         logger.info('Successfully Connected to MongoDB')
-        return dbConn = db
+        return dbClient
     } catch (err) {
         logger.error('Cannot Connect to DB', err)
         throw err
     }
 }
 
+async function getCollection(collectionName, dbName) {
+    try {
+        const client = await getClient()
+        return client.db(dbName).collection(collectionName)
+    } catch (err) {
+        logger.error('Failed to get Mongo collection', err)
+        throw err
+    }
+}
+
+async function getMasterCollection(collectionName) {
+    return getCollection(collectionName, MASTER_DB)
+}
+
 async function close() {
     if (dbClient) {
         await dbClient.close()
-        dbConn = null
         dbClient = null
     }
 }

@@ -7,16 +7,11 @@ export const recipeService = {
   add,
   update,
   remove,
-  ensureDefaultRecipes
 }
 
-async function ensureDefaultRecipes() {
-  await recipeModel.ensureDefaultRecipes()
-}
-
-async function query() {
+async function query(dbName) {
   try {
-    const recipes = await recipeModel.getAll()
+    const recipes = await recipeModel.getAll(dbName)
     return recipes.map(serializeDoc)
   } catch (error) {
     console.error('[RecipeService] Error in query:', error)
@@ -24,9 +19,9 @@ async function query() {
   }
 }
 
-async function getById(recipeId) {
+async function getById(recipeId, dbName) {
   try {
-    const recipe = await recipeModel.getById(recipeId)
+    const recipe = await recipeModel.getById(recipeId, dbName)
     return serializeDoc(recipe)
   } catch (error) {
     console.error('[RecipeService] Error in getById:', error)
@@ -34,9 +29,9 @@ async function getById(recipeId) {
   }
 }
 
-async function add(recipe) {
+async function add(recipe, dbName) {
   try {
-    const added = await recipeModel.create(recipe)
+    const added = await recipeModel.create(recipe, dbName)
     return serializeDoc(added)
   } catch (error) {
     console.error('[RecipeService] Error in add:', error)
@@ -44,9 +39,9 @@ async function add(recipe) {
   }
 }
 
-async function update(recipeId, recipe) {
+async function update(recipeId, recipe, dbName) {
   try {
-    const updated = await recipeModel.update(recipeId, recipe)
+    const updated = await recipeModel.update(recipeId, recipe, dbName)
     return serializeDoc(updated)
   } catch (error) {
     console.error('[RecipeService] Error in update:', error)
@@ -54,9 +49,9 @@ async function update(recipeId, recipe) {
   }
 }
 
-async function remove(recipeId) {
+async function remove(recipeId, dbName) {
   try {
-    return await recipeModel.remove(recipeId)
+    return await recipeModel.remove(recipeId, dbName)
   } catch (error) {
     console.error('[RecipeService] Error in remove:', error)
     throw error

@@ -1,6 +1,7 @@
 import { authModel } from './auth.model.js'
 import bcrypt from 'bcrypt'
 import { createError } from '../../middleware/error.middleware.js'
+import { provisionUserDb } from '../../services/dbProvisioning.service.js'
 
 export const authService = {
     login,
@@ -23,5 +24,6 @@ async function signup(userData) {
     if (existing) throw createError('Username already exists', 409)
 
     const user = await authModel.create(userData)
+    await provisionUserDb(user.barId)
     return user
 }

@@ -17,8 +17,8 @@ function normalizeOrder(o) {
     return { ...o, supplier: o.supplier != null ? String(o.supplier) : '' }
 }
 
-async function getAll(filterBy = {}) {
-    const collection = await dbService.getCollection(COLLECTION_NAME)
+async function getAll(filterBy = {}, dbName) {
+    const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
 
     const criteria = {}
     if (filterBy.userId) criteria.userId = filterBy.userId
@@ -40,8 +40,8 @@ async function getAll(filterBy = {}) {
     return orders.map(normalizeOrder)
 }
 
-async function getById(orderId) {
-    const collection = await dbService.getCollection(COLLECTION_NAME)
+async function getById(orderId, dbName) {
+    const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
     const objId = toObjectId(orderId)
     const filter = objId ? { _id: objId } : { _id: orderId }
     const order = await collection.findOne(filter)
@@ -49,8 +49,8 @@ async function getById(orderId) {
     return normalizeOrder(order)
 }
 
-async function create(orderData) {
-    const collection = await dbService.getCollection(COLLECTION_NAME)
+async function create(orderData, dbName) {
+    const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
     const totalAmount = orderData.items.reduce((sum, item) => sum + (item.subtotal || 0), 0)
     const supplier = orderData.supplier != null ? String(orderData.supplier).trim() : ''
 
@@ -70,8 +70,8 @@ async function create(orderData) {
     return orderToAdd
 }
 
-async function update(orderId, updateData) {
-    const collection = await dbService.getCollection(COLLECTION_NAME)
+async function update(orderId, updateData, dbName) {
+    const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
     const objId = toObjectId(orderId)
     const filter = objId ? { _id: objId } : { _id: orderId }
 
@@ -88,20 +88,20 @@ async function update(orderId, updateData) {
 
     const result = await collection.updateOne(filter, { $set: dataToUpdate })
     if (result.matchedCount === 0) return null
-    return getById(orderId)
+    return getById(orderId, dbName)
 }
 
-async function updateStatus(orderId, status) {
-    const collection = await dbService.getCollection(COLLECTION_NAME)
+async function updateStatus(orderId, status, dbName) {
+    const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
     const objId = toObjectId(orderId)
     const filter = objId ? { _id: objId } : { _id: orderId }
     const result = await collection.updateOne(filter, { $set: { status, updatedAt: Date.now() } })
     if (result.matchedCount === 0) return null
-    return getById(orderId)
+    return getById(orderId, dbName)
 }
 
-async function remove(orderId) {
-    const collection = await dbService.getCollection(COLLECTION_NAME)
+async function remove(orderId, dbName) {
+    const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
     const objId = toObjectId(orderId)
     const filter = objId ? { _id: objId } : { _id: orderId }
     const result = await collection.deleteOne(filter)

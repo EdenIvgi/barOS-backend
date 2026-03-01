@@ -1,25 +1,20 @@
 // ============================================
-// BAROS TYPOGRAPHY — Playfair Display + Inter
+// BAROS TYPOGRAPHY — Frank Ruhl Libre + Heebo
 // ============================================
 
-// Google Fonts
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
+// Google Fonts — Hebrew + English + numbers
+@import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;600;700;800;900&family=Heebo:wght@300;400;500;600;700;800&display=swap');
 
 // Icon font
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css');
 
 // Local fonts
 @font-face {
-  font-family: roboto;
-  src: url(../../assets/fonts/roboto/Roboto-Regular.ttf);
-}
-
-@font-face {
   font-family: libre;
   src: url(../../assets/fonts/libre-barcode/LibreBarcode128Text-Regular.ttf);
 }
 
 // Font family variables
-$font-heading: 'Playfair Display', 'Georgia', serif;
-$font-body: 'Inter', 'Helvetica Neue', sans-serif;
+$font-heading: 'Frank Ruhl Libre', 'Georgia', serif;
+$font-body: 'Heebo', 'Arial', sans-serif;
 $font-logo: libre, sans-serif;

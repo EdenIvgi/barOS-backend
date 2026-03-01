@@ -77,3 +77,38 @@ a.active {
   color: $text-primary;
   font-family: $font-heading;
 }
+
+// === REDUCED MOTION ===
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// === BACKDROP-FILTER FALLBACK ===
+@supports not (backdrop-filter: blur(1px)) {
+  .app-header,
+  .app-footer,
+  .landing-auth-card,
+  .user-msg {
+    background: rgba(10, 10, 10, 0.95) !important;
+  }
+}
+
+// === SCROLLBAR DARK MODE ===
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: $bg-deep;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+}

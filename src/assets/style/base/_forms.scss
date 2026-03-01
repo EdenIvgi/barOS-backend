@@ -1,85 +1,97 @@
 @import '../setup/vars';
+@import '../setup/mixins';
 
 button {
   cursor: pointer;
-  background-color: $gray-600;
-  color: $white;
+  background: $glass-bg;
+  color: $text-primary;
   margin: 0.5em;
-  border: 0;
+  border: 1px solid $glass-border;
   padding: 0.5em 0.8em;
   border-radius: $border-radius;
+  font-family: $font-body;
   font-weight: 600;
-  transition: all 0.3s;
-  box-shadow: $shadow-sm;
+  backdrop-filter: blur($glass-blur);
+  -webkit-backdrop-filter: blur($glass-blur);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
-    background-color: $gray-700;
+    background: $glass-bg-hover;
+    border-color: $accent-primary;
+    box-shadow: 0 0 12px $accent-glow;
     transform: translateY(-1px);
-    box-shadow: $shadow-md;
   }
 
   &:active {
     transform: translateY(0);
+    box-shadow: 0 0 8px $accent-glow;
   }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: 0.4;
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
+    border-color: $glass-border;
   }
 }
 
 input {
-  background-color: $white;
-  color: $black-dark;
-  border: 1px solid $border-color;
+  background: rgba(255, 255, 255, 0.05);
+  color: $text-primary;
+  border: 1px solid $glass-border;
   padding: 0.5em 0.8em;
   border-radius: $border-radius;
+  font-family: $font-body;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   transition: all 0.3s;
 
   &:focus {
-    background-color: $white;
-    border-color: $gray-600;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+    @include accent-focus;
+    background: rgba(255, 255, 255, 0.08);
   }
 
   &::placeholder {
-    color: $gray-500;
+    color: $text-muted;
   }
 }
 
 select {
-  background-color: $white;
-  color: $black-dark;
-  border: 1px solid $border-color;
+  background: rgba(255, 255, 255, 0.05);
+  color: $text-primary;
+  border: 1px solid $glass-border;
   padding: 0.5em 0.8em;
   border-radius: $border-radius;
+  font-family: $font-body;
   transition: all 0.3s;
 
   &:focus {
-    border-color: $gray-600;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+    @include accent-focus;
+  }
+
+  option {
+    background: $bg-elevated;
+    color: $text-primary;
   }
 }
 
 textarea {
-  background-color: $white;
-  color: $black-dark;
-  border: 1px solid $border-color;
+  background: rgba(255, 255, 255, 0.05);
+  color: $text-primary;
+  border: 1px solid $glass-border;
   padding: 0.5em 0.8em;
   border-radius: $border-radius;
+  font-family: $font-body;
   transition: all 0.3s;
   resize: vertical;
 
   &:focus {
-    border-color: $gray-600;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+    @include accent-focus;
+    background: rgba(255, 255, 255, 0.08);
   }
 
   &::placeholder {
-    color: $gray-500;
+    color: $text-muted;
   }
 }

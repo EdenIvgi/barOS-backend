@@ -1,32 +1,31 @@
 @import '../setup/vars';
+@import '../setup/mixins';
 
 .orders-list-page {
   padding: 1.5rem;
   max-width: 100%;
   margin: 0 auto;
-  background: $white-off;
+  background: transparent;
+  @include cinematic-enter;
 
   h1 {
     margin-bottom: 1rem;
-    color: $black-dark;
+    color: $text-primary;
     font-weight: 700;
     font-size: 2rem;
+    font-family: $font-heading;
   }
 
   .empty-message {
     text-align: center;
     padding: 2rem;
-    color: $gray-600;
+    color: $text-muted;
     font-size: 1.2rem;
   }
 
-  // Table: row = date, column = supplier
   .orders-grid-wrapper {
     overflow-x: auto;
-    border: 1px solid $border-color;
-    border-radius: $border-radius-lg;
-    background: $white;
-    box-shadow: $shadow-sm;
+    @include glass-card;
   }
 
   .orders-grid-table {
@@ -37,14 +36,14 @@
 
     thead {
       tr {
-        border-bottom: 2px solid $gray-600;
-        background: $gray-100;
+        border-bottom: 1px solid $glass-border;
+        background: rgba($accent-primary, 0.1);
 
         th {
           text-align: center;
           padding: 0.75rem 0.5rem;
           font-weight: 700;
-          color: $black-dark;
+          color: $text-primary;
           white-space: nowrap;
         }
 
@@ -62,10 +61,12 @@
 
     tbody {
       tr {
-        border-bottom: 1px solid $gray-200;
+        border-bottom: 1px solid $glass-border;
+        animation: rowFadeIn 0.3s ease both;
+        @include stagger-children(20, 0.03s);
 
         &:hover {
-          background: rgba(0, 0, 0, 0.02);
+          background: $glass-bg-hover;
         }
 
         &:last-child {
@@ -77,7 +78,7 @@
         text-align: start;
         padding: 0.6rem 1rem;
         font-weight: 600;
-        color: $black-dark;
+        color: $text-primary;
         vertical-align: top;
         white-space: nowrap;
       }
@@ -89,7 +90,7 @@
       }
 
       .cell-empty {
-        color: $gray-400;
+        color: $text-muted;
         font-size: 1rem;
       }
 
@@ -100,19 +101,18 @@
       }
 
       .cell-order-card {
-        background: $white-off;
-        border: 1px solid $border-color;
+        @include glass-surface;
         border-radius: $border-radius;
         overflow: hidden;
         transition: box-shadow 0.2s;
 
         &:hover {
-          box-shadow: $shadow-sm;
+          @include glass-surface-hover;
         }
 
         &.expanded {
           box-shadow: $shadow-md;
-          border-color: $gray-400;
+          border-color: $glass-border-hover;
         }
 
         .cell-order-head {
@@ -125,7 +125,7 @@
 
           .cell-order-summary {
             font-weight: 600;
-            color: $black-dark;
+            color: $text-primary;
             font-size: 0.9rem;
             cursor: pointer;
             flex: 1;
@@ -134,7 +134,7 @@
 
           .cell-order-toggle {
             font-size: 0.7rem;
-            color: $gray-600;
+            color: $text-muted;
             cursor: pointer;
             flex-shrink: 0;
           }
@@ -166,62 +166,40 @@
               min-width: 24px;
               min-height: 24px;
 
-              svg {
-                flex-shrink: 0;
-              }
+              svg { flex-shrink: 0; }
             }
 
-            &.btn-download-pdf {
-              background: $gray-600;
-              color: $white;
-
-              &:hover {
-                background: $gray-700;
-              }
-            }
-
+            &.btn-download-pdf,
             &.btn-edit {
-              background: $gray-600;
-              color: $white;
-
-              &:hover {
-                background: $gray-700;
-              }
+              @include glass-surface;
+              color: $text-primary;
+              &:hover { @include glass-surface-hover; }
             }
 
             &.btn-delete {
-              background: $gray-800;
-              color: $white;
-
-              &:hover {
-                background: $black-dark;
-              }
+              background: rgba($color-error, 0.15);
+              color: $color-error;
+              &:hover { background: rgba($color-error, 0.25); }
             }
 
             &.btn-save {
-              background: $gray-800;
-              color: $white;
-
-              &:hover {
-                background: $black-dark;
-              }
+              background: $accent-primary;
+              color: $text-primary;
+              &:hover { background: $accent-hover; }
             }
 
             &.btn-cancel {
-              background: $gray-400;
-              color: $white;
-
-              &:hover {
-                background: $gray-500;
-              }
+              @include glass-surface;
+              color: $text-secondary;
+              &:hover { @include glass-surface-hover; }
             }
           }
         }
 
         .cell-order-detail {
           padding: 0.6rem;
-          border-top: 1px solid $gray-200;
-          background: $white;
+          border-top: 1px solid $glass-border;
+          background: $glass-bg;
 
           .order-items-table {
             width: 100%;
@@ -232,11 +210,7 @@
             .td-actions {
               width: 44px;
               text-align: center;
-
-              .btn-icon,
-              svg {
-                margin: 0 auto;
-              }
+              .btn-icon, svg { margin: 0 auto; }
             }
 
             thead .th-actions svg {
@@ -248,11 +222,11 @@
               text-align: start;
               padding: 0.35rem 0.5rem;
               font-weight: 700;
-              color: $black-dark;
+              color: $text-primary;
             }
 
             tbody tr.row-deleted {
-              background: rgba(0, 0, 0, 0.04);
+              background: rgba(0, 0, 0, 0.2);
 
               td {
                 padding: 0.35rem 0.5rem;
@@ -261,7 +235,7 @@
 
               .item-removed {
                 text-decoration: line-through;
-                color: $gray-600;
+                color: $text-muted;
                 margin-inline-start: 0.5rem;
               }
 
@@ -275,18 +249,17 @@
                 border: none;
                 border-radius: $border-radius;
                 cursor: pointer;
-                background: $gray-500;
-                color: $white;
+                @include glass-surface;
+                color: $text-primary;
 
-                &:hover {
-                  background: $gray-600;
-                }
+                &:hover { @include glass-surface-hover; }
               }
             }
 
             tbody td {
               text-align: start;
               padding: 0.35rem 0.5rem;
+              color: $text-primary;
 
               &:nth-child(2) {
                 text-align: center;
@@ -295,9 +268,11 @@
               input {
                 width: 56px;
                 padding: 0.2rem 0.35rem;
-                border: 1px solid $gray-500;
+                border: 1px solid $glass-border;
                 border-radius: $border-radius;
                 text-align: center;
+                background: $glass-bg;
+                color: $text-primary;
               }
 
               .btn-delete-item {
@@ -310,12 +285,10 @@
                 border: none;
                 border-radius: $border-radius;
                 cursor: pointer;
-                background: $gray-700;
-                color: $white;
+                background: rgba($color-error, 0.15);
+                color: $color-error;
 
-                &:hover {
-                  background: $black-dark;
-                }
+                &:hover { background: rgba($color-error, 0.25); }
               }
             }
           }

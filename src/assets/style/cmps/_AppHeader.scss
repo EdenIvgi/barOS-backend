@@ -1,152 +1,123 @@
 @import '../setup/vars';
+@import '../setup/mixins';
 
 .app-header {
-  background-color: $gray-800;
-  color: $white;
-  box-shadow: none;
+  @include glass-surface($glass-blur-heavy);
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1001;
-  height: 70px;
+  height: $header-height;
   display: flex;
   align-items: center;
+  border-bottom: 1px solid $glass-border;
+  animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 
   .header-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1rem;
     width: 100%;
-    position: relative;
-    direction: ltr; /* מיקום קבוע: לוגו משמאל, פעולות מימין */
+    padding: 0 1.5rem;
+    direction: ltr;
   }
 
   .header-brand {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    direction: ltr;
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  .sidebar-toggle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border: 0;
-    border-radius: 999px;
-    background: transparent;
-    color: inherit;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.05s ease;
-
-    &:hover {
-      background: $gray-700;
-    }
-
-    &:active {
-      transform: translateY(1px);
-    }
-  }
-
-  .hamburger {
-    width: 20px;
-    height: 14px;
-    display: inline-flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
-  .hamburger .bar {
-    height: 2px;
-    width: 100%;
-    background: currentColor;
-    border-radius: 999px;
-    opacity: 0.9;
+    text-decoration: none;
+    flex-shrink: 0;
   }
 
   .logo {
-    font-family: libre, sans-serif;
-    font-size: 2.5rem;
-    color: $white;
+    font-family: $font-logo;
+    font-size: 2.2rem;
+    color: $text-primary;
     font-weight: 400;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: $accent-text;
+    }
+  }
+
+  .header-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    .nav-link {
+      position: relative;
+      padding: 0.5rem 0.75rem;
+      color: $text-secondary;
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      font-family: $font-body;
+      transition: color 0.25s ease;
+      white-space: nowrap;
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 2px;
+        background: $accent-primary;
+        border-radius: 1px;
+        transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      &:hover {
+        color: $text-primary;
+      }
+
+      &.active {
+        color: $accent-text;
+
+        &::after {
+          width: 60%;
+        }
+      }
+    }
   }
 
   .header-actions {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
+    flex-shrink: 0;
 
     .cart-icon {
-      color: $white;
+      color: $text-primary;
 
       &:hover {
-        color: $white;
-        opacity: 0.9;
-      }
-    }
-
-    section {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-
-      a {
-        color: $white;
-        text-decoration: none;
-        transition: all 0.3s;
-
-        &:hover {
-          opacity: 0.8;
-        }
-      }
-
-      button {
-        padding: 0.5rem 1rem;
-        background: $gray-600;
-        color: $white;
-        border: none;
-        border-radius: $border-radius;
-        cursor: pointer;
-        transition: all 0.3s;
-        font-size: 0.9rem;
-
-        &:hover {
-          background: $gray-700;
-        }
+        color: $accent-text;
       }
     }
   }
 
   .language-toggle-btn {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    background: $gray-700;
-    color: $white;
-    border: none;
+    @include glass-surface;
+    color: $text-primary;
     cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.75rem;
+    transition: all 0.25s ease;
+    font-size: 0.7rem;
     font-weight: 600;
+    font-family: $font-body;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
 
     &:hover {
-      background: $gray-600;
+      @include glass-surface-hover;
       transform: scale(1.05);
     }
 
@@ -155,38 +126,53 @@
     }
   }
 
-  form {
-    flex-wrap: wrap;
+  .user-section {
     display: flex;
-    gap: 0.5rem;
+    align-items: center;
+    gap: 0.75rem;
 
-    input {
-      min-height: 40px;
-      padding: 0.5rem 1rem;
-      border: 1px solid $gray-600;
-      border-radius: $border-radius;
-      background: $white;
-      color: $black-dark;
+    .user-greeting {
+      color: $text-secondary;
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: color 0.25s ease;
 
-      &:focus {
-        outline: none;
-        border-color: $gray-400;
-        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+      &:hover {
+        color: $text-primary;
       }
     }
 
-    button {
-      padding: 0.5rem 1rem;
-      background: $gray-600;
-      color: $white;
-      border: none;
+    .logout-btn {
+      padding: 0.4rem 0.85rem;
+      @include glass-surface;
+      color: $text-primary;
       border-radius: $border-radius;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.25s ease;
+      font-size: 0.8rem;
+      font-family: $font-body;
 
       &:hover {
-        background: $gray-700;
+        @include accent-glow-hover;
+        background: $accent-subtle;
+        color: $accent-text;
       }
+    }
+  }
+
+  .header-login-link {
+    color: $text-secondary;
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.85rem;
+    @include glass-surface;
+    border-radius: $border-radius;
+    transition: all 0.25s ease;
+
+    &:hover {
+      @include accent-glow-hover;
+      background: $accent-subtle;
+      color: $accent-text;
     }
   }
 }

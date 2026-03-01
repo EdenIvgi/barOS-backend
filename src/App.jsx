@@ -1,11 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Provider } from 'react-redux'
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import './assets/style/main.scss'
 
 import { AppFooter } from './cmps/AppFooter'
 import { AppHeader } from './cmps/AppHeader'
-import { Sidebar } from './cmps/Sidebar'
 import { UserMsg } from './cmps/UserMsg'
 import { About } from './pages/About'
 import { HomePage } from './pages/HomePage'
@@ -22,24 +21,14 @@ import { store } from './store/store'
 import { loadCartFromStorage } from './store/actions/order.actions'
 
 function AppLayout() {
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
-
   useEffect(() => {
     loadCartFromStorage()
   }, [])
 
   return (
-    <section className={`main-layout app ${isSidebarExpanded ? 'sidebar-expanded' : ''}`}>
-      <Sidebar
-        isExpanded={isSidebarExpanded}
-        onHover={() => setIsSidebarExpanded(true)}
-        onLeave={() => setIsSidebarExpanded(false)}
-      />
+    <section className="main-layout app">
+      <AppHeader />
       <div className="main-content">
-        <AppHeader
-          isSidebarExpanded={isSidebarExpanded}
-          onToggleSidebar={() => setIsSidebarExpanded(prev => !prev)}
-        />
         <main>
           <Routes>
             <Route path="/home" element={<HomePage />} />

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
@@ -9,6 +10,7 @@ export function AppHeader() {
   const user = useSelector(storeState => storeState.userModule.loggedInUser)
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   function toggleLanguage() {
     const currentLang = i18n.resolvedLanguage || 'he'
@@ -31,6 +33,10 @@ export function AppHeader() {
     }
   }
 
+  function closeMenu() {
+    setIsMenuOpen(false)
+  }
+
   return (
     <header className="app-header">
       <div className="header-content">
@@ -38,15 +44,25 @@ export function AppHeader() {
           <span className="logo">BarOS</span>
         </NavLink>
 
-        <nav className="header-nav">
-          <NavLink to="/home" className="nav-link">{t('home')}</NavLink>
-          <NavLink to="/products" className="nav-link">{t('products')}</NavLink>
-          <NavLink to="/bar-book" className="nav-link">{t('barBook')}</NavLink>
-          <NavLink to="/orders" className="nav-link">{t('orders')}</NavLink>
-          <NavLink to="/order" className="nav-link">{t('cart')}</NavLink>
-          <NavLink to="/items-management" className="nav-link">{t('itemsManagement')}</NavLink>
-          {user && <NavLink to="/user" className="nav-link">{t('profile')}</NavLink>}
-          <NavLink to="/about" className="nav-link">{t('about')}</NavLink>
+        <button
+          className={`hamburger-btn ${isMenuOpen ? 'open' : ''}`}
+          onClick={() => setIsMenuOpen(prev => !prev)}
+          aria-label="Toggle menu"
+        >
+          <span className="bar"></span>
+          <span className="bar"></span>
+          <span className="bar"></span>
+        </button>
+
+        <nav className={`header-nav ${isMenuOpen ? 'open' : ''}`}>
+          <NavLink to="/home" className="nav-link" onClick={closeMenu}>{t('home')}</NavLink>
+          <NavLink to="/products" className="nav-link" onClick={closeMenu}>{t('products')}</NavLink>
+          <NavLink to="/bar-book" className="nav-link" onClick={closeMenu}>{t('barBook')}</NavLink>
+          <NavLink to="/orders" className="nav-link" onClick={closeMenu}>{t('orders')}</NavLink>
+          <NavLink to="/order" className="nav-link" onClick={closeMenu}>{t('cart')}</NavLink>
+          <NavLink to="/items-management" className="nav-link" onClick={closeMenu}>{t('itemsManagement')}</NavLink>
+          {user && <NavLink to="/user" className="nav-link" onClick={closeMenu}>{t('profile')}</NavLink>}
+          <NavLink to="/about" className="nav-link" onClick={closeMenu}>{t('about')}</NavLink>
         </nav>
 
         <div className="header-actions">

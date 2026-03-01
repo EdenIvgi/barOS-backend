@@ -97,13 +97,11 @@
     }
 
     > div:has(.clear-filters-btn) {
+      flex: 0 0 auto;
+      min-width: auto;
       display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      margin-left: auto;
+      align-items: flex-end;
       direction: ltr;
-      align-items: stretch;
-      min-height: calc(0.9rem * 1.5 + 0.5rem + 0.6rem * 2 + 0.9rem * 1.5);
     }
 
     .clear-filters-btn {
@@ -115,10 +113,9 @@
       font-weight: 600;
       font-size: 0.9rem;
       transition: all 0.3s;
-      width: 100%;
       box-sizing: border-box;
       line-height: 1.5;
-      margin-top: auto;
+      white-space: nowrap;
 
       &:hover {
         @include glass-surface-hover;

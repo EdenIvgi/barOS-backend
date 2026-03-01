@@ -1,64 +1,57 @@
 @import '../setup/vars';
+@import '../setup/mixins';
 
 * {
   box-sizing: border-box;
 }
 
 html {
-  color: $gray-800;
-  font-family: roboto, sans-serif;
-  background: $gray-800;
+  color: $text-primary;
+  font-family: $font-body;
+  background: $bg-deepest;
 }
 
 body {
   margin: 0;
-  background: $gray-800;
-  color: $black-dark;
+  background: $bg-deepest;
+  color: $text-primary;
   min-height: 100vh;
+  line-height: 1.5;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+h1, h2, h3, h4, h5, h6 {
   margin: 0.5em 0 0.5em;
-  color: $black-dark;
+  color: $text-primary;
+  font-family: $font-heading;
   font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 p {
   margin: 0 0 1em;
-  color: $gray-700;
+  color: $text-secondary;
 }
 
 a {
   text-decoration: none;
-  color: unset;
+  color: $text-secondary;
   transition: color 0.3s ease;
 
   &:hover {
-    color: $black-dark;
+    color: $text-primary;
   }
 }
 
-/* Dont stretch my Media */
-img,
-embed,
-video,
-object {
+img, embed, video, object {
   max-width: 100%;
 }
 
-/* Simple and useful CSS Debugging Technique */
 .debug * {
   outline: 1px solid gold;
 }
 
 a.active {
-  text-decoration: overline;
-  color: $black-dark;
+  color: $accent-text;
   font-weight: 600;
 }
 
@@ -69,17 +62,18 @@ a.active {
   width: 40vw;
   align-items: center;
   height: auto;
-  background-color: $white;
-  border: 1px solid $border-color;
-  box-shadow: $shadow-xl;
+  @include glass-card;
+  background: rgba(20, 20, 20, 0.95);
+  backdrop-filter: blur($glass-blur-heavy);
   display: flex;
   inset: 0;
   margin: auto;
   height: fit-content;
-  border-radius: $border-radius-lg;
+  animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .popup-menu h1 {
   font-size: 1.5em;
-  color: $black-dark;
+  color: $text-primary;
+  font-family: $font-heading;
 }

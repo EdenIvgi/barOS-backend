@@ -1,0 +1,60 @@
+// ============================================
+// BAROS MIXINS — Glass, Animation, Layout
+// ============================================
+
+// --- Glass Surfaces ---
+
+@mixin glass-surface($blur: $glass-blur) {
+  background: $glass-bg;
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+  border: 1px solid $glass-border;
+}
+
+@mixin glass-surface-hover {
+  background: $glass-bg-hover;
+  border-color: $glass-border-hover;
+  box-shadow: $shadow-glow-white;
+}
+
+@mixin glass-card {
+  @include glass-surface;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-md;
+}
+
+@mixin glass-card-hover {
+  @include glass-surface-hover;
+  box-shadow: $shadow-lg;
+}
+
+// --- Accent Glow ---
+
+@mixin accent-glow-hover {
+  border-color: $accent-primary;
+  box-shadow: 0 0 16px $accent-glow;
+}
+
+@mixin accent-focus {
+  border-color: $accent-primary;
+  outline: none;
+  box-shadow: 0 0 0 3px $accent-subtle, 0 0 12px $accent-glow;
+}
+
+// --- Animation Helpers ---
+
+@mixin stagger-children($count: 20, $delay: 0.04s) {
+  @for $i from 1 through $count {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * $delay};
+    }
+  }
+}
+
+@mixin cinematic-enter($distance: 24px, $duration: 0.5s) {
+  animation: fadeSlideUp $duration cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@mixin scale-enter($duration: 0.4s) {
+  animation: scaleIn $duration cubic-bezier(0.16, 1, 0.3, 1) both;
+}

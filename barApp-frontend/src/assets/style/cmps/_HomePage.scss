@@ -1,20 +1,18 @@
 @import '../setup/vars';
+@import '../setup/mixins';
 
 .home-page {
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
-  background: $white-off;
+  background: transparent;
+  @include cinematic-enter;
 
-  // משימה יומית
   .daily-task-card {
     margin-bottom: 2rem;
     padding: 1.5rem 2rem;
-    background: #f0f7f4;
-    color: $black-dark;
-    border-radius: $border-radius-lg;
-    box-shadow: $shadow-md;
-    border: 1px solid rgba(61, 122, 106, 0.2);
+    @include glass-card;
+    border-left: 3px solid $accent-primary;
 
     .daily-task-header {
       display: flex;
@@ -28,12 +26,12 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: #2d5f52;
+      color: $accent-text;
     }
 
     .daily-task-day {
       font-size: 0.95rem;
-      color: $gray-700;
+      color: $text-secondary;
     }
 
     .daily-task-text {
@@ -41,36 +39,29 @@
       font-size: 1.25rem;
       font-weight: 600;
       line-height: 1.5;
-      color: $black-dark;
+      color: $text-primary;
+      font-family: $font-heading;
     }
   }
 
-  // Dashboard Statistics
   .dashboard-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.5rem;
     margin-bottom: 3rem;
     padding: 2rem;
-    background: $white;
-    border-radius: $border-radius-lg;
-    box-shadow: $shadow-md;
-    border: 1px solid $border-color;
+    @include glass-card;
 
     .stat-card {
-      background: $gray-50;
+      @include glass-surface;
       padding: 2rem 1.5rem;
       border-radius: $border-radius;
-      box-shadow: $shadow-sm;
       text-align: center;
       transition: all 0.3s ease;
-      border: 1px solid $border-color;
 
       &:hover {
+        @include accent-glow-hover;
         transform: translateY(-3px);
-        box-shadow: $shadow-lg;
-        background: $white;
-        border-color: $gray-400;
       }
 
       h3 {
@@ -78,26 +69,23 @@
         font-size: 2.5rem;
         font-weight: 700;
         line-height: 1.2;
-        color: $black-dark;
+        color: $text-primary;
+        font-family: $font-heading;
       }
 
       p {
         margin: 0;
-        color: $gray-700;
+        color: $text-secondary;
         font-size: 0.95rem;
         font-weight: 500;
       }
     }
   }
 
-  // Orders growth chart
   .orders-growth-chart {
     margin-bottom: 3rem;
     padding: 1.5rem 1.25rem;
-    background: $white;
-    border-radius: $border-radius-lg;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    border: 1px solid $gray-200;
+    @include glass-card;
 
     &.empty {
       text-align: center;
@@ -105,13 +93,13 @@
       h2 {
         margin: 0 0 0.5rem 0;
         font-size: 1.5rem;
-        color: $black-dark;
+        color: $text-primary;
+        font-family: $font-heading;
       }
 
       p {
         margin: 0;
-        color: $gray-600;
-        font-size: 1rem;
+        color: $text-secondary;
       }
     }
 
@@ -125,39 +113,37 @@
         height: 6px;
       }
       &::-webkit-scrollbar-track {
-        background: $gray-100;
+        background: $glass-bg;
         border-radius: 3px;
       }
       &::-webkit-scrollbar-thumb {
-        background: $gray-400;
+        background: $text-muted;
         border-radius: 3px;
       }
     }
   }
 
-  // Low Stock Alerts
   .low-stock-alerts {
     margin-bottom: 3rem;
     padding: 2rem;
-    background: $gray-100;
-    border-radius: $border-radius-lg;
-    border: 2px solid $gray-400;
-    box-shadow: $shadow-md;
+    @include glass-card;
+    border: 1px solid rgba(192, 57, 43, 0.2);
 
     h2 {
       margin: 0 0 1.5rem 0;
-      color: $gray-800;
+      color: $text-primary;
       display: flex;
       align-items: center;
       gap: 0.75rem;
       font-size: 1.5rem;
       font-weight: 700;
+      font-family: $font-heading;
 
       svg {
         width: 24px;
         height: 24px;
         flex-shrink: 0;
-        color: $gray-700;
+        color: $accent-text;
       }
     }
 
@@ -171,31 +157,26 @@
     .alert-item {
       display: block;
       padding: 1.25rem;
-      background: $white;
+      @include glass-surface;
       border-radius: $border-radius;
       text-decoration: none;
       color: inherit;
-      border: 1px solid $gray-400;
       transition: all 0.3s ease;
-      box-shadow: $shadow-sm;
 
       &:hover {
+        @include accent-glow-hover;
         transform: translateY(-3px);
-        box-shadow: $shadow-lg;
-        border-color: $gray-600;
-        background: $gray-50;
       }
 
       .item-name {
         font-weight: 700;
         margin-bottom: 0.5rem;
-        color: $black-dark;
-        font-size: 1rem;
+        color: $text-primary;
       }
 
       .item-details {
         font-size: 0.9rem;
-        color: $gray-700;
+        color: $text-secondary;
         line-height: 1.5;
       }
     }
@@ -203,30 +184,26 @@
     .view-all-link {
       display: inline-block;
       padding: 0.75rem 1.5rem;
-      background: $gray-800;
-      color: $white;
-      border-radius: 6px;
+      background: $accent-primary;
+      color: $text-primary;
+      border-radius: $border-radius;
       text-decoration: none;
       font-weight: 700;
       transition: all 0.3s ease;
       margin-top: 1rem;
 
       &:hover {
-        background: $black-dark;
+        background: $accent-hover;
         transform: translateY(-2px);
-        box-shadow: $shadow-md;
+        box-shadow: $shadow-glow-accent;
       }
     }
   }
 
-  // Recent Orders
   .recent-orders {
     margin-bottom: 3rem;
     padding: 2rem;
-    background: $white;
-    border-radius: $border-radius-lg;
-    box-shadow: $shadow-md;
-    border: 1px solid $border-color;
+    @include glass-card;
 
     .section-header {
       display: flex;
@@ -234,24 +211,24 @@
       align-items: center;
       margin-bottom: 1.5rem;
       padding-bottom: 1rem;
-      border-bottom: 2px solid $gray-200;
+      border-bottom: 1px solid $glass-border;
 
       h2 {
         margin: 0;
-        color: $black-dark;
+        color: $text-primary;
         font-size: 1.75rem;
         font-weight: 700;
+        font-family: $font-heading;
       }
 
       .view-all-link {
-        color: $gray-700;
+        color: $text-secondary;
         text-decoration: none;
         font-weight: 600;
-        transition: color 0.3s ease;
+        transition: color 0.3s;
 
         &:hover {
-          color: $black-dark;
-          text-decoration: underline;
+          color: $accent-text;
         }
       }
     }
@@ -264,18 +241,15 @@
     .order-item {
       display: block;
       padding: 1.25rem;
-      background: $gray-50;
+      @include glass-surface;
       border-radius: $border-radius;
       text-decoration: none;
       color: inherit;
-      border: 1px solid $border-color;
       transition: all 0.3s ease;
 
       &:hover {
+        @include glass-surface-hover;
         transform: translateX(-5px);
-        border-color: $gray-600;
-        box-shadow: $shadow-md;
-        background: $white;
       }
 
       .order-content {
@@ -290,44 +264,42 @@
         .order-id {
           font-weight: 700;
           margin-bottom: 0.5rem;
-          color: $black-dark;
+          color: $text-primary;
           font-size: 1.1rem;
         }
 
         .order-date {
           font-size: 0.9rem;
-          color: $gray-700;
+          color: $text-secondary;
           margin-bottom: 0.25rem;
         }
 
         .order-items-count {
           font-size: 0.85rem;
-          color: $gray-600;
+          color: $text-muted;
         }
       }
 
       .order-status {
         padding: 0.5rem 1rem;
-        border-radius: 6px;
+        border-radius: $border-radius;
         font-size: 0.85rem;
         font-weight: 700;
         text-transform: uppercase;
-        background-color: $gray-600;
-        color: $white;
+        @include glass-surface;
 
         &.pending {
-          background-color: $gray-500;
+          color: $color-warning;
         }
 
         &.completed,
         &.delivered {
-          background-color: $gray-800;
+          color: $color-success;
         }
       }
     }
   }
 
-  // Quick Links
   .quick-links {
     margin-bottom: 2rem;
     display: grid;
@@ -343,16 +315,13 @@
       padding: 2.5rem 2rem;
       border-radius: $border-radius-lg;
       text-decoration: none;
-      color: $white;
+      color: $text-primary;
       text-align: center;
       font-weight: 700;
       font-size: 1.3rem;
-      box-shadow: $shadow-lg;
+      font-family: $font-heading;
       transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-      background: $gray-800;
-      border: 1px solid $gray-700;
+      @include glass-card;
 
       svg {
         width: 32px;
@@ -361,83 +330,44 @@
         stroke-width: 2;
       }
 
-      &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(255, 255, 255, 0.1);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-
       &:hover {
+        @include accent-glow-hover;
         transform: translateY(-8px);
         box-shadow: $shadow-xl;
-        background: $black-dark;
-
-        &::before {
-          opacity: 1;
-        }
       }
 
-      &:nth-child(1) {
-        background: linear-gradient(135deg, $gray-800 0%, $gray-700 100%);
-      }
-
-      &:nth-child(2) {
-        background: linear-gradient(135deg, $gray-700 0%, $gray-600 100%);
-      }
-
-      &:nth-child(3) {
-        background: linear-gradient(135deg, $gray-600 0%, $gray-700 100%);
-      }
-
-      &:nth-child(4) {
-        background: linear-gradient(135deg, $gray-700 0%, $gray-800 100%);
-      }
+      &:nth-child(1) { border-bottom: 2px solid rgba($accent-primary, 0.4); }
+      &:nth-child(2) { border-bottom: 2px solid rgba($accent-primary, 0.3); }
+      &:nth-child(3) { border-bottom: 2px solid rgba($accent-primary, 0.2); }
+      &:nth-child(4) { border-bottom: 2px solid rgba($accent-primary, 0.1); }
     }
   }
 
-  // Responsive Design
   @media (max-width: 768px) {
     padding: 1rem;
 
     .daily-task-card {
       padding: 1.25rem 1.5rem;
-
-      .daily-task-text {
-        font-size: 1.1rem;
-      }
+      .daily-task-text { font-size: 1.1rem; }
     }
 
     .dashboard-stats {
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 1rem;
       padding: 1.5rem;
-
       .stat-card {
         padding: 1.5rem 1rem;
-
-        h3 {
-          font-size: 2rem;
-        }
+        h3 { font-size: 2rem; }
       }
     }
 
     .low-stock-alerts {
       padding: 1.5rem;
-
-      .alerts-grid {
-        grid-template-columns: 1fr;
-      }
+      .alerts-grid { grid-template-columns: 1fr; }
     }
 
     .recent-orders {
       padding: 1.5rem;
-
       .section-header {
         flex-direction: column;
         align-items: flex-start;
@@ -448,7 +378,6 @@
     .quick-links {
       grid-template-columns: 1fr;
       gap: 1rem;
-
       .quick-link {
         padding: 2rem 1.5rem;
         font-size: 1.1rem;

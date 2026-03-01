@@ -5,6 +5,7 @@ import './assets/style/main.scss'
 
 import { AppFooter } from './cmps/AppFooter'
 import { AppHeader } from './cmps/AppHeader'
+import { AnimatedBackground } from './cmps/AnimatedBackground'
 import { UserMsg } from './cmps/UserMsg'
 import { About } from './pages/About'
 import { HomePage } from './pages/HomePage'
@@ -27,6 +28,7 @@ function AppLayout() {
 
   return (
     <section className="main-layout app">
+      <AnimatedBackground />
       <AppHeader />
       <div className="main-content">
         <main>

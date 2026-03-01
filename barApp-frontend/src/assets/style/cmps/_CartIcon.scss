@@ -1,16 +1,18 @@
+@import '../setup/vars';
+
 .cart-icon {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0.5rem;
-  margin-inline-start: 1rem;
-  color: var(--clr-primary, #2c3e50);
+  margin-inline-start: 0.5rem;
+  color: $text-primary;
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color 0.25s;
 
   &:hover {
-    color: var(--clr-primary-hover, #1a252f);
+    color: $accent-text;
   }
 
   svg {
@@ -22,8 +24,8 @@
     position: absolute;
     top: 0;
     inset-inline-end: 0;
-    background: #dc3545;
-    color: white;
+    background: $accent-primary;
+    color: $text-primary;
     border-radius: 50%;
     width: 20px;
     height: 20px;
@@ -33,5 +35,6 @@
     font-size: 0.75rem;
     font-weight: bold;
     transform: translate(25%, -25%);
+    box-shadow: 0 0 8px $accent-glow;
   }
 }

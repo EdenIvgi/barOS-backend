@@ -1,43 +1,43 @@
+@import '../setup/vars';
+@import '../setup/mixins';
+
 .landing-page {
   min-height: 100vh;
   display: flex;
-  background: $black-dark;
-  color: $white;
+  background: $bg-deepest;
+  color: $text-primary;
   position: relative;
   overflow: hidden;
 
-  // Subtle background pattern
   &::before {
     content: '';
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(ellipse at 20% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 20%, rgba(255, 255, 255, 0.02) 0%, transparent 50%);
+      radial-gradient(ellipse at 30% 50%, $accent-subtle 0%, transparent 60%),
+      radial-gradient(ellipse at 70% 20%, rgba(255, 255, 255, 0.02) 0%, transparent 50%);
     pointer-events: none;
   }
 }
 
-// Language toggle
 .landing-lang-btn {
   position: absolute;
   top: 1.5rem;
   left: 1.5rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: $gray-400;
-  border-radius: 6px;
+  @include glass-surface;
+  color: $text-secondary;
+  border-radius: $border-radius;
   padding: 0.4rem 0.8rem;
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.05em;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s;
   z-index: 10;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.14);
-    color: $white;
+    @include glass-surface-hover;
+    color: $text-primary;
   }
 }
 
@@ -50,6 +50,8 @@
   padding: 4rem 3rem 4rem 5rem;
   max-width: 55%;
   z-index: 1;
+  animation: fadeSlideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  border-inline-end: 1px solid $glass-border;
 }
 
 .landing-brand {
@@ -62,20 +64,22 @@
   }
 
   .landing-app-name {
-    font-size: 3.5rem;
+    font-family: $font-heading;
+    font-size: 4rem;
     font-weight: 800;
     letter-spacing: -0.03em;
-    color: $white;
+    color: $text-primary;
     margin: 0 0 0.75rem;
     line-height: 1;
   }
 
   .landing-tagline {
     font-size: 1.15rem;
-    color: $gray-400;
+    color: $text-secondary;
     margin: 0;
     font-weight: 400;
     line-height: 1.5;
+    font-family: $font-body;
   }
 }
 
@@ -91,6 +95,19 @@
     display: flex;
     align-items: flex-start;
     gap: 1rem;
+    @include glass-surface;
+    border-radius: $border-radius;
+    padding: 1rem 1.25rem;
+    transition: all 0.25s;
+
+    &:hover {
+      @include glass-surface-hover;
+    }
+
+    &:nth-child(1) { animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both; }
+    &:nth-child(2) { animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both; }
+    &:nth-child(3) { animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both; }
+    &:nth-child(4) { animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both; }
 
     .feature-icon {
       font-size: 1.4rem;
@@ -107,12 +124,13 @@
     strong {
       font-size: 0.95rem;
       font-weight: 600;
-      color: $gray-100;
+      color: $text-primary;
+      font-family: $font-heading;
     }
 
     span {
       font-size: 0.85rem;
-      color: $gray-500;
+      color: $text-secondary;
       line-height: 1.4;
     }
   }
@@ -126,21 +144,32 @@
   padding: 3rem;
   min-width: 420px;
   z-index: 1;
+  animation: fadeSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
 }
 
 .landing-auth-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: $border-radius-lg;
+  @include glass-card;
   padding: 2.5rem;
   width: 100%;
   max-width: 380px;
-  backdrop-filter: blur(12px);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: $border-radius-lg;
+    background: radial-gradient(ellipse at center, $accent-subtle 0%, transparent 70%);
+    z-index: -1;
+    filter: blur(30px);
+    opacity: 0.5;
+  }
 
   .auth-title {
+    font-family: $font-heading;
     font-size: 1.5rem;
     font-weight: 700;
-    color: $white;
+    color: $text-primary;
     margin: 0 0 2rem;
     text-align: center;
   }
@@ -160,27 +189,29 @@
     label {
       font-size: 0.8rem;
       font-weight: 500;
-      color: $gray-400;
+      color: $text-secondary;
       letter-spacing: 0.03em;
+      font-family: $font-body;
     }
 
     input {
-      background: rgba(255, 255, 255, 0.07);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 8px;
+      background: $glass-bg;
+      border: 1px solid $glass-border;
+      border-radius: $border-radius;
       padding: 0.75rem 1rem;
       font-size: 0.95rem;
-      color: $white;
+      color: $text-primary;
       outline: none;
-      transition: border-color 0.2s, background 0.2s;
+      transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+      font-family: $font-body;
 
       &::placeholder {
-        color: $gray-600;
+        color: $text-muted;
       }
 
       &:focus {
-        border-color: rgba(255, 255, 255, 0.35);
-        background: rgba(255, 255, 255, 0.1);
+        @include accent-focus;
+        background: $glass-bg-hover;
       }
     }
   }
@@ -189,19 +220,22 @@
 .landing-submit-btn {
   width: 100%;
   padding: 0.85rem;
-  background: $white;
-  color: $black-dark;
+  background: $accent-primary;
+  color: $text-primary;
   border: none;
-  border-radius: 8px;
+  border-radius: $border-radius;
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.1s;
+  transition: all 0.25s;
   margin-top: 0.5rem;
+  font-family: $font-body;
+  box-shadow: 0 0 20px $accent-glow;
 
   &:hover:not(:disabled) {
-    opacity: 0.9;
+    background: $accent-hover;
     transform: translateY(-1px);
+    box-shadow: 0 0 30px $accent-glow;
   }
 
   &:disabled {
@@ -214,21 +248,17 @@
   width: 100%;
   background: none;
   border: none;
-  color: $gray-500;
+  color: $text-muted;
   font-size: 0.85rem;
   cursor: pointer;
   text-align: center;
   padding: 0.5rem;
-  transition: color 0.2s;
+  transition: color 0.25s;
+  font-family: $font-body;
 
   &:hover {
-    color: $gray-300;
+    color: $accent-text;
   }
-}
-
-// Divider between content and auth
-.landing-content {
-  border-inline-end: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 // === RESPONSIVE ===
@@ -241,7 +271,7 @@
     max-width: 100%;
     padding: 5rem 2rem 2rem;
     border-inline-end: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid $glass-border;
   }
 
   .landing-brand {

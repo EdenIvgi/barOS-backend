@@ -1,10 +1,12 @@
 @import '../setup/vars';
+@import '../setup/mixins';
 
 .app-footer {
-  background-color: $white-off;
-  color: $black-dark;
+  @include glass-surface;
+  color: $text-secondary;
   padding: 1rem calc(1rem + $layoutPadding);
   text-align: center;
-  box-shadow: $shadow-sm;
-  border-top: 1px solid $border-color;
+  border-top: 1px solid $glass-border;
+  font-family: $font-body;
+  font-size: 0.85rem;
 }

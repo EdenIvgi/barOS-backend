@@ -1,11 +1,90 @@
-@keyframes bounce {
-  0%,
-  80%,
-  100% {
-    transform: scale(0);
-  }
+// ============================================
+// BAROS ANIMATION LIBRARY — Cinematic Motion
+// ============================================
 
-  40% {
-    transform: scale(1);
-  }
+// Loader bounce (existing)
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+// Fade in + slide up (pages, cards, modals)
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// Fade in only
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+// Scale in (modals, popups)
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+// Slide down from top (header entrance)
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// Glow pulse (accent borders, hover states)
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(192, 57, 43, 0.2); }
+  50%      { box-shadow: 0 0 20px rgba(192, 57, 43, 0.4); }
+}
+
+// Floating cocktail glasses (3 variations for natural movement)
+@keyframes floatCocktail1 {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  33%  { transform: translate(30px, -40px) rotate(8deg); }
+  66%  { transform: translate(-20px, -80px) rotate(-5deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes floatCocktail2 {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  50%  { transform: translate(-40px, -60px) rotate(-10deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes floatCocktail3 {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  25%  { transform: translate(20px, -30px) rotate(5deg); }
+  75%  { transform: translate(-30px, -50px) rotate(-8deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+// Ripple effect (button clicks)
+@keyframes ripple {
+  from { transform: scale(0); opacity: 0.5; }
+  to   { transform: scale(4); opacity: 0; }
+}
+
+// Row fade-in for tables (staggered via animation-delay)
+@keyframes rowFadeIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+// Shimmer for loading states
+@keyframes shimmer {
+  0%   { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
+
+// Slide in from right (toasts, notifications)
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(100px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+// Slide in from left (for RTL toasts)
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-100px); }
+  to   { opacity: 1; transform: translateX(0); }
 }

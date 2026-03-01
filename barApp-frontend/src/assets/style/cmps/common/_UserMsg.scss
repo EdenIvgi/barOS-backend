@@ -1,28 +1,36 @@
+@import '../../setup/vars';
+@import '../../setup/mixins';
+
 .user-msg {
   display: flex;
   align-items: center;
-
   position: fixed;
   bottom: 1em;
   inset-inline-end: 2em;
-
   font-weight: 700;
-  border-radius: 2px;
-  padding: 0.2em 0.5em;
+  border-radius: $border-radius;
+  padding: 0.75em 1.25em;
+  z-index: 2000;
+  @include glass-surface($glass-blur-heavy);
+  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 
   &.success {
-    background-color: $gray2;
-    color: $gray3;
+    border-left: 3px solid $color-success;
+    color: $color-success;
   }
 
   &.error {
-    background-color: $gray2;
-    color: $gray3;
+    border-left: 3px solid $color-error;
+    color: $color-error;
   }
 
   button {
-    font-size: 0.5em;
+    font-size: 0.7em;
     float: right;
     margin-inline-start: 1em;
+    background: none;
+    border: none;
+    color: $text-secondary;
+    cursor: pointer;
   }
 }

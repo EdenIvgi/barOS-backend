@@ -1,16 +1,19 @@
 @import '../setup/vars';
+@import '../setup/mixins';
 
 .order-page {
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
-  background: $white-off;
+  background: transparent;
+  @include cinematic-enter;
 
   h1 {
     margin-bottom: 2rem;
-    color: $black-dark;
+    color: $text-primary;
     font-weight: 700;
     font-size: 2rem;
+    font-family: $font-heading;
   }
 
   .cart-items {
@@ -20,64 +23,57 @@
     margin-bottom: 2rem;
 
     .cart-item {
-      background: $white;
+      @include glass-card;
       padding: 1.5rem;
-      border-radius: $border-radius-lg;
-      box-shadow: $shadow-md;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 1rem;
-      border: 1px solid $border-color;
       transition: all 0.3s;
 
       &:hover {
-        box-shadow: $shadow-lg;
-        border-color: $gray-400;
+        @include glass-card-hover;
       }
 
       h3 {
         margin: 0;
         flex: 1;
         min-width: 200px;
-        color: $black-dark;
+        color: $text-primary;
         font-weight: 600;
+        font-family: $font-heading;
       }
 
       p {
         margin: 0.5rem 0;
-        color: $gray-700;
+        color: $text-secondary;
       }
 
       label {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        color: $black-dark;
+        color: $text-primary;
         font-weight: 600;
 
         input[type='number'] {
           padding: 0.5rem;
-          border: 1px solid $border-color;
+          border: 1px solid $glass-border;
           border-radius: $border-radius;
           width: 80px;
           text-align: center;
-          background: $white;
-          color: $black-dark;
+          background: $glass-bg;
+          color: $text-primary;
 
-          &:focus {
-            outline: none;
-            border-color: $gray-600;
-            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
-          }
+          &:focus { @include accent-focus; }
         }
       }
 
       button {
         padding: 0.5rem 1rem;
-        background: $gray-800;
-        color: $white;
+        background: rgba($color-error, 0.15);
+        color: $color-error;
         border: none;
         border-radius: $border-radius;
         cursor: pointer;
@@ -85,27 +81,24 @@
         transition: all 0.3s;
 
         &:hover {
-          background: $black-dark;
+          background: rgba($color-error, 0.25);
           transform: translateY(-2px);
-          box-shadow: $shadow-sm;
         }
       }
     }
   }
 
   .cart-summary {
-    background: $white;
+    @include glass-card;
     padding: 2rem;
-    border-radius: $border-radius-lg;
-    box-shadow: $shadow-md;
     text-align: center;
-    border: 1px solid $border-color;
 
     h2 {
       font-size: 2rem;
       margin-bottom: 1.5rem;
-      color: $black-dark;
+      color: $text-primary;
       font-weight: 700;
+      font-family: $font-heading;
     }
 
     button {
@@ -117,25 +110,25 @@
       cursor: pointer;
       transition: all 0.3s;
       font-weight: 600;
-      box-shadow: $shadow-sm;
 
       &:first-of-type {
-        background: $gray-800;
-        color: $white;
+        background: $accent-primary;
+        color: $text-primary;
+        box-shadow: $shadow-glow-accent;
 
         &:hover:not(:disabled) {
-          background: $black-dark;
+          background: $accent-hover;
           transform: translateY(-2px);
-          box-shadow: $shadow-md;
+          box-shadow: $shadow-xl;
         }
       }
 
       &:last-of-type {
-        background: $gray-400;
-        color: $white;
+        @include glass-surface;
+        color: $text-secondary;
 
         &:hover:not(:disabled) {
-          background: $gray-500;
+          @include glass-surface-hover;
         }
       }
 
@@ -149,7 +142,7 @@
   p {
     text-align: center;
     padding: 2rem;
-    color: $gray-600;
+    color: $text-muted;
     font-size: 1.2rem;
   }
 }

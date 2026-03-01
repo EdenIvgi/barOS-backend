@@ -1,28 +1,28 @@
 @import '../setup/vars';
+@import '../setup/mixins';
 
 .recipes-page {
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
-  background: $white-off;
+  background: transparent;
   min-height: calc(100vh - 200px);
+  @include cinematic-enter;
 
   .page-title {
     text-align: center;
     font-size: 2.5rem;
     margin: 0 0 2rem 0;
-    color: $black-dark;
+    color: $text-primary;
     font-weight: 700;
+    font-family: $font-heading;
     padding-bottom: 1rem;
-    border-bottom: 2px solid $gray-200;
+    border-bottom: 1px solid $glass-border;
   }
 
   .recipes-content {
-    background: $white;
+    @include glass-card;
     padding: 2rem;
-    border-radius: $border-radius-lg;
-    box-shadow: $shadow-sm;
-    border: 1px solid $border-color;
   }
 
   .recipes-header-actions {
@@ -33,8 +33,8 @@
 
   .btn-add-recipe {
     padding: 0.75rem 1.5rem;
-    background: $gray-800;
-    color: $white;
+    background: $accent-primary;
+    color: $text-primary;
     border: none;
     border-radius: $border-radius;
     font-size: 1rem;
@@ -44,9 +44,9 @@
     box-shadow: $shadow-sm;
 
     &:hover {
-      background: $black-dark;
+      background: $accent-hover;
       transform: translateY(-2px);
-      box-shadow: $shadow-md;
+      box-shadow: $shadow-glow-accent;
     }
   }
 
@@ -59,18 +59,22 @@
   .recipes-empty {
     grid-column: 1 / -1;
     text-align: center;
-    color: $gray-600;
+    color: $text-muted;
     font-size: 1.1rem;
     margin: 2rem 0;
   }
 
   .recipe-card {
-    background: $gray-50;
+    @include glass-surface;
     border-radius: $border-radius;
     padding: 1.75rem;
-    border: 1px solid $gray-200;
     text-align: start;
     position: relative;
+    transition: all 0.3s;
+
+    &:hover {
+      @include glass-surface-hover;
+    }
 
     .recipe-card-header {
       display: flex;
@@ -84,9 +88,10 @@
       margin: 0;
       font-size: 1.5rem;
       font-weight: 700;
-      color: $black-dark;
+      color: $text-primary;
+      font-family: $font-heading;
       padding-bottom: 0.75rem;
-      border-bottom: 2px solid $gray-300;
+      border-bottom: 1px solid $glass-border;
       flex: 1;
     }
 
@@ -100,7 +105,7 @@
     .btn-delete-recipe {
       padding: 0.4rem 0.75rem;
       border: none;
-      border-radius: 6px;
+      border-radius: $border-radius;
       font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
@@ -108,57 +113,41 @@
     }
 
     .btn-edit-recipe {
-      background: $gray-700;
-      color: $white;
-
-      &:hover {
-        background: $gray-800;
-      }
+      @include glass-surface;
+      color: $text-primary;
+      &:hover { @include glass-surface-hover; }
     }
 
     .btn-delete-recipe {
-      background: $gray-200;
-      color: $gray-800;
-
-      &:hover {
-        background: $gray-300;
-      }
+      background: rgba($color-error, 0.15);
+      color: $color-error;
+      &:hover { background: rgba($color-error, 0.25); }
     }
 
     .recipe-section {
       margin-bottom: 1.25rem;
 
-      &:last-child {
-        margin-bottom: 0;
-      }
+      &:last-child { margin-bottom: 0; }
 
       h3 {
         margin: 0 0 0.5rem 0;
         font-size: 1rem;
         font-weight: 700;
-        color: $gray-800;
+        color: $text-primary;
       }
 
       ul, ol {
         margin: 0;
         padding-right: 1.25rem;
         padding-left: 0;
-        color: $gray-700;
+        color: $text-secondary;
         font-size: 0.95rem;
         line-height: 1.6;
       }
 
-      li {
-        margin-bottom: 0.35rem;
-      }
-
-      ol {
-        list-style: decimal;
-      }
-
-      ul {
-        list-style: disc;
-      }
+      li { margin-bottom: 0.35rem; }
+      ol { list-style: decimal; }
+      ul { list-style: disc; }
     }
   }
 
@@ -168,30 +157,33 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.7);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
     padding: 2rem;
+    backdrop-filter: blur(4px);
   }
 
   .recipe-form-container {
-    background: $white;
+    background: $bg-elevated;
+    border: 1px solid $glass-border;
     border-radius: $border-radius-lg;
     padding: 2rem;
     max-width: 560px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    border: 1px solid $border-color;
+    box-shadow: $shadow-xl;
+    @include scale-enter;
 
     h2 {
       margin: 0 0 1.5rem 0;
       font-size: 1.5rem;
-      color: $black-dark;
+      color: $text-primary;
       font-weight: 700;
+      font-family: $font-heading;
     }
   }
 
@@ -203,7 +195,7 @@
         display: block;
         margin-bottom: 0.4rem;
         font-weight: 600;
-        color: $black-dark;
+        color: $text-primary;
         font-size: 0.95rem;
       }
 
@@ -211,19 +203,15 @@
       .form-textarea {
         width: 100%;
         padding: 0.75rem;
-        border: 1px solid $border-color;
+        border: 1px solid $glass-border;
         border-radius: $border-radius;
         font-size: 1rem;
-        background: $white;
-        color: $black-dark;
+        background: $glass-bg;
+        color: $text-primary;
         font-family: inherit;
         box-sizing: border-box;
 
-        &:focus {
-          outline: none;
-          border-color: $gray-600;
-          box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.06);
-        }
+        &:focus { @include accent-focus; }
       }
 
       .form-textarea {
@@ -234,7 +222,7 @@
       .form-error {
         margin-top: 0.35rem;
         font-size: 0.85rem;
-        color: #c00;
+        color: $color-error;
       }
     }
 
@@ -244,36 +232,31 @@
       justify-content: flex-end;
       margin-top: 1.5rem;
       padding-top: 1.25rem;
-      border-top: 1px solid $gray-200;
+      border-top: 1px solid $glass-border;
 
       .btn-save {
         padding: 0.65rem 1.5rem;
-        background: $gray-800;
-        color: $white;
+        background: $accent-primary;
+        color: $text-primary;
         border: none;
         border-radius: $border-radius;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
 
-        &:hover {
-          background: $black-dark;
-        }
+        &:hover { background: $accent-hover; }
       }
 
       .btn-cancel {
         padding: 0.65rem 1.5rem;
-        background: $gray-300;
-        color: $gray-800;
-        border: none;
+        @include glass-surface;
+        color: $text-secondary;
         border-radius: $border-radius;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
 
-        &:hover {
-          background: $gray-400;
-        }
+        &:hover { @include glass-surface-hover; }
       }
     }
   }

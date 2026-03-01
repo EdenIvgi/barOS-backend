@@ -1,24 +1,35 @@
+@import '../setup/vars';
+@import '../setup/mixins';
+
 .user-details {
+  padding: 2rem;
+  color: $text-primary;
+  @include cinematic-enter;
+
   ul.review-list {
     display: flex;
     gap: 1em;
     flex-wrap: wrap;
   }
+
   .review-card {
     width: fit-content;
     padding: 1em;
     margin-block: 1em;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+    @include glass-card;
 
     pre.review-txt {
       width: fit-content;
       padding: 0.5em;
       font-size: 1rem;
-      background-color: lightcoral;
+      background: $accent-subtle;
+      color: $accent-text;
+      border-radius: $border-radius;
     }
 
     a {
       text-decoration: underline;
+      color: $accent-text;
     }
   }
 }

@@ -1,13 +1,10 @@
+@import '../../setup/vars';
+
 .loader-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1em;
-
-  /* position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%); */
 
   .animation {
     display: flex;
@@ -17,7 +14,7 @@
     span {
       display: inline-block;
       border-radius: 50vw;
-      background-color: $clr2;
+      background-color: $accent-primary;
       width: 2em;
       height: 2em;
       animation: bounce 1.5s infinite ease-in-out both;
@@ -32,13 +29,13 @@
     }
 
     p {
-      font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande',
-        'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+      font-family: $font-body;
       line-height: 1.5em;
       letter-spacing: 1px;
       text-align: center;
       margin: 1rem 0 0;
       max-width: 50ch;
+      color: $text-secondary;
     }
   }
 }

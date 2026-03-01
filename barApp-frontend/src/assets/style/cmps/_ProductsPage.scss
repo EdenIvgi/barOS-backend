@@ -1,23 +1,25 @@
 @import '../setup/vars';
+@import '../setup/mixins';
 
 .products-page {
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
-  background: $white-off;
+  background: transparent;
   min-height: calc(100vh - 200px);
+  @include cinematic-enter;
 
   .page-title {
     text-align: center;
     font-size: 2.5rem;
     margin: 0 0 2rem 0;
-    color: $black-dark;
+    color: $text-primary;
     font-weight: 700;
+    font-family: $font-heading;
     padding-bottom: 1rem;
-    border-bottom: 2px solid $gray-200;
+    border-bottom: 1px solid $glass-border;
   }
 
-  // Filters and search section
   .item-search,
   .category-filter {
     margin-bottom: 2rem;

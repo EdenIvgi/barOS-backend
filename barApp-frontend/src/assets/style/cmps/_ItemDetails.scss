@@ -1,20 +1,19 @@
 @import '../setup/vars';
+@import '../setup/mixins';
 
 .item-details {
   padding: 2rem;
   max-width: 800px;
   margin: 0 auto;
-  background: $white-off;
+  background: transparent;
+  @include cinematic-enter;
 
   .item-details-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
-    background: $white;
+    @include glass-card;
     padding: 2rem;
-    border-radius: $border-radius-lg;
-    box-shadow: $shadow-md;
-    border: 1px solid $border-color;
 
     @media (max-width: 768px) {
       grid-template-columns: 1fr;
@@ -25,20 +24,21 @@
       height: 400px;
       object-fit: cover;
       border-radius: $border-radius;
-      border: 1px solid $border-color;
+      border: 1px solid $glass-border;
     }
 
     .item-details-info {
       .item-detail-name {
         font-size: 2rem;
         margin-bottom: 0.5rem;
-        color: $black-dark;
+        color: $text-primary;
         font-weight: 700;
+        font-family: $font-heading;
       }
 
       .item-detail-description {
         font-size: 1.1rem;
-        color: $gray-700;
+        color: $text-secondary;
         margin-bottom: 1rem;
         line-height: 1.6;
       }
@@ -46,7 +46,8 @@
       .item-detail-price {
         font-size: 2.5rem;
         font-weight: 700;
-        color: $black-dark;
+        color: $text-primary;
+        font-family: $font-heading;
         margin: 1rem 0;
       }
 
@@ -59,19 +60,19 @@
         font-weight: 600;
 
         &.available {
-          background-color: $gray-600;
-          color: $white;
+          background: rgba($color-success, 0.15);
+          color: $color-success;
         }
 
         &.unavailable {
-          background-color: $gray-400;
-          color: $white;
+          background: rgba($color-error, 0.15);
+          color: $color-error;
         }
       }
 
       .item-detail-stock {
         font-size: 1.1rem;
-        color: $gray-700;
+        color: $text-secondary;
         margin: 1rem 0;
       }
 
@@ -81,12 +82,11 @@
         .tag {
           display: inline-block;
           padding: 0.3rem 0.8rem;
-          background: $gray-200;
+          @include glass-surface;
           border-radius: $border-radius;
           margin: 0.3rem;
           font-size: 0.9rem;
-          color: $gray-800;
-          border: 1px solid $border-color;
+          color: $text-secondary;
         }
       }
 
@@ -99,23 +99,21 @@
           label {
             display: block;
             margin-bottom: 0.5rem;
-            color: $black-dark;
+            color: $text-primary;
             font-weight: 600;
           }
 
           .quantity-input {
             padding: 0.75rem;
-            border: 1px solid $border-color;
+            border: 1px solid $glass-border;
             border-radius: $border-radius;
             width: 100px;
             font-size: 1rem;
-            background: $white;
-            color: $black-dark;
+            background: $glass-bg;
+            color: $text-primary;
 
             &:focus {
-              outline: none;
-              border-color: $gray-600;
-              box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+              @include accent-focus;
             }
           }
         }
@@ -123,20 +121,20 @@
         .btn-add-to-cart-large {
           width: 100%;
           padding: 1rem 2rem;
-          background: $gray-800;
-          color: $white;
+          background: $accent-primary;
+          color: $text-primary;
           border: none;
           border-radius: $border-radius;
           font-size: 1.1rem;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.3s;
-          box-shadow: $shadow-sm;
+          box-shadow: $shadow-glow-accent;
 
           &:hover {
-            background: $black-dark;
+            background: $accent-hover;
             transform: translateY(-2px);
-            box-shadow: $shadow-md;
+            box-shadow: $shadow-xl;
           }
         }
       }

@@ -1,17 +1,13 @@
 @import '../setup/vars';
+@import '../setup/mixins';
 
 .item-list {
-
-
   &.empty {
     text-align: center;
     padding: 4rem 2rem;
-    color: $gray-600;
+    color: $text-muted;
     font-size: 1.2rem;
-    background: $white;
-    border-radius: $border-radius-lg;
-    box-shadow: $shadow-sm;
-    border: 1px solid $border-color;
+    @include glass-card;
     margin: 2rem 0;
 
     p {

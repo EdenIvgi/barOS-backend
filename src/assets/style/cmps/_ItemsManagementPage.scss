@@ -1,12 +1,14 @@
 @import '../setup/vars';
+@import '../setup/mixins';
 
 .items-management-page {
   padding: 2rem;
   max-width: 1600px;
   margin: 0 auto;
-  background: $white-off;
+  background: transparent;
   display: flex;
   flex-direction: column;
+  @include cinematic-enter;
 
   .page-header {
     display: flex;
@@ -16,9 +18,10 @@
 
     h1 {
       margin: 0;
-      color: $black-dark;
+      color: $text-primary;
       font-size: 2rem;
       font-weight: 700;
+      font-family: $font-heading;
     }
 
     .header-actions {
@@ -27,29 +30,11 @@
       align-items: center;
     }
 
-    .btn-add {
-      padding: 0.75rem 1.5rem;
-      background: $gray-800;
-      color: $white;
-      border: none;
-      border-radius: $border-radius;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: $shadow-sm;
-
-      &:hover {
-        background: $black-dark;
-        transform: translateY(-2px);
-        box-shadow: $shadow-md;
-      }
-    }
-
+    .btn-add,
     .btn-create-order {
       padding: 0.75rem 1.5rem;
-      background: $gray-800;
-      color: $white;
+      background: $accent-primary;
+      color: $text-primary;
       border: none;
       border-radius: $border-radius;
       font-size: 1rem;
@@ -59,9 +44,9 @@
       box-shadow: $shadow-sm;
 
       &:hover {
-        background: $black-dark;
+        background: $accent-hover;
         transform: translateY(-2px);
-        box-shadow: $shadow-md;
+        box-shadow: $shadow-glow-accent;
       }
     }
   }
@@ -69,14 +54,13 @@
   .filters-container {
     width: 100%;
     padding: 1rem 1.25rem;
-    background: $gray-100;
-    border-radius: $border-radius;
+    @include glass-card;
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
     align-items: flex-end;
-    border: 1px solid $border-color;
     box-sizing: border-box;
+    margin-bottom: 1.5rem;
 
     > div {
       flex: 1 1 150px;
@@ -90,26 +74,24 @@
         margin-bottom: 0.5rem;
         font-weight: 600;
         font-size: 0.9rem;
-        color: $black-dark;
+        color: $text-primary;
         text-align: start;
       }
 
       select {
         width: 100%;
         padding: 0.6rem 0.75rem;
-        border: 1px solid $border-color;
+        border: 1px solid $glass-border;
         border-radius: $border-radius;
-        background: $white;
-        color: $black-dark;
+        background: $glass-bg;
+        color: $text-primary;
         font-size: 0.9rem;
         transition: all 0.3s;
         box-sizing: border-box;
         flex: 1;
 
         &:focus {
-          outline: none;
-          border-color: $gray-600;
-          box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
+          @include accent-focus;
         }
       }
     }
@@ -126,9 +108,8 @@
 
     .clear-filters-btn {
       padding: 0.6rem 0.75rem;
-      background: $gray-600;
-      color: $white;
-      border: none;
+      @include glass-surface;
+      color: $text-primary;
       border-radius: $border-radius;
       cursor: pointer;
       font-weight: 600;
@@ -140,9 +121,8 @@
       margin-top: auto;
 
       &:hover {
-        background: $gray-700;
+        @include glass-surface-hover;
         transform: translateY(-1px);
-        box-shadow: $shadow-sm;
       }
     }
 
@@ -150,7 +130,7 @@
       flex: 1 1 100%;
       margin-top: 0;
       font-size: 0.75rem;
-      color: $gray-600;
+      color: $text-muted;
       order: 1;
       text-align: start;
       width: 100%;
@@ -169,8 +149,8 @@
       align-items: center;
       gap: 0.4rem;
       padding: 0.35rem 0.65rem;
-      background: $gray-800;
-      color: $white;
+      background: $accent-primary;
+      color: $text-primary;
       border: none;
       border-radius: $border-radius;
       font-size: 0.75rem;
@@ -188,35 +168,31 @@
       }
 
       &:hover {
-        background: $black-dark;
+        background: $accent-hover;
         transform: translateY(-1px);
-        box-shadow: $shadow-md;
+        box-shadow: $shadow-glow-accent;
       }
     }
 
     .btn-import {
-      background: $gray-700;
+      @include glass-surface;
 
       &:hover {
-        background: $gray-900;
+        @include glass-surface-hover;
       }
     }
   }
 
-
   .empty-message {
     text-align: center;
     padding: 3rem;
-    color: $gray-600;
+    color: $text-muted;
     font-size: 1.2rem;
   }
 
   .table-container {
-    background: $white;
-    border-radius: $border-radius-lg;
-    box-shadow: $shadow-md;
+    @include glass-card;
     overflow-x: auto;
-    border: 1px solid $border-color;
   }
 
   .items-table {
@@ -227,8 +203,7 @@
     table-layout: fixed;
 
     thead {
-      background: $gray-800;
-      color: $white;
+      background: rgba($accent-primary, 0.15);
       position: sticky;
       top: 0;
       z-index: 10;
@@ -241,66 +216,28 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
         white-space: nowrap;
-        
-        // Column widths - further reduced
-        &:nth-child(1) { // name
-          min-width: 140px;
-          max-width: 180px;
-          width: 160px;
-          text-align: center;
-        }
-        
-        &:nth-child(2) { // category
-          min-width: 100px;
-          max-width: 130px;
-          width: 115px;
-          text-align: center;
-        }
-        
-        &:nth-child(3) { // supplier
-          min-width: 80px;
-          max-width: 100px;
-          width: 90px;
-          text-align: center;
-        }
-        
-        &:nth-child(4) { // price
-          min-width: 60px;
-          max-width: 75px;
-          width: 70px;
-          text-align: center;
-        }
-        
-        &:nth-child(5) { // stock
-          min-width: 60px;
-          max-width: 75px;
-          width: 70px;
-          text-align: center;
-        }
-        
-        &:nth-child(6) { // order qty
-          min-width: 80px;
-          max-width: 100px;
-          width: 90px;
-          text-align: center;
-        }
-        
-        &:nth-child(7) { // actions
-          min-width: 80px;
-          max-width: 100px;
-          width: 90px;
-          text-align: center;
-        }
+        color: $text-primary;
+        border-bottom: 1px solid $glass-border;
+
+        &:nth-child(1) { min-width: 140px; max-width: 180px; width: 160px; }
+        &:nth-child(2) { min-width: 100px; max-width: 130px; width: 115px; }
+        &:nth-child(3) { min-width: 80px; max-width: 100px; width: 90px; }
+        &:nth-child(4) { min-width: 60px; max-width: 75px; width: 70px; }
+        &:nth-child(5) { min-width: 60px; max-width: 75px; width: 70px; }
+        &:nth-child(6) { min-width: 80px; max-width: 100px; width: 90px; }
+        &:nth-child(7) { min-width: 80px; max-width: 100px; width: 90px; }
       }
     }
 
     tbody {
       tr {
-        border-bottom: 1px solid $gray-200;
+        border-bottom: 1px solid $glass-border;
         transition: background 0.15s ease;
+        animation: rowFadeIn 0.3s ease both;
+        @include stagger-children(30, 0.02s);
 
         &:hover {
-          background: $gray-50;
+          background: $glass-bg-hover;
         }
 
         &:last-child {
@@ -309,13 +246,12 @@
       }
 
       td {
-        padding: 0.4rem 0.4rem;
+        padding: 0.4rem;
         text-align: center;
         vertical-align: middle;
-        color: $black-dark;
+        color: $text-primary;
         font-size: 0.85rem;
 
-        // Category column - larger font
         &:nth-child(2) {
           font-size: 0.95rem;
           font-weight: 500;
@@ -324,7 +260,7 @@
         &.empty-table-message {
           text-align: center;
           padding: 2.5rem;
-          color: $gray-600;
+          color: $text-muted;
           font-size: 0.95rem;
         }
       }
@@ -341,7 +277,7 @@
         height: 28px;
         object-fit: cover;
         border-radius: 3px;
-        border: 1px solid $border-color;
+        border: 1px solid $glass-border;
         flex-shrink: 0;
       }
 
@@ -353,7 +289,7 @@
 
       strong {
         display: block;
-        color: $black-dark;
+        color: $text-primary;
         margin-bottom: 0.1rem;
         font-weight: 600;
         font-size: 0.85rem;
@@ -366,7 +302,7 @@
 
       .item-description {
         font-size: 0.65rem;
-        color: $gray-600;
+        color: $text-muted;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -385,24 +321,23 @@
       border-radius: 10px;
       font-weight: 600;
       font-size: 0.75rem;
-      background: $gray-200;
-      color: $gray-800;
+      @include glass-surface;
+      color: $text-primary;
       white-space: nowrap;
       min-width: 35px;
 
       &.unlimited {
-        background: $gray-300;
-        color: $gray-800;
+        color: $color-info;
       }
 
       &.ok {
-        background: $gray-500;
-        color: $white;
+        color: $color-success;
+        border-color: rgba($color-success, 0.3);
       }
 
       &.low {
-        background: $gray-700;
-        color: $white;
+        color: $color-error;
+        border-color: rgba($color-error, 0.3);
       }
     }
 
@@ -420,22 +355,22 @@
       border: 1px solid transparent;
 
       &.needs-order {
-        background: $gray-300;
-        color: $gray-900;
-        border-color: $gray-400;
+        background: $accent-subtle;
+        color: $accent-text;
+        border-color: rgba($accent-primary, 0.3);
 
         &:hover {
-          background: $gray-400;
+          background: rgba($accent-primary, 0.25);
           transform: scale(1.05);
         }
       }
 
       &.ok {
-        background: $gray-100;
-        color: $gray-700;
+        @include glass-surface;
+        color: $text-secondary;
 
         &:hover {
-          background: $gray-200;
+          @include glass-surface-hover;
         }
       }
     }
@@ -449,13 +384,13 @@
       white-space: nowrap;
 
       &.available {
-        background: $gray-600;
-        color: $white;
+        background: rgba($color-success, 0.15);
+        color: $color-success;
       }
 
       &.unavailable {
-        background: $gray-400;
-        color: $white;
+        background: rgba($color-error, 0.15);
+        color: $color-error;
       }
     }
 
@@ -472,7 +407,7 @@
         cursor: pointer;
         transition: all 0.2s;
         background: transparent;
-        color: $gray-600;
+        color: $text-secondary;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -486,17 +421,17 @@
 
         &:hover {
           transform: scale(1.1);
-          color: $black-dark;
+          color: $text-primary;
         }
 
         &.btn-edit:hover {
-          background: $gray-200;
-          color: $gray-800;
+          background: $glass-bg-hover;
+          color: $color-info;
         }
 
         &.btn-delete:hover {
-          background: $gray-300;
-          color: $gray-900;
+          background: rgba($color-error, 0.15);
+          color: $color-error;
         }
       }
     }
@@ -504,37 +439,35 @@
     input[type='number'],
     input[type='text'] {
       padding: 0.25rem 0.4rem;
-      border: 1px solid $gray-600;
+      border: 1px solid $glass-border;
       border-radius: 4px;
       width: 60px;
       text-align: center;
-      background: $white;
-      color: $black-dark;
+      background: $glass-bg;
+      color: $text-primary;
       font-size: 0.8rem;
       font-weight: 600;
 
       &:focus {
-        outline: none;
-        border-color: $gray-800;
-        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+        @include accent-focus;
       }
     }
 
     .order-quantity-input {
       padding: 0.25rem 0.4rem;
-      border: 2px solid $gray-700 !important;
+      border: 2px solid $accent-primary !important;
       border-radius: 4px;
       width: 60px;
       text-align: center;
-      background: $white;
-      color: $black-dark;
+      background: $glass-bg;
+      color: $text-primary;
       font-size: 0.8rem;
       font-weight: 600;
 
       &:focus {
         outline: none;
-        border-color: $gray-800 !important;
-        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15) !important;
+        border-color: $accent-hover !important;
+        box-shadow: 0 0 0 2px $accent-subtle !important;
       }
     }
   }
@@ -545,16 +478,18 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.7);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
     padding: 2rem;
+    backdrop-filter: blur(4px);
   }
 
   .form-container {
-    background: $white;
+    background: $bg-elevated;
+    border: 1px solid $glass-border;
     border-radius: $border-radius-lg;
     padding: 2rem;
     max-width: 600px;
@@ -562,13 +497,14 @@
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: $shadow-xl;
-    border: 1px solid $border-color;
+    @include scale-enter;
 
     h2 {
       margin-top: 0;
       margin-bottom: 1.5rem;
-      color: $black-dark;
+      color: $text-primary;
       font-weight: 700;
+      font-family: $font-heading;
     }
 
     .form-group {
@@ -578,7 +514,7 @@
         display: block;
         margin-bottom: 0.5rem;
         font-weight: 600;
-        color: $black-dark;
+        color: $text-primary;
       }
 
       input[type='text'],
@@ -588,17 +524,15 @@
       select {
         width: 100%;
         padding: 0.75rem;
-        border: 1px solid $border-color;
+        border: 1px solid $glass-border;
         border-radius: $border-radius;
         font-size: 1rem;
-        background: $white;
-        color: $black-dark;
+        background: $glass-bg;
+        color: $text-primary;
         transition: all 0.3s;
 
         &:focus {
-          outline: none;
-          border-color: $gray-600;
-          box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+          @include accent-focus;
         }
       }
 
@@ -634,7 +568,7 @@
       justify-content: flex-end;
       margin-top: 2rem;
       padding-top: 1.5rem;
-      border-top: 2px solid $gray-200;
+      border-top: 1px solid $glass-border;
 
       button {
         padding: 0.75rem 2rem;
@@ -646,23 +580,23 @@
         transition: all 0.3s;
 
         &.btn-save {
-          background: $gray-800;
-          color: $white;
+          background: $accent-primary;
+          color: $text-primary;
           box-shadow: $shadow-sm;
 
           &:hover {
-            background: $black-dark;
+            background: $accent-hover;
             transform: translateY(-2px);
-            box-shadow: $shadow-md;
+            box-shadow: $shadow-glow-accent;
           }
         }
 
         &.btn-cancel {
-          background: $gray-400;
-          color: $white;
+          @include glass-surface;
+          color: $text-secondary;
 
           &:hover {
-            background: $gray-500;
+            @include glass-surface-hover;
           }
         }
       }
@@ -672,7 +606,7 @@
   .form-container.create-order-modal {
     .create-order-modal-desc {
       margin: 0 0 1.25rem 0;
-      color: $gray-700;
+      color: $text-secondary;
       font-size: 0.95rem;
       line-height: 1.5;
     }
@@ -681,7 +615,7 @@
       list-style: none;
       margin: 0;
       padding: 0;
-      border: 1px solid $border-color;
+      border: 1px solid $glass-border;
       border-radius: $border-radius;
       overflow: hidden;
     }
@@ -694,7 +628,7 @@
       padding: 0.75rem 0;
       cursor: pointer;
       font-weight: 500;
-      color: $gray-800;
+      color: $text-primary;
 
       input[type='checkbox'] {
         width: 1.1rem;
@@ -703,7 +637,7 @@
     }
 
     .create-order-supplier-item {
-      border-bottom: 1px solid $gray-200;
+      border-bottom: 1px solid $glass-border;
 
       &:last-child {
         border-bottom: none;
@@ -720,7 +654,7 @@
         transition: background 0.2s;
 
         &:hover {
-          background: $gray-50;
+          background: $glass-bg-hover;
         }
 
         input[type='checkbox'] {
@@ -732,11 +666,11 @@
 
         .supplier-name {
           font-weight: 600;
-          color: $black-dark;
+          color: $text-primary;
         }
 
         .supplier-summary {
-          color: $gray-600;
+          color: $text-secondary;
           font-size: 0.9rem;
         }
       }
@@ -746,20 +680,20 @@
   .create-order-btn {
     margin: 1.5rem 0;
     padding: 1rem 2rem;
-    background: $gray-800;
-    color: $white;
+    background: $accent-primary;
+    color: $text-primary;
     border: none;
     border-radius: $border-radius;
     font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: $shadow-md;
+    box-shadow: $shadow-glow-accent;
 
     &:hover {
-      background: $black-dark;
+      background: $accent-hover;
       transform: translateY(-2px);
-      box-shadow: $shadow-lg;
+      box-shadow: $shadow-xl;
     }
   }
 

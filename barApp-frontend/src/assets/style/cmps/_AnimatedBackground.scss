@@ -1,0 +1,67 @@
+@import '../setup/vars';
+
+.animated-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  color: $text-primary;
+}
+
+.float-glass {
+  position: absolute;
+  opacity: 0.025;
+  will-change: transform;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+  }
+}
+
+.float-1 {
+  width: 80px;
+  top: 10%;
+  left: 8%;
+  animation: floatCocktail1 28s ease-in-out infinite;
+}
+
+.float-2 {
+  width: 65px;
+  top: 55%;
+  right: 6%;
+  animation: floatCocktail2 32s ease-in-out infinite;
+  animation-delay: -5s;
+}
+
+.float-3 {
+  width: 90px;
+  top: 25%;
+  right: 18%;
+  animation: floatCocktail3 26s ease-in-out infinite;
+  animation-delay: -10s;
+}
+
+.float-4 {
+  width: 55px;
+  top: 70%;
+  left: 15%;
+  animation: floatCocktail1 34s ease-in-out infinite;
+  animation-delay: -8s;
+}
+
+.float-5 {
+  width: 45px;
+  top: 40%;
+  left: 50%;
+  animation: floatCocktail2 30s ease-in-out infinite;
+  animation-delay: -15s;
+}
+
+.float-6 {
+  width: 60px;
+  top: 80%;
+  right: 35%;
+  animation: floatCocktail3 35s ease-in-out infinite;
+  animation-delay: -12s;
+}

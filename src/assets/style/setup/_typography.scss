@@ -1,6 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Edu+VIC+WA+NT+Beginner&display=swap');
+// ============================================
+// BAROS TYPOGRAPHY — Playfair Display + Inter
+// ============================================
+
+// Google Fonts
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
+
+// Icon font
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css');
 
+// Local fonts
 @font-face {
   font-family: roboto;
   src: url(../../assets/fonts/roboto/Roboto-Regular.ttf);
@@ -10,3 +18,8 @@
   font-family: libre;
   src: url(../../assets/fonts/libre-barcode/LibreBarcode128Text-Regular.ttf);
 }
+
+// Font family variables
+$font-heading: 'Playfair Display', 'Georgia', serif;
+$font-body: 'Inter', 'Helvetica Neue', sans-serif;
+$font-logo: libre, sans-serif;

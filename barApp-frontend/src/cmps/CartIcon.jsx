@@ -1,28 +1,96 @@
-import { Link } from 'react-router-dom'
+import { useState, useRef, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
+import { checkout } from '../store/actions/order.actions'
 
 export function CartIcon() {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
   const cart = useSelector((storeState) => storeState.orderModule.cart)
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0)
+  const totalAmount = cart.reduce((sum, item) => sum + item.subtotal, 0)
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef(null)
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false)
+      }
+    }
+    if (isOpen) document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isOpen])
+
+  async function onCheckout() {
+    setIsOpen(false)
+    await checkout()
+  }
 
   return (
-    <Link to="/order" className="cart-icon" title="עגלת קניות">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+    <div className="cart-icon-wrapper" ref={dropdownRef}>
+      <button
+        className="cart-icon-btn"
+        onClick={() => setIsOpen(prev => !prev)}
+        title="Cart"
       >
-        <circle cx="9" cy="21" r="1"></circle>
-        <circle cx="20" cy="21" r="1"></circle>
-        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-      </svg>
-      {itemCount > 0 && <span className="cart-badge">{itemCount}</span>}
-    </Link>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <path d="M16 10a4 4 0 01-8 0" />
+        </svg>
+        {itemCount > 0 && <span className="cart-badge">{itemCount}</span>}
+      </button>
+
+      {isOpen && (
+        <div className="cart-dropdown">
+          {cart.length === 0 ? (
+            <p className="cart-dropdown-empty">{t('cartEmpty')}</p>
+          ) : (
+            <>
+              <ul className="cart-dropdown-items">
+                {cart.map((item) => (
+                  <li key={item.itemId} className="cart-dropdown-item">
+                    <span className="cart-item-name">{item.itemName}</span>
+                    <span className="cart-item-qty">x{item.quantity}</span>
+                    <span className="cart-item-price">₪{item.subtotal}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="cart-dropdown-total">
+                <span>{t('totalLabel')}</span>
+                <span>₪{totalAmount.toFixed(2)}</span>
+              </div>
+              <div className="cart-dropdown-actions">
+                <Link
+                  to="/order"
+                  className="cart-dropdown-btn cart-btn-view"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {t('cartTitle')}
+                </Link>
+                <button
+                  className="cart-dropdown-btn cart-btn-checkout"
+                  onClick={onCheckout}
+                >
+                  {t('checkout')}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
   )
 }

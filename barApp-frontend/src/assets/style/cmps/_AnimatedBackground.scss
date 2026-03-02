@@ -11,7 +11,7 @@
 
 .float-glass {
   position: absolute;
-  opacity: 0.025;
+  opacity: 0.045;
   will-change: transform;
 
   @media (prefers-reduced-motion: reduce) {
@@ -19,49 +19,168 @@
   }
 }
 
+// === First wave (8 glasses) ===
 .float-1 {
-  width: 80px;
-  top: 10%;
-  left: 8%;
-  animation: floatCocktail1 28s ease-in-out infinite;
+  width: 90px;
+  top: 3%;
+  left: 4%;
+  animation: driftFloat1 38s ease-in-out infinite, fadeGlass 38s ease-in-out infinite;
 }
 
 .float-2 {
-  width: 65px;
-  top: 55%;
-  right: 6%;
-  animation: floatCocktail2 32s ease-in-out infinite;
-  animation-delay: -5s;
+  width: 80px;
+  top: 48%;
+  right: 3%;
+  animation: driftFloat2 42s ease-in-out infinite, fadeGlass 42s ease-in-out infinite;
+  animation-delay: -6s;
 }
 
 .float-3 {
-  width: 90px;
-  top: 25%;
-  right: 18%;
-  animation: floatCocktail3 26s ease-in-out infinite;
-  animation-delay: -10s;
+  width: 72px;
+  top: 22%;
+  left: 28%;
+  animation: driftFloat3 36s ease-in-out infinite, fadeGlass 36s ease-in-out infinite;
+  animation-delay: -14s;
 }
 
 .float-4 {
-  width: 55px;
-  top: 70%;
-  left: 15%;
-  animation: floatCocktail1 34s ease-in-out infinite;
-  animation-delay: -8s;
+  width: 62px;
+  top: 68%;
+  right: 12%;
+  animation: driftFloat1 40s ease-in-out infinite reverse, fadeGlass 40s ease-in-out infinite;
+  animation-delay: -4s;
 }
 
 .float-5 {
-  width: 45px;
-  top: 40%;
-  left: 50%;
-  animation: floatCocktail2 30s ease-in-out infinite;
-  animation-delay: -15s;
+  width: 70px;
+  top: 8%;
+  right: 18%;
+  animation: driftFloat2 34s ease-in-out infinite, fadeGlass 34s ease-in-out infinite;
+  animation-delay: -18s;
 }
 
 .float-6 {
+  width: 58px;
+  top: 58%;
+  left: 6%;
+  animation: driftFloat3 43s ease-in-out infinite reverse, fadeGlass 43s ease-in-out infinite;
+  animation-delay: -10s;
+}
+
+.float-7 {
+  width: 75px;
+  top: 35%;
+  left: 50%;
+  animation: driftFloat1 46s ease-in-out infinite, fadeGlass 46s ease-in-out infinite;
+  animation-delay: -22s;
+}
+
+.float-8 {
+  width: 68px;
+  top: 82%;
+  left: 35%;
+  animation: driftFloat2 39s ease-in-out infinite reverse, fadeGlass 39s ease-in-out infinite;
+  animation-delay: -16s;
+}
+
+// === Second wave (8 more glasses, different positions) ===
+.float-9 {
+  width: 65px;
+  top: 15%;
+  left: 62%;
+  animation: driftFloat3 41s ease-in-out infinite, fadeGlass 41s ease-in-out infinite;
+  animation-delay: -9s;
+}
+
+.float-10 {
+  width: 78px;
+  top: 75%;
+  left: 18%;
+  animation: driftFloat1 37s ease-in-out infinite reverse, fadeGlass 37s ease-in-out infinite;
+  animation-delay: -20s;
+}
+
+.float-11 {
   width: 60px;
-  top: 80%;
-  right: 35%;
-  animation: floatCocktail3 35s ease-in-out infinite;
-  animation-delay: -12s;
+  top: 42%;
+  right: 28%;
+  animation: driftFloat2 44s ease-in-out infinite, fadeGlass 44s ease-in-out infinite;
+  animation-delay: -3s;
+}
+
+.float-12 {
+  width: 72px;
+  top: 88%;
+  right: 8%;
+  animation: driftFloat3 35s ease-in-out infinite reverse, fadeGlass 35s ease-in-out infinite;
+  animation-delay: -13s;
+}
+
+.float-13 {
+  width: 55px;
+  top: 5%;
+  left: 42%;
+  animation: driftFloat1 43s ease-in-out infinite, fadeGlass 43s ease-in-out infinite;
+  animation-delay: -25s;
+}
+
+.float-14 {
+  width: 68px;
+  top: 55%;
+  left: 70%;
+  animation: driftFloat2 38s ease-in-out infinite reverse, fadeGlass 38s ease-in-out infinite;
+  animation-delay: -7s;
+}
+
+.float-15 {
+  width: 58px;
+  top: 30%;
+  left: 8%;
+  animation: driftFloat3 45s ease-in-out infinite, fadeGlass 45s ease-in-out infinite;
+  animation-delay: -17s;
+}
+
+.float-16 {
+  width: 64px;
+  top: 90%;
+  left: 58%;
+  animation: driftFloat1 40s ease-in-out infinite reverse, fadeGlass 40s ease-in-out infinite;
+  animation-delay: -11s;
+}
+
+// === Drift animations ===
+@keyframes driftFloat1 {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  15% { transform: translate(15px, -20px) rotate(3deg); }
+  30% { transform: translate(-10px, -35px) rotate(-2deg); }
+  45% { transform: translate(20px, -18px) rotate(4deg); }
+  60% { transform: translate(-18px, -40px) rotate(-3deg); }
+  75% { transform: translate(10px, -15px) rotate(2deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes driftFloat2 {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  20% { transform: translate(-18px, 15px) rotate(-3deg); }
+  40% { transform: translate(12px, 30px) rotate(2.5deg); }
+  60% { transform: translate(-22px, 12px) rotate(-4deg); }
+  80% { transform: translate(8px, 25px) rotate(1.5deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes driftFloat3 {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  18% { transform: translate(22px, 18px) rotate(3.5deg); }
+  36% { transform: translate(-15px, -12px) rotate(-2deg); }
+  54% { transform: translate(10px, 28px) rotate(2.5deg); }
+  72% { transform: translate(-20px, 8px) rotate(-3.5deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+// Gentle opacity breathing
+@keyframes fadeGlass {
+  0%, 100% { opacity: 0.035; }
+  25% { opacity: 0.055; }
+  50% { opacity: 0.03; }
+  75% { opacity: 0.05; }
 }

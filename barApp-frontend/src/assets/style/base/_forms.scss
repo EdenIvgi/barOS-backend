@@ -18,13 +18,10 @@ button {
   &:hover {
     background: $glass-bg-hover;
     border-color: $accent-primary;
-    box-shadow: 0 0 12px $accent-glow;
-    transform: translateY(-1px);
   }
 
   &:active {
-    transform: translateY(0);
-    box-shadow: 0 0 8px $accent-glow;
+    background: $glass-bg-active;
   }
 
   &:disabled {

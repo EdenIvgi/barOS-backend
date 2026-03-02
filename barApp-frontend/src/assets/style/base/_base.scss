@@ -97,6 +97,16 @@ a.active {
   }
 }
 
+// === HEBREW FONT ===
+html[dir="rtl"],
+[lang="he"] {
+  font-family: $font-hebrew;
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: $font-hebrew;
+  }
+}
+
 // === SCROLLBAR DARK MODE ===
 ::-webkit-scrollbar {
   width: 8px;

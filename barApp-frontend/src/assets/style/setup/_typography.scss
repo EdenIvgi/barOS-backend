@@ -1,9 +1,9 @@
 // ============================================
-// BAROS TYPOGRAPHY — Frank Ruhl Libre + Heebo
+// BAROS TYPOGRAPHY — Inter + Gisha
 // ============================================
 
-// Google Fonts — Hebrew + English + numbers
-@import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;600;700;800;900&family=Heebo:wght@300;400;500;600;700;800&display=swap');
+// Google Fonts — Inter for English text
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 // Icon font
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css');
@@ -14,7 +14,26 @@
   src: url(../../assets/fonts/libre-barcode/LibreBarcode128Text-Regular.ttf);
 }
 
+@font-face {
+  font-family: 'Gisha';
+  src: url(../../assets/fonts/gisha/gisha.woff) format('woff'),
+       url(../../assets/fonts/gisha/gisha.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gisha';
+  src: url(../../assets/fonts/gisha/gishabd.woff) format('woff'),
+       url(../../assets/fonts/gisha/gishabd.ttf) format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
 // Font family variables
-$font-heading: 'Frank Ruhl Libre', 'Georgia', serif;
-$font-body: 'Heebo', 'Arial', sans-serif;
+$font-heading: 'Inter', 'Gisha', 'Arial', sans-serif;
+$font-body: 'Inter', 'Gisha', 'Arial', sans-serif;
+$font-hebrew: 'Gisha', 'Arial', sans-serif;
 $font-logo: libre, sans-serif;

@@ -65,10 +65,6 @@
         animation: rowFadeIn 0.3s ease both;
         @include stagger-children(20, 0.03s);
 
-        &:hover {
-          background: $glass-bg-hover;
-        }
-
         &:last-child {
           border-bottom: none;
         }
@@ -105,10 +101,6 @@
         border-radius: $border-radius;
         overflow: hidden;
         transition: box-shadow 0.2s;
-
-        &:hover {
-          @include glass-surface-hover;
-        }
 
         &.expanded {
           box-shadow: $shadow-md;

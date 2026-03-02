@@ -59,21 +59,11 @@ export function AppHeader() {
           <NavLink to="/products" className="nav-link" onClick={closeMenu}>{t('products')}</NavLink>
           <NavLink to="/bar-book" className="nav-link" onClick={closeMenu}>{t('barBook')}</NavLink>
           <NavLink to="/orders" className="nav-link" onClick={closeMenu}>{t('orders')}</NavLink>
-          <NavLink to="/order" className="nav-link" onClick={closeMenu}>{t('cart')}</NavLink>
           <NavLink to="/items-management" className="nav-link" onClick={closeMenu}>{t('itemsManagement')}</NavLink>
-          {user && <NavLink to="/user" className="nav-link" onClick={closeMenu}>{t('profile')}</NavLink>}
           <NavLink to="/about" className="nav-link" onClick={closeMenu}>{t('about')}</NavLink>
         </nav>
 
         <div className="header-actions">
-          <CartIcon />
-          <button
-            className="language-toggle-btn"
-            onClick={toggleLanguage}
-            title={t('toggleLanguage')}
-          >
-            {getLanguageLabel()}
-          </button>
           {user ? (
             <div className="user-section">
               <Link to="/user" className="user-greeting">{t('hello')} {user.fullname}</Link>
@@ -82,6 +72,14 @@ export function AppHeader() {
           ) : (
             <Link to="/" className="header-login-link">{t('landingLoginBtn')}</Link>
           )}
+          <CartIcon />
+          <button
+            className="language-toggle-btn"
+            onClick={toggleLanguage}
+            title={t('toggleLanguage')}
+          >
+            {getLanguageLabel()}
+          </button>
         </div>
       </div>
     </header>

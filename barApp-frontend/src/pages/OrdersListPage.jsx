@@ -8,6 +8,13 @@ import { showSuccessMsg, showErrorMsg } from '../services/event-bus.service'
 import { downloadOrderPdf } from '../services/orderPdf.service'
 
 const NO_SUPPLIER_KEY = '__no_supplier__'
+const COMBINED_ORDER_KEY = '__combined_order__'
+const COMBINED_ORDER_LABELS = ['הזמנה משולבת', 'Combined order', 'Combined Order']
+
+function normalizeSupplier(supplier) {
+  if (!supplier || supplier === NO_SUPPLIER_KEY) return supplier
+  return COMBINED_ORDER_LABELS.includes(supplier) ? COMBINED_ORDER_KEY : supplier
+}
 
 function getOrderSupplier(order, inventoryItems = []) {
   if (!order) return NO_SUPPLIER_KEY
@@ -97,17 +104,17 @@ export function OrdersListPage() {
   const uniqueSuppliers = useMemo(() => {
     const set = new Set()
     ;(orders || []).forEach((o) => {
-      const s = getOrderSupplier(o, items)
+      const s = normalizeSupplier(getOrderSupplier(o, items))
       if (s) set.add(s)
     })
-    return Array.from(set).sort((a, b) => (a === NO_SUPPLIER_KEY ? 1 : b === NO_SUPPLIER_KEY ? -1 : a.localeCompare(b)))
+    return Array.from(set).sort((a, b) => (a === NO_SUPPLIER_KEY ? 1 : b === NO_SUPPLIER_KEY ? -1 : a === COMBINED_ORDER_KEY ? -1 : b === COMBINED_ORDER_KEY ? 1 : a.localeCompare(b)))
   }, [orders, items])
 
   const ordersByDateAndSupplier = useMemo(() => {
     const map = {}
     ;(orders || []).filter(Boolean).forEach((order) => {
       const dateKey = toDateKey(order.createdAt)
-      const supplier = getOrderSupplier(order, items)
+      const supplier = normalizeSupplier(getOrderSupplier(order, items))
       if (!dateKey) return
       if (!map[dateKey]) map[dateKey] = {}
       if (!map[dateKey][supplier]) map[dateKey][supplier] = []
@@ -239,7 +246,11 @@ export function OrdersListPage() {
                 <th className="col-date">{t('dateColumn')}</th>
                 {uniqueSuppliers.map((supplier) => (
                   <th key={supplier} className="col-supplier">
-                    {supplier === NO_SUPPLIER_KEY ? t('noSupplier') : supplier}
+                    {supplier === NO_SUPPLIER_KEY
+                      ? t('noSupplier')
+                      : supplier === COMBINED_ORDER_KEY
+                      ? t('combinedOrderLabel')
+                      : supplier}
                   </th>
                 ))}
               </tr>

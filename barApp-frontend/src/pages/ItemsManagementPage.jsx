@@ -580,6 +580,19 @@ export function ItemsManagementPage() {
 
   return (
     <div className="items-management-page">
+      <ItemForm
+        isOpen={showForm}
+        isEditing={isEditing}
+        editingItem={editingItem}
+        isSaving={isSaving}
+        uniqueCategories={uniqueCategories}
+        uniqueSuppliers={uniqueSuppliers}
+        itemCount={items?.length || 0}
+        onSubmit={handleSubmit}
+        onChange={handleChange}
+        onCancel={handleCancel}
+      />
+
       {!items || items.length === 0 ? (
         <div className="empty-state">
           <p className="empty-message">{t('noProductsInSystem')}</p>
@@ -642,19 +655,6 @@ export function ItemsManagementPage() {
             importState={importState}
             onApply={handleApplyImport}
             onClose={closeImportModal}
-          />
-
-          <ItemForm
-            isOpen={showForm}
-            isEditing={isEditing}
-            editingItem={editingItem}
-            isSaving={isSaving}
-            uniqueCategories={uniqueCategories}
-            uniqueSuppliers={uniqueSuppliers}
-            itemCount={items?.length || 0}
-            onSubmit={handleSubmit}
-            onChange={handleChange}
-            onCancel={handleCancel}
           />
 
           <div className="table-container">

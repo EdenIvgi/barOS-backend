@@ -4,6 +4,19 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { login, signup } from '../store/actions/user.actions'
 import { showErrorMsg, showSuccessMsg } from '../services/event-bus.service'
+import { AnimatedBackground } from '../cmps/AnimatedBackground'
+
+// Client-side company name validation — mirrors the backend sanitise logic
+function validateCompanyName(name) {
+  if (!name || !name.trim()) return false
+  const sanitized = name
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_]/g, '')
+    .replace(/^_+|_+$/g, '')
+  return sanitized.length > 0
+}
 
 export function LandingPage() {
   const { t, i18n } = useTranslation()
@@ -12,7 +25,8 @@ export function LandingPage() {
 
   const [isSignup, setIsSignup] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [credentials, setCredentials] = useState({ username: '', password: '', fullname: '' })
+  const [credentials, setCredentials] = useState({ username: '', password: '', fullname: '', companyName: '' })
+  const [companyError, setCompanyError] = useState(false)
 
   useEffect(() => {
     if (user) navigate('/home')
@@ -21,10 +35,15 @@ export function LandingPage() {
   function handleChange({ target }) {
     const { name, value } = target
     setCredentials(prev => ({ ...prev, [name]: value }))
+    if (name === 'companyName') setCompanyError(false)
   }
 
   async function handleSubmit(ev) {
     ev.preventDefault()
+    if (isSignup && !validateCompanyName(credentials.companyName)) {
+      setCompanyError(true)
+      return
+    }
     setIsLoading(true)
     try {
       if (isSignup) {
@@ -43,70 +62,48 @@ export function LandingPage() {
   }
 
   function toggleLanguage() {
-    const currentLang = i18n.resolvedLanguage || 'he'
+    const currentLang = i18n.resolvedLanguage || 'en'
     i18n.changeLanguage(currentLang === 'en' ? 'he' : 'en')
   }
 
-  const isHe = (i18n.resolvedLanguage || 'he') === 'he'
+  const isHe = (i18n.resolvedLanguage || 'en') === 'he'
 
   return (
     <section className="landing-page" dir={isHe ? 'rtl' : 'ltr'}>
+      <AnimatedBackground />
 
       <button className="landing-lang-btn" onClick={toggleLanguage}>
         {isHe ? 'EN' : 'HE'}
       </button>
 
-      {/* Left / content side */}
-      <div className="landing-content">
-        <div className="landing-brand">
-          <div className="landing-logo-mark">🍸</div>
-          <h1 className="landing-app-name">BarOS</h1>
+      <div className="landing-center">
+
+        {/* Hero */}
+        <div className="landing-hero">
+          <div className="landing-logo-wrap">
+            <svg className="landing-logo-icon" viewBox="0 0 100 140" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
+              <path d="M15 12 L50 58 L85 12" strokeLinecap="round" strokeLinejoin="round" />
+              <ellipse cx="50" cy="12" rx="35" ry="6" />
+              <line x1="50" y1="58" x2="50" y2="115" />
+              <ellipse cx="50" cy="115" rx="22" ry="5" />
+              <line x1="28" y1="115" x2="72" y2="115" strokeLinecap="round" strokeWidth="1.5" />
+              <circle cx="38" cy="28" r="5" strokeWidth="1" />
+              <line x1="38" y1="23" x2="38" y2="15" strokeWidth="0.8" />
+            </svg>
+            <h1 className="landing-app-name">BarOS</h1>
+          </div>
           <p className="landing-tagline">{t('landingTagline')}</p>
         </div>
 
-        <ul className="landing-features">
-          <li>
-            <span className="feature-icon">📦</span>
-            <div>
-              <strong>{t('featureInventoryTitle')}</strong>
-              <span>{t('featureInventoryDesc')}</span>
-            </div>
-          </li>
-          <li>
-            <span className="feature-icon">🛒</span>
-            <div>
-              <strong>{t('featureOrdersTitle')}</strong>
-              <span>{t('featureOrdersDesc')}</span>
-            </div>
-          </li>
-          <li>
-            <span className="feature-icon">📖</span>
-            <div>
-              <strong>{t('featureBarBookTitle')}</strong>
-              <span>{t('featureBarBookDesc')}</span>
-            </div>
-          </li>
-          <li>
-            <span className="feature-icon">📊</span>
-            <div>
-              <strong>{t('featureDashboardTitle')}</strong>
-              <span>{t('featureDashboardDesc')}</span>
-            </div>
-          </li>
-        </ul>
-      </div>
-
-      {/* Right / auth side */}
-      <div className="landing-auth">
+        {/* Auth card */}
         <div className="landing-auth-card">
-          <h2 className="auth-title">
+          <p className="auth-mode-label">
             {isSignup ? t('landingSignupTitle') : t('landingLoginTitle')}
-          </h2>
+          </p>
 
           <form className="landing-form" onSubmit={handleSubmit}>
             {isSignup && (
               <div className="form-field">
-                <label htmlFor="l-fullname">{t('fullnamePlaceholder')}</label>
                 <input
                   id="l-fullname"
                   type="text"
@@ -120,7 +117,6 @@ export function LandingPage() {
             )}
 
             <div className="form-field">
-              <label htmlFor="l-username">{t('usernamePlaceholder')}</label>
               <input
                 id="l-username"
                 type="text"
@@ -134,7 +130,6 @@ export function LandingPage() {
             </div>
 
             <div className="form-field">
-              <label htmlFor="l-password">{t('passwordPlaceholder')}</label>
               <input
                 id="l-password"
                 type="password"
@@ -146,12 +141,26 @@ export function LandingPage() {
               />
             </div>
 
+            {isSignup && (
+              <div className={`form-field company-field${companyError ? ' has-error' : ''}`}>
+                <input
+                  id="l-company"
+                  type="text"
+                  name="companyName"
+                  value={credentials.companyName}
+                  onChange={handleChange}
+                  placeholder={t('companyNamePlaceholder')}
+                  required
+                />
+                {companyError
+                  ? <span className="field-error">{t('companyNameError')}</span>
+                  : <span className="field-hint">{t('companyNameHelp')}</span>
+                }
+              </div>
+            )}
+
             <button type="submit" className="landing-submit-btn" disabled={isLoading}>
-              {isLoading
-                ? t('loading')
-                : isSignup
-                ? t('landingSignupBtn')
-                : t('landingLoginBtn')}
+              {isLoading ? t('loading') : isSignup ? t('landingSignupBtn') : t('landingLoginBtn')}
             </button>
           </form>
 
@@ -160,12 +169,25 @@ export function LandingPage() {
             className="landing-toggle-btn"
             onClick={() => {
               setIsSignup(p => !p)
-              setCredentials({ username: '', password: '', fullname: '' })
+              setCredentials({ username: '', password: '', fullname: '', companyName: '' })
+              setCompanyError(false)
             }}
           >
             {isSignup ? t('alreadyMember') : t('newUser')}
           </button>
         </div>
+
+        {/* Feature pills */}
+        <div className="landing-pills">
+          <span>{t('featureInventoryTitle')}</span>
+          <span className="pill-dot" aria-hidden="true" />
+          <span>{t('featureOrdersTitle')}</span>
+          <span className="pill-dot" aria-hidden="true" />
+          <span>{t('featureBarBookTitle')}</span>
+          <span className="pill-dot" aria-hidden="true" />
+          <span>{t('featureDashboardTitle')}</span>
+        </div>
+
       </div>
     </section>
   )

@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 
 export function ItemForm({
@@ -8,7 +9,6 @@ export function ItemForm({
   isSaving,
   uniqueCategories,
   uniqueSuppliers,
-  itemCount,
   onSubmit,
   onChange,
   onCancel,
@@ -18,7 +18,7 @@ export function ItemForm({
 
   if (!isOpen) return null
 
-  return (
+  return createPortal(
     <div
       className="form-overlay"
       onMouseDown={(e) => { overlayMouseDownRef.current = (e.target === e.currentTarget) }}
@@ -30,59 +30,53 @@ export function ItemForm({
       <div className="form-container" onMouseDown={() => { overlayMouseDownRef.current = false }} onClick={(e) => e.stopPropagation()}>
         <h2>{isEditing ? t('editProduct') : t('addNewProduct')}</h2>
         <form onSubmit={onSubmit}>
-          <div className="form-group">
-            <label>{t('nameHe')}:</label>
-            <input type="text" name="name" value={editingItem?.name || ''} onChange={onChange} required />
+          <div className="form-row">
+            <div className="form-group">
+              <label>{t('nameHe')}:</label>
+              <input type="text" name="name" value={editingItem?.name || ''} onChange={onChange} required />
+            </div>
+
+            <div className="form-group">
+              <label>{t('nameEn')}:</label>
+              <input type="text" name="nameEn" value={editingItem?.nameEn || ''} onChange={onChange} />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label>{t('nameEn')}:</label>
-            <input type="text" name="nameEn" value={editingItem?.nameEn || ''} onChange={onChange} />
-          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>{t('category')}:</label>
+              <input
+                type="text"
+                name="categoryId"
+                list="category-suggestions"
+                value={editingItem?.categoryId || editingItem?.category || ''}
+                onChange={onChange}
+                placeholder={t('enterCategory')}
+                required
+              />
+              <datalist id="category-suggestions">
+                {uniqueCategories.map((categoryName) => (
+                  <option key={categoryName} value={categoryName} />
+                ))}
+              </datalist>
+            </div>
 
-          <div className="form-group">
-            <label>{t('category')}:</label>
-            <select
-              name="categoryId"
-              value={editingItem?.categoryId || editingItem?.category || ''}
-              onChange={onChange}
-              required
-            >
-              <option value="">{t('selectCategory')}</option>
-              {uniqueCategories.length > 0 ? (
-                uniqueCategories.map((categoryName) => (
-                  <option key={categoryName} value={categoryName}>{categoryName}</option>
-                ))
-              ) : (
-                <option value="" disabled>{t('noCategoriesAvailable')}</option>
-              )}
-            </select>
-            {uniqueCategories.length > 0 && (
-              <div className="form-hint" style={{ color: '#666', fontSize: '0.85em', marginTop: '5px' }}>
-                {t('categoriesFromProducts', { n: uniqueCategories.length })}
-              </div>
-            )}
-            {uniqueCategories.length === 0 && itemCount > 0 && (
-              <div className="form-hint" style={{ color: '#999', fontSize: '0.85em', marginTop: '5px' }}>
-                {t('noCategoriesInProducts')}
-              </div>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label>{t('supplier')}:</label>
-            <select name="supplier" value={editingItem?.supplier || ''} onChange={onChange}>
-              <option value="">{t('noSupplier')}</option>
-              {(() => {
-                const opts = [...uniqueSuppliers]
-                const current = (editingItem?.supplier || '').trim()
-                if (current && !opts.includes(current)) opts.push(current)
-                opts.sort()
-                return opts.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))
-              })()}
-            </select>
+            <div className="form-group">
+              <label>{t('supplier')}:</label>
+              <input
+                type="text"
+                name="supplier"
+                list="supplier-suggestions"
+                value={editingItem?.supplier || ''}
+                onChange={onChange}
+                placeholder={t('noSupplier')}
+              />
+              <datalist id="supplier-suggestions">
+                {uniqueSuppliers.map((supplierName) => (
+                  <option key={supplierName} value={supplierName} />
+                ))}
+              </datalist>
+            </div>
           </div>
 
           <div className="form-row">
@@ -126,6 +120,7 @@ export function ItemForm({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

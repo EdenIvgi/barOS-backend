@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
@@ -11,15 +11,36 @@ export function AppHeader() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
+  const avatarRef = useRef(null)
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (avatarRef.current && !avatarRef.current.contains(e.target)) {
+        setIsUserDropdownOpen(false)
+      }
+    }
+    if (isUserDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isUserDropdownOpen])
+
+  function getInitials(name) {
+    if (!name) return '?'
+    const parts = name.trim().split(/\s+/)
+    if (parts.length === 1) return parts[0][0].toUpperCase()
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  }
 
   function toggleLanguage() {
-    const currentLang = i18n.resolvedLanguage || 'he'
+    const currentLang = i18n.resolvedLanguage || 'en'
     const nextLang = currentLang === 'en' ? 'he' : 'en'
     i18n.changeLanguage(nextLang)
   }
 
   function getLanguageLabel() {
-    const currentLang = i18n.resolvedLanguage || 'he'
+    const currentLang = i18n.resolvedLanguage || 'en'
     return currentLang === 'en' ? 'EN' : 'HE'
   }
 
@@ -65,9 +86,36 @@ export function AppHeader() {
 
         <div className="header-actions">
           {user ? (
-            <div className="user-section">
-              <Link to="/user" className="user-greeting">{t('hello')} {user.fullname}</Link>
-              <button className="logout-btn" onClick={onLogout}>{t('logout')}</button>
+            <div className="user-avatar-wrapper" ref={avatarRef}>
+              <button
+                className="user-avatar-btn"
+                onClick={() => setIsUserDropdownOpen(prev => !prev)}
+                title={user.fullname}
+              >
+                {getInitials(user.fullname)}
+              </button>
+              {(user.companyDisplayName || user.companyName) && (
+                <span className="header-company-name">{user.companyDisplayName || user.companyName}</span>
+              )}
+              {isUserDropdownOpen && (
+                <div className="user-dropdown">
+                  <div className="user-dropdown-header">
+                    <span className="user-dropdown-name">{user.fullname}</span>
+                    {(user.companyDisplayName || user.companyName) && (
+                      <span className="user-dropdown-company">{user.companyDisplayName || user.companyName}</span>
+                    )}
+                  </div>
+                  <Link to="/user" className="user-dropdown-link" onClick={() => setIsUserDropdownOpen(false)}>
+                    {t('profileNavLink')}
+                  </Link>
+                  <button className="user-dropdown-switch" onClick={() => { setIsUserDropdownOpen(false); onLogout() }}>
+                    {t('switchUser')}
+                  </button>
+                  <button className="user-dropdown-logout" onClick={() => { setIsUserDropdownOpen(false); onLogout() }}>
+                    {t('logout')}
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <Link to="/" className="header-login-link">{t('landingLoginBtn')}</Link>

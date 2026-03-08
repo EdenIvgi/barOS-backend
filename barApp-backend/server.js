@@ -16,7 +16,6 @@ import { categoryRoutes } from './api/category/category.routes.js'
 import { authRoutes } from './api/auth/auth.routes.js'
 import { userRoutes } from './api/user/user.routes.js'
 import { orderRoutes } from './api/order/order.routes.js'
-import { recipeRoutes } from './api/recipe/recipe.routes.js'
 import { barBookRoutes } from './api/barBook/barBook.routes.js'
 import mongoSanitize from 'mongo-sanitize'
 
@@ -78,7 +77,8 @@ const apiLimiter = rateLimit({
     legacyHeaders: false,
 })
 
-app.use('/api/auth', authLimiter)
+app.use('/api/auth/login', authLimiter)
+app.use('/api/auth/signup', authLimiter)
 app.use('/api', apiLimiter)
 
 // ==================== ROUTES ====================
@@ -88,7 +88,6 @@ app.use('/api/item', itemRoutes)
 app.use('/api/category', categoryRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/order', orderRoutes)
-app.use('/api/recipe', recipeRoutes)
 app.use('/api/barBook', barBookRoutes)
 
 // Health check

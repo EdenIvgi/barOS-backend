@@ -1,4 +1,5 @@
 import { dbService } from '../../services/mongo.service.js'
+import { ObjectId } from 'mongodb'
 import { toObjectId } from '../../services/objectId.service.js'
 
 const COLLECTION_NAME = 'order'
@@ -19,17 +20,23 @@ function normalizeOrder(o) {
 
 async function getAll(filterBy = {}, dbName) {
     const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
-
     const criteria = {}
-    if (filterBy.userId) criteria.userId = filterBy.userId
-    if (filterBy.status) criteria.status = filterBy.status
+
+    if (filterBy.userId) {
+        criteria.userId = filterBy.userId
+    }
+
+    if (filterBy.status) {
+        criteria.status = filterBy.status
+    }
+
     if (filterBy.supplier !== undefined && filterBy.supplier !== '') {
         const s = String(filterBy.supplier).trim()
-        if (s === NO_SUPPLIER_KEY || s === '' ) {
+        if (s === NO_SUPPLIER_KEY || s === '') {
             criteria.$or = [
-                { supplier: '' },
+                { supplier: { $exists: false } },
                 { supplier: null },
-                { supplier: { $exists: false } }
+                { supplier: '' },
             ]
         } else {
             criteria.supplier = s
@@ -51,6 +58,7 @@ async function getById(orderId, dbName) {
 
 async function create(orderData, dbName) {
     const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
+
     const totalAmount = orderData.items.reduce((sum, item) => sum + (item.subtotal || 0), 0)
     const supplier = orderData.supplier != null ? String(orderData.supplier).trim() : ''
 
@@ -95,7 +103,10 @@ async function updateStatus(orderId, status, dbName) {
     const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
     const objId = toObjectId(orderId)
     const filter = objId ? { _id: objId } : { _id: orderId }
-    const result = await collection.updateOne(filter, { $set: { status, updatedAt: Date.now() } })
+
+    const result = await collection.updateOne(filter, {
+        $set: { status, updatedAt: Date.now() }
+    })
     if (result.matchedCount === 0) return null
     return getById(orderId, dbName)
 }

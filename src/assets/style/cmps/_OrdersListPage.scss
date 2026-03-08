@@ -2,7 +2,7 @@
 @import '../setup/mixins';
 
 .orders-list-page {
-  padding: 1.5rem;
+  padding: 3rem 7rem;
   max-width: 100%;
   margin: 0 auto;
   background: transparent;
@@ -292,5 +292,9 @@
         }
       }
     }
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
   }
 }

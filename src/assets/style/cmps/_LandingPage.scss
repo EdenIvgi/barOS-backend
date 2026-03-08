@@ -1,298 +1,283 @@
 @import '../setup/vars';
 @import '../setup/mixins';
 
+// ================================================
+// LANDING PAGE — centered stage layout
+// ================================================
+
 .landing-page {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
+  align-items: center;
+  justify-content: center;
   background: $bg-deepest;
   color: $text-primary;
   position: relative;
   overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse at 30% 50%, $accent-subtle 0%, transparent 60%),
-      radial-gradient(ellipse at 70% 20%, rgba(255, 255, 255, 0.02) 0%, transparent 50%);
-    pointer-events: none;
-  }
 }
 
+// Language toggle — top right, minimal
 .landing-lang-btn {
   position: absolute;
   top: 1.5rem;
-  left: 1.5rem;
-  @include glass-surface;
-  color: $text-secondary;
-  border-radius: $border-radius;
-  padding: 0.4rem 0.8rem;
-  font-size: 0.8rem;
+  inset-inline-end: 1.5rem;
+  background: transparent;
+  border: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  color: $text-muted;
+  padding: 0;
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   cursor: pointer;
-  transition: all 0.25s;
+  transition: color 0.2s;
   z-index: 10;
 
   &:hover {
-    @include glass-surface-hover;
+    background: transparent;
+    border-color: transparent;
     color: $text-primary;
   }
 }
 
-// === LEFT / CONTENT SIDE ===
-.landing-content {
-  flex: 1;
+// ── Central column ───────────────────────────────
+.landing-center {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 4rem 3rem 4rem 5rem;
-  max-width: 55%;
+  align-items: center;
+  gap: 2rem;
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem 1.5rem;
   z-index: 1;
-  animation: fadeSlideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-  border-inline-end: 1px solid $glass-border;
+  animation: fadeSlideUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.landing-brand {
-  margin-bottom: 3.5rem;
+// ── Hero ─────────────────────────────────────────
+.landing-hero {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
 
-  .landing-logo-mark {
-    font-size: 3rem;
-    margin-bottom: 0.75rem;
-    display: block;
+.landing-logo-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+}
+
+.landing-logo-icon {
+  width: 2.2rem;
+  height: auto;
+  color: $text-primary;
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+
+.landing-app-name {
+  font-family: $font-logo;
+  font-size: 3.6rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: $text-primary;
+  margin: 0;
+  line-height: 1;
+}
+
+.landing-tagline {
+  font-size: 0.85rem;
+  color: $text-muted;
+  margin: 0;
+  font-weight: 400;
+  line-height: 1.5;
+  font-family: $font-body;
+  max-width: 32ch;
+}
+
+// ── Auth card ────────────────────────────────────
+.landing-auth-card {
+  @include glass-card;
+  padding: 1.75rem;
+  width: 100%;
+  position: relative;
+  animation: fadeSlideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+
+  // Subtle glow behind card
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -20px;
+    background: radial-gradient(ellipse at center, rgba($accent-primary, 0.08) 0%, transparent 70%);
+    z-index: -1;
+    pointer-events: none;
   }
 
-  .landing-app-name {
-    font-family: $font-heading;
-    font-size: 4rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    color: $text-primary;
-    margin: 0 0 0.75rem;
-    line-height: 1;
-  }
-
-  .landing-tagline {
-    font-size: 1.15rem;
-    color: $text-secondary;
-    margin: 0;
-    font-weight: 400;
-    line-height: 1.5;
+  .auth-mode-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0 0 1.25rem;
+    text-align: center;
     font-family: $font-body;
   }
 }
 
-.landing-features {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-
-  li {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    @include glass-surface;
-    border-radius: $border-radius;
-    padding: 1rem 1.25rem;
-    transition: all 0.25s;
-
-    &:hover {
-      @include glass-surface-hover;
-    }
-
-    &:nth-child(1) { animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both; }
-    &:nth-child(2) { animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both; }
-    &:nth-child(3) { animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both; }
-    &:nth-child(4) { animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both; }
-
-    .feature-icon {
-      font-size: 1.4rem;
-      flex-shrink: 0;
-      margin-top: 0.1rem;
-    }
-
-    div {
-      display: flex;
-      flex-direction: column;
-      gap: 0.2rem;
-    }
-
-    strong {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: $text-primary;
-      font-family: $font-heading;
-    }
-
-    span {
-      font-size: 0.85rem;
-      color: $text-secondary;
-      line-height: 1.4;
-    }
-  }
-}
-
-// === RIGHT / AUTH SIDE ===
-.landing-auth {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  min-width: 420px;
-  z-index: 1;
-  animation: fadeSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
-}
-
-.landing-auth-card {
-  @include glass-card;
-  padding: 2.5rem;
-  width: 100%;
-  max-width: 380px;
-  position: relative;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    border-radius: $border-radius-lg;
-    background: radial-gradient(ellipse at center, $accent-subtle 0%, transparent 70%);
-    z-index: -1;
-    filter: blur(30px);
-    opacity: 0.5;
-  }
-
-  .auth-title {
-    font-family: $font-heading;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: $text-primary;
-    margin: 0 0 2rem;
-    text-align: center;
-  }
-}
-
+// ── Form ─────────────────────────────────────────
 .landing-form {
   display: flex;
   flex-direction: column;
-  gap: 1.1rem;
-  margin-bottom: 1.25rem;
+  gap: 0.65rem;
+  margin-bottom: 0;
 
   .form-field {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
-
-    label {
-      font-size: 0.8rem;
-      font-weight: 500;
-      color: $text-secondary;
-      letter-spacing: 0.03em;
-      font-family: $font-body;
-    }
+    gap: 0.2rem;
 
     input {
-      background: $glass-bg;
+      background: rgba(255, 255, 255, 0.04);
       border: 1px solid $glass-border;
       border-radius: $border-radius;
-      padding: 0.75rem 1rem;
-      font-size: 0.95rem;
+      padding: 0.65rem 0.9rem;
+      font-size: 0.9rem;
       color: $text-primary;
       outline: none;
-      transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+      transition: border-color 0.2s, background 0.2s;
       font-family: $font-body;
+      width: 100%;
 
       &::placeholder {
         color: $text-muted;
+        font-size: 0.85rem;
       }
 
       &:focus {
         @include accent-focus;
-        background: $glass-bg-hover;
+        background: rgba(255, 255, 255, 0.06);
       }
+    }
+
+    .field-hint {
+      font-size: 0.68rem;
+      color: $text-muted;
+      font-family: $font-body;
+      padding-inline-start: 0.1rem;
+    }
+
+    .field-error {
+      font-size: 0.68rem;
+      color: $color-error;
+      font-family: $font-body;
+    }
+
+    &.has-error input {
+      border-color: rgba($color-error, 0.5);
+    }
+
+    &.company-field {
+      margin-top: 0.1rem;
+      padding-top: 0.55rem;
+      border-top: 1px solid $glass-border;
     }
   }
 }
 
 .landing-submit-btn {
   width: 100%;
-  padding: 0.85rem;
+  padding: 0.7rem;
   background: $accent-primary;
   color: $text-primary;
   border: none;
   border-radius: $border-radius;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.25s;
+  transition: background 0.2s, transform 0.15s;
   margin-top: 0.5rem;
   font-family: $font-body;
-  box-shadow: 0 0 20px $accent-glow;
+  letter-spacing: 0.02em;
 
   &:hover:not(:disabled) {
     background: $accent-hover;
-    transform: translateY(-1px);
-    box-shadow: 0 0 30px $accent-glow;
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
   }
 }
 
 .landing-toggle-btn {
   width: 100%;
-  background: none;
+  background: transparent;
   border: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   color: $text-muted;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   cursor: pointer;
   text-align: center;
-  padding: 0.5rem;
-  transition: color 0.25s;
+  padding: 0.75rem 0 0;
+  transition: color 0.2s;
   font-family: $font-body;
 
   &:hover {
+    background: transparent;
+    border-color: transparent;
     color: $accent-text;
   }
 }
 
-// === RESPONSIVE ===
-@media (max-width: 768px) {
-  .landing-page {
-    flex-direction: column;
+// ── Feature pills ────────────────────────────────
+.landing-pills {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  animation: fadeSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+
+  span {
+    font-size: 0.7rem;
+    color: $text-muted;
+    font-family: $font-body;
+    letter-spacing: 0.04em;
+    opacity: 0.7;
   }
 
-  .landing-content {
-    max-width: 100%;
-    padding: 5rem 2rem 2rem;
-    border-inline-end: none;
-    border-bottom: 1px solid $glass-border;
+  .pill-dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: $text-muted;
+    opacity: 0.3;
+    flex-shrink: 0;
+  }
+}
+
+// ── Mobile ───────────────────────────────────────
+@media (max-width: 480px) {
+  .landing-center {
+    padding: 1.5rem 1rem;
+    gap: 1.5rem;
   }
 
-  .landing-brand {
-    margin-bottom: 2rem;
-
-    .landing-app-name {
-      font-size: 2.5rem;
-    }
+  .landing-app-name {
+    font-size: 2.8rem;
   }
 
-  .landing-features {
-    gap: 1rem;
-  }
-
-  .landing-auth {
-    min-width: unset;
-    padding: 2rem;
+  .landing-auth-card {
+    padding: 1.5rem 1.25rem;
   }
 
   .landing-lang-btn {
     top: 1rem;
-    left: 1rem;
+    inset-inline-end: 1rem;
   }
 }

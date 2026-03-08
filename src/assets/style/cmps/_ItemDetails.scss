@@ -2,7 +2,7 @@
 @import '../setup/mixins';
 
 .item-details {
-  padding: 2rem;
+  padding: 3rem 7rem;
   max-width: 800px;
   margin: 0 auto;
   background: transparent;
@@ -129,15 +129,15 @@
           font-weight: 600;
           cursor: pointer;
           transition: all 0.3s;
-          box-shadow: $shadow-glow-accent;
-
           &:hover {
             background: $accent-hover;
-            transform: translateY(-2px);
-            box-shadow: $shadow-xl;
           }
         }
       }
     }
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
   }
 }

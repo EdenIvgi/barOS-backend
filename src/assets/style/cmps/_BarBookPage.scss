@@ -1,52 +1,212 @@
 @import '../setup/vars';
 @import '../setup/mixins';
 
+// ============================================
+// BOOK — SIDEBAR + CONTENT LAYOUT
+// ============================================
+
+$sidebar-width: 190px;
+$panel-list-width: 250px;
+$book-bg: #141414;
+$book-sidebar-bg: #0e0e0e;
+$book-page: rgba(255, 255, 255, 0.05);
+$book-page-border: rgba(255, 255, 255, 0.07);
+$book-line: rgba(255, 255, 255, 0.06);
+$book-line-strong: rgba(255, 255, 255, 0.1);
+$book-text: $text-primary;
+$book-text-muted: $text-secondary;
+$book-accent: $accent-primary;
+$book-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+$book-page-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
+
 .bar-book-page {
-  padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
-  background: transparent;
-  min-height: calc(100vh - 200px);
   @include cinematic-enter;
+  min-height: calc(100vh - 200px);
 
-  .page-title {
-    text-align: center;
-    font-size: 2.5rem;
-    margin: 0 0 1.5rem 0;
-    color: $text-primary;
-    font-weight: 700;
-    font-family: $font-heading;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid $glass-border;
-  }
-
-  .bar-book-tabs {
+  // ────────────────────────────────────────────
+  // OUTER LAYOUT: sidebar | main
+  // ────────────────────────────────────────────
+  .bar-book-layout {
     display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
+    min-height: calc(100vh - 200px);
+    background: $book-bg;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: $book-shadow;
   }
 
-  .bar-book-tab {
-    padding: 0.65rem 1.25rem;
-    @include glass-surface;
-    border-radius: $border-radius;
-    font-size: 1rem;
-    font-weight: 600;
-    color: $text-secondary;
+  // ────────────────────────────────────────────
+  // SIDEBAR — minimal, clean
+  // ────────────────────────────────────────────
+  .bar-book-sidebar {
+    width: $sidebar-width;
+    min-width: $sidebar-width;
+    background: $book-sidebar-bg;
+    border-inline-end: 1px solid $book-line-strong;
+    display: flex;
+    flex-direction: column;
+    padding-top: 1.5rem;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0 0.75rem;
+  }
+
+  .sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
     cursor: pointer;
-    transition: all 0.2s;
+    font-size: 0.875rem;
+    font-family: $font-body;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.4);
+    text-align: start;
+    transition: background 0.15s ease, color 0.15s ease;
+
+    .nav-symbol {
+      font-size: 0.8rem;
+      width: 1.1em;
+      text-align: center;
+      flex-shrink: 0;
+      opacity: 0.7;
+      transition: opacity 0.15s ease;
+    }
 
     &:hover {
-      @include glass-surface-hover;
-      color: $text-primary;
+      background: rgba(255, 255, 255, 0.04);
+      color: rgba(255, 255, 255, 0.75);
+
+      .nav-symbol {
+        opacity: 1;
+      }
     }
 
     &.active {
-      background: $accent-primary;
-      border-color: $accent-primary;
-      color: $text-primary;
-      box-shadow: $shadow-glow-accent;
+      background: rgba($book-accent, 0.1);
+      color: $book-accent;
+      font-weight: 600;
+
+      .nav-symbol {
+        opacity: 1;
+      }
+    }
+  }
+
+  // ────────────────────────────────────────────
+  // MAIN CONTENT AREA
+  // ────────────────────────────────────────────
+  .bar-book-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  // ────────────────────────────────────────────
+  // CONTENT TOPBAR — section title + edit toggle
+  // ────────────────────────────────────────────
+  .content-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 2rem;
+    border-bottom: 1px solid $book-line-strong;
+    background: rgba(255, 255, 255, 0.015);
+    flex-shrink: 0;
+
+    .content-topbar-title {
+      font-family: $font-heading;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.35);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .topbar-edit-btn {
+      padding: 0.35rem 0.85rem;
+      background: transparent;
+      border: 1px solid $book-line-strong;
+      border-radius: 4px;
+      color: rgba(255, 255, 255, 0.35);
+      font-size: 0.75rem;
+      font-family: $font-body;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: rgba(255, 255, 255, 0.25);
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      &.active {
+        background: rgba($book-accent, 0.12);
+        border-color: rgba($book-accent, 0.4);
+        color: $book-accent;
+      }
+    }
+  }
+
+  // Actual scrollable content inside main
+  .bar-book-checklists,
+  .bar-book-full-pages,
+  .bar-book-recipes {
+    padding: 1.75rem 2rem;
+    flex: 1;
+  }
+
+  // ────────────────────────────────────────────
+  // LOADING / ERROR / EMPTY
+  // ────────────────────────────────────────────
+  .bar-book-loading,
+  .bar-book-error {
+    padding: 3rem 2rem;
+    text-align: center;
+    font-size: 1rem;
+    color: $book-text-muted;
+  }
+
+  .bar-book-error {
+    color: $color-error;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 320px;
+    padding: 2rem;
+    text-align: center;
+    color: $text-muted;
+
+    p {
+      margin: 0 0 1.5rem 0;
+      font-size: 1rem;
+    }
+
+    .btn-add {
+      padding: 0.65rem 1.75rem;
+      background: $book-accent;
+      border: none;
+      border-radius: 4px;
+      color: #fff;
+      font-weight: 600;
+      font-family: $font-body;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s ease;
 
       &:hover {
         background: $accent-hover;
@@ -54,49 +214,53 @@
     }
   }
 
-  .bar-book-content {
-    min-height: 200px;
-  }
-
-  .bar-book-loading,
-  .bar-book-error {
-    padding: 1.5rem;
-    text-align: center;
-    font-size: 1.1rem;
-    color: $text-secondary;
-  }
-
-  .bar-book-error {
-    color: $color-error;
-  }
-
-  .bar-book-placeholder {
-    @include glass-card;
-    padding: 2rem;
-    text-align: center;
-    color: $text-muted;
-    font-size: 1.1rem;
-  }
-
+  // ────────────────────────────────────────────
+  // CHECKLISTS — 3-column grid
+  // ────────────────────────────────────────────
   .bar-book-checklists {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.25rem;
+  }
+
+  .checklists-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    align-items: start;
   }
 
   .checklist-section {
-    @include glass-card;
-    padding: 1.5rem 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid $book-page-border;
+    border-radius: 6px;
+    padding: 1.25rem 1.25rem 1rem;
+    box-shadow: $book-page-shadow;
+    position: relative;
+
+    // Subtle top accent line
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      inset-inline-start: 0;
+      inset-inline-end: 0;
+      height: 2px;
+      background: $book-accent;
+      border-radius: 6px 6px 0 0;
+      opacity: 0.6;
+    }
   }
 
   .checklist-title {
-    margin: 0 0 1rem 0;
-    font-size: 1.35rem;
+    margin: 0 0 0.85rem 0;
+    font-size: 0.95rem;
     font-weight: 700;
-    color: $text-primary;
+    color: $book-text;
     font-family: $font-heading;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid $glass-border;
+    border-bottom: 1px solid $book-line-strong;
+    letter-spacing: 0.01em;
   }
 
   .checklist-list {
@@ -106,94 +270,151 @@
   }
 
   .checklist-item {
-    margin-bottom: 0.5rem;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid $book-line;
+
+    &:last-child {
+      border-bottom: none;
+    }
 
     label {
       display: flex;
       align-items: flex-start;
-      gap: 0.75rem;
+      gap: 0.6rem;
       cursor: pointer;
-      font-size: 1rem;
-      color: $text-primary;
-      line-height: 1.5;
+      font-size: 0.9rem;
+      color: $book-text;
+      line-height: 1.45;
     }
 
-    input[type="checkbox"] {
-      margin-top: 0.25rem;
+    input[type='checkbox'] {
+      -webkit-appearance: none;
+      appearance: none;
+      margin-top: 0.2rem;
       flex-shrink: 0;
-      width: 1.1rem;
-      height: 1.1rem;
+      width: 0.95rem;
+      height: 0.95rem;
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      border-radius: 3px;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+
+      &:checked {
+        background: $book-accent;
+        border-color: $book-accent;
+
+        &::after {
+          content: '\2713';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          font-size: 0.65rem;
+          color: #fff;
+          line-height: 1;
+        }
+      }
+
+      &:hover:not(:checked) {
+        border-color: rgba($book-accent, 0.5);
+      }
     }
 
     .editable {
       cursor: pointer;
-      border-radius: 4px;
-      padding: 2px 4px;
-      &:hover { background: $glass-bg-hover; }
+      padding: 1px 3px;
+      border-radius: 3px;
+      transition: background 0.15s ease;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
     }
 
     .btn-icon.btn-delete-item {
-      margin-right: auto;
-      opacity: 0.6;
-      &:hover { opacity: 1; }
+      margin-inline-start: auto;
+      opacity: 0.3;
+
+      &:hover {
+        opacity: 1;
+      }
     }
   }
 
   .checklist-title.editable,
   .section-title.editable {
     cursor: pointer;
-    border-radius: 4px;
     padding: 2px 4px;
-    &:hover { background: $glass-bg-hover; }
+    border-radius: 3px;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
   }
 
   .checklist-title-edit,
   .section-title-edit {
-    margin-bottom: 1rem;
+    margin-bottom: 0.85rem;
   }
 
   .checklist-item-edit {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
   }
 
+  // ────────────────────────────────────────────
+  // EDIT INPUTS
+  // ────────────────────────────────────────────
   .edit-input {
     width: 100%;
     max-width: 100%;
     padding: 0.4rem 0.6rem;
-    font-size: 1rem;
-    border: 1px solid $glass-border;
-    border-radius: $border-radius;
+    font-size: 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 3px;
     font-family: inherit;
-    background: $glass-bg;
-    color: $text-primary;
+    background: rgba(255, 255, 255, 0.05);
+    color: $book-text;
+    transition: border-color 0.2s ease;
 
-    &:focus { @include accent-focus; }
+    &:focus {
+      outline: none;
+      border-color: rgba($book-accent, 0.6);
+      box-shadow: 0 0 0 2px rgba($book-accent, 0.1);
+    }
 
     &.title-input {
-      font-size: 1.2rem;
+      font-size: 1rem;
       font-weight: 700;
+      font-family: $font-heading;
     }
+
     &.cell-input {
       min-width: 80px;
       width: 100%;
     }
-    &.inline-edit {
-      max-width: 400px;
-    }
   }
 
+  // ────────────────────────────────────────────
+  // ACTION BUTTONS
+  // ────────────────────────────────────────────
   .btn-add-item {
-    margin-top: 0.75rem;
-    padding: 0.5rem 1rem;
-    font-size: 0.95rem;
-    @include glass-surface;
-    border-radius: $border-radius;
+    margin-top: 0.65rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    background: transparent;
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
     cursor: pointer;
-    font-weight: 600;
-    color: $text-secondary;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.3);
+    font-family: $font-body;
+    transition: all 0.2s ease;
+
     &:hover {
-      @include glass-surface-hover;
-      color: $text-primary;
+      border-color: rgba($book-accent, 0.5);
+      color: rgba(255, 255, 255, 0.7);
     }
   }
 
@@ -202,155 +423,175 @@
     border: none;
     cursor: pointer;
     font-size: 1rem;
-    color: $text-muted;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
+    color: rgba(255, 255, 255, 0.25);
+    padding: 0.15rem 0.35rem;
+    border-radius: 3px;
+    transition: all 0.15s ease;
+
     &:hover {
       color: $color-error;
-      background: rgba($color-error, 0.1);
+      background: rgba($color-error, 0.08);
     }
   }
 
   .btn-delete-row {
-    font-size: 0.85rem;
+    font-size: 0.78rem;
     white-space: nowrap;
   }
 
   .bar-book-reset-wrap {
-    margin-top: 2rem;
-    padding-top: 1rem;
-    border-top: 1px solid $glass-border;
+    margin-top: 1.5rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid $book-line;
   }
 
   .btn-reset-default {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-    @include glass-surface;
-    border-radius: $border-radius;
-    color: $text-muted;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    color: rgba(255, 255, 255, 0.25);
     cursor: pointer;
+    font-family: $font-body;
+    transition: all 0.2s ease;
+
     &:hover {
-      @include glass-surface-hover;
-      color: $text-primary;
+      color: $color-error;
+      border-color: rgba($color-error, 0.4);
     }
   }
 
+  // ────────────────────────────────────────────
+  // DAILY TASKS & STOCK PAGES
+  // ────────────────────────────────────────────
   .bar-book-full-pages {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.25rem;
   }
 
   .daily-tasks-section,
   .stock-section {
-    @include glass-card;
-    padding: 1.5rem 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid $book-page-border;
+    border-radius: 6px;
+    padding: 1.5rem 1.75rem;
+    box-shadow: $book-page-shadow;
+  }
+
+  .section-title {
+    margin: 0 0 0.75rem 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: $book-text;
+    font-family: $font-heading;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid $book-line-strong;
   }
 
   .section-intro {
     margin: 0 0 1rem 0;
-    color: $text-muted;
-    font-size: 0.95rem;
+    color: $book-text-muted;
+    font-size: 0.85rem;
   }
 
-  .daily-tasks-table-wrap {
+  // ────────────────────────────────────────────
+  // TABLES
+  // ────────────────────────────────────────────
+  .daily-tasks-table-wrap,
+  .stock-table-wrap {
     overflow-x: auto;
+
+    &::-webkit-scrollbar {
+      height: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+    }
   }
 
-  .daily-tasks-table {
+  .daily-tasks-table,
+  .stock-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
 
-    th, td {
-      padding: 0.75rem 1rem;
+    th,
+    td {
+      padding: 0.6rem 0.85rem;
       text-align: start;
-      border: 1px solid $glass-border;
+      border: none;
+      border-bottom: 1px solid $book-line;
       vertical-align: top;
     }
 
     th {
-      background: rgba($accent-primary, 0.1);
+      background: transparent;
       font-weight: 700;
-      color: $text-primary;
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-bottom: 1px solid $book-line-strong;
     }
 
     td {
-      color: $text-primary;
+      color: $book-text;
     }
 
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+  }
+
+  .daily-tasks-table {
     &.daily-tasks-vertical {
       .daily-task-day-cell {
         width: 1%;
         white-space: nowrap;
         font-weight: 700;
-        color: $text-primary;
-        background: $glass-bg;
+        color: $book-text;
+        font-family: $font-heading;
+        font-size: 0.9rem;
       }
 
       .daily-task-details-cell {
-        min-width: 280px;
+        min-width: 240px;
       }
 
       .daily-task-text {
         white-space: pre-wrap;
         min-height: 2em;
-        padding: 0.5rem;
-        border-radius: 4px;
-        cursor: pointer;
-        &:hover { background: $glass-bg-hover; }
+        padding: 0.35rem;
+        border-radius: 3px;
+        transition: background 0.15s ease;
+
+        &.editable {
+          cursor: pointer;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.04);
+          }
+        }
       }
 
       .daily-task-textarea {
         width: 100%;
-        min-height: 120px;
+        min-height: 90px;
         resize: vertical;
-        background: $glass-bg;
-        color: $text-primary;
-        border: 1px solid $glass-border;
-        border-radius: $border-radius;
-      }
+        background: rgba(255, 255, 255, 0.05);
+        color: $book-text;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 3px;
+        font-family: inherit;
+        padding: 0.5rem;
 
-      .daily-task-items {
-        margin: 0;
-        padding-inline-end: 1.25rem;
-        list-style: disc;
-        font-size: 0.95rem;
-        color: $text-primary;
-        line-height: 1.6;
-
-        li {
-          margin-bottom: 0.4rem;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          flex-wrap: wrap;
-
-          .editable {
-            cursor: pointer;
-            border-radius: 4px;
-            padding: 2px 4px;
-            flex: 1;
-            min-width: 0;
-            &:hover { background: $glass-bg-hover; }
-          }
-
-          .btn-icon { flex-shrink: 0; }
-        }
-      }
-
-      .btn-add-task-inline {
-        margin-top: 0.25rem;
-        padding: 0.25rem 0.5rem;
-        font-size: 0.85rem;
-        background: transparent;
-        border: 1px dashed $glass-border-hover;
-        border-radius: 4px;
-        color: $text-muted;
-        cursor: pointer;
-        &:hover {
-          background: $glass-bg;
-          color: $text-primary;
+        &:focus {
+          outline: none;
+          border-color: rgba($book-accent, 0.5);
         }
       }
 
@@ -360,61 +601,21 @@
         white-space: nowrap;
         vertical-align: middle;
       }
-
-      tbody tr:nth-child(even) {
-        background: $glass-bg;
-      }
-
-      tbody tr:nth-child(even) .daily-task-day-cell {
-        background: rgba(255, 255, 255, 0.05);
-      }
     }
-
-    tbody tr:nth-child(even) {
-      background: $glass-bg;
-    }
-  }
-
-  .stock-table-wrap {
-    overflow-x: auto;
   }
 
   .stock-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.95rem;
+    th .editable,
+    td .editable {
+      cursor: pointer;
+      border-radius: 3px;
+      padding: 2px 4px;
+      display: inline-block;
+      min-height: 1.4em;
+      min-width: 2em;
 
-    th, td {
-      padding: 0.6rem 0.75rem;
-      text-align: start;
-      border: 1px solid $glass-border;
-    }
-
-    th {
-      background: rgba($accent-primary, 0.1);
-      font-weight: 700;
-      color: $text-primary;
-
-      .editable {
-        cursor: pointer;
-        border-radius: 4px;
-        padding: 2px 4px;
-        display: inline-block;
-        &:hover { background: $glass-bg-hover; }
-      }
-    }
-
-    td {
-      color: $text-primary;
-
-      .editable {
-        cursor: pointer;
-        border-radius: 4px;
-        padding: 2px 4px;
-        display: inline-block;
-        min-height: 1.4em;
-        min-width: 2em;
-        &:hover { background: $glass-bg-hover; }
+      &:hover {
+        background: rgba(255, 255, 255, 0.05);
       }
     }
 
@@ -423,25 +624,478 @@
       width: 1%;
       white-space: nowrap;
     }
+  }
 
-    tbody tr:nth-child(even) {
-      background: $glass-bg;
+  // ────────────────────────────────────────────
+  // RECIPES — MASTER / DETAIL
+  // ────────────────────────────────────────────
+  .bar-book-recipes {
+    padding: 0 !important; // layout fills the panel itself
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .recipes-layout {
+    display: flex;
+    flex: 1;
+    min-height: 400px;
+    overflow: hidden;
+  }
+
+  // — Recipe index list (left panel) —
+  .recipes-list-panel {
+    width: $panel-list-width;
+    min-width: $panel-list-width;
+    border-inline-end: 1px solid $book-line-strong;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.015);
+
+    .recipes-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid $book-line-strong;
+      flex-shrink: 0;
+
+      .panel-title {
+        margin: 0;
+        font-family: $font-heading;
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+      }
+
+      .btn-add-recipe {
+        padding: 0.28rem 0.6rem;
+        font-size: 0.75rem;
+        background: transparent;
+        border: 1px dashed rgba(255, 255, 255, 0.18);
+        border-radius: 3px;
+        color: rgba(255, 255, 255, 0.35);
+        cursor: pointer;
+        font-family: $font-body;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+
+        &:hover {
+          border-color: rgba($book-accent, 0.5);
+          color: rgba(255, 255, 255, 0.7);
+        }
+      }
+    }
+
+    .recipes-index {
+      flex: 1;
+      overflow-y: auto;
+
+      &::-webkit-scrollbar {
+        width: 3px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.08);
+      }
+    }
+
+    .recipe-index-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      width: 100%;
+      padding: 0.8rem 1rem;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid $book-line;
+      border-inline-start: 2px solid transparent;
+      cursor: pointer;
+      text-align: start;
+      transition: background 0.12s ease, border-color 0.12s ease;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.025);
+      }
+
+      &.active {
+        background: rgba($book-accent, 0.06);
+        border-inline-start-color: $book-accent;
+      }
+
+      .recipe-index-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: $book-text;
+        font-family: $font-body;
+        line-height: 1.3;
+      }
+
+      .recipe-index-meta {
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.3);
+      }
+    }
+
+    .recipes-empty {
+      padding: 2.5rem 1rem;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.25);
+      font-size: 0.85rem;
+      font-style: italic;
     }
   }
 
-  .bar-book-recipes {
-    padding: 0;
-    max-width: none;
-    margin: 0;
-    background: transparent;
-    min-height: 0;
+  // — Recipe detail (right panel) —
+  .recipes-detail-panel {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+    padding: 2rem 2.5rem;
 
-    .section-title {
-      margin: 0 0 1rem 0;
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: $text-primary;
+    &::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .recipe-detail-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 60%;
+      min-height: 180px;
+      color: rgba(255, 255, 255, 0.2);
+      font-size: 0.9rem;
+      font-style: italic;
+    }
+
+    .recipe-detail-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid $book-line-strong;
+
+      .recipe-detail-title {
+        font-family: $font-heading;
+        font-size: 1.85rem;
+        font-weight: 700;
+        color: $book-text;
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      .recipe-detail-actions {
+        display: flex;
+        gap: 0.4rem;
+        flex-shrink: 0;
+        padding-top: 0.35rem;
+      }
+    }
+
+    .recipe-detail-body {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 2.5rem;
+    }
+
+    .recipe-detail-section {
+      h3 {
+        font-family: $font-heading;
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin: 0 0 0.85rem 0;
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid $book-line-strong;
+      }
+
+      ul,
+      ol {
+        margin: 0;
+        padding: 0 0 0 1.1rem;
+        color: $book-text;
+        font-size: 0.92rem;
+        line-height: 1.9;
+      }
+
+      ul li::marker {
+        color: $book-accent;
+      }
+
+      ol li::marker {
+        color: $book-accent;
+        font-weight: 700;
+      }
+
+      li {
+        padding: 0.1rem 0;
+      }
+    }
+
+    .btn-edit-recipe,
+    .btn-delete-recipe {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.3);
+      padding: 0.28rem 0.6rem;
+      font-family: $font-body;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+
+    .btn-edit-recipe:hover {
+      color: rgba(255, 255, 255, 0.8);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-delete-recipe:hover {
+      color: $color-error;
+      border-color: rgba($color-error, 0.4);
+    }
+  }
+
+  // ────────────────────────────────────────────
+  // RECIPE FORM MODAL
+  // ────────────────────────────────────────────
+  .recipe-form-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 2rem;
+    backdrop-filter: blur(6px);
+  }
+
+  .recipe-form-container {
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    padding: 1.75rem 2rem;
+    max-width: 520px;
+    width: 95%;
+    max-height: 84vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+
+    h2 {
       font-family: $font-heading;
+      color: $book-text;
+      font-size: 1.25rem;
+      margin: 0 0 1.5rem 0;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-weight: 700;
+    }
+  }
+
+  .recipe-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+
+      label {
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.4);
+        font-weight: 700;
+        font-family: $font-body;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+    }
+
+    .form-input,
+    .form-textarea {
+      padding: 0.6rem 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      color: $book-text;
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: border-color 0.2s ease;
+
+      &:focus {
+        outline: none;
+        border-color: rgba($book-accent, 0.5);
+        box-shadow: 0 0 0 2px rgba($book-accent, 0.08);
+      }
+
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.2);
+      }
+    }
+
+    .form-textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .form-error {
+      font-size: 0.75rem;
+      color: $color-error;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 0.6rem;
+      margin-top: 0.25rem;
+    }
+
+    .btn-save {
+      padding: 0.6rem 1.4rem;
+      background: $book-accent;
+      border: none;
+      border-radius: 4px;
+      color: #fff;
+      font-weight: 600;
+      font-family: $font-body;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: background 0.2s ease;
+
+      &:hover {
+        background: $accent-hover;
+      }
+    }
+
+    .btn-cancel {
+      padding: 0.6rem 1.4rem;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+      color: rgba(255, 255, 255, 0.45);
+      font-weight: 600;
+      font-family: $font-body;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: all 0.2s ease;
+
+      &:hover {
+        color: rgba(255, 255, 255, 0.75);
+        border-color: rgba(255, 255, 255, 0.25);
+      }
+    }
+  }
+
+  // ────────────────────────────────────────────
+  // RESPONSIVE
+  // ────────────────────────────────────────────
+  @media (max-width: 1024px) {
+    .checklists-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .bar-book-layout {
+      flex-direction: column;
+    }
+
+    .bar-book-sidebar {
+      width: 100%;
+      min-width: 0;
+      flex-direction: row;
+      padding-top: 0;
+      border-inline-end: none;
+      border-bottom: 1px solid $book-line-strong;
+
+      .sidebar-nav {
+        flex-direction: row;
+        flex: 1;
+        gap: 0;
+        padding: 0;
+        overflow-x: auto;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+
+        .sidebar-nav-item {
+          padding: 0.7rem 1rem;
+          border-radius: 0;
+          border-bottom: 2px solid transparent;
+          white-space: nowrap;
+          flex-shrink: 0;
+
+          &.active {
+            background: rgba($book-accent, 0.06);
+            border-bottom-color: $book-accent;
+          }
+
+          .nav-symbol {
+            display: none;
+          }
+        }
+      }
+    }
+
+    .content-topbar {
+      padding: 0.75rem 1.25rem;
+    }
+
+    .bar-book-checklists,
+    .bar-book-full-pages {
+      padding: 1.25rem 1rem;
+    }
+
+    .checklists-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .recipes-layout {
+      flex-direction: column;
+      min-height: 0;
+
+      .recipes-list-panel {
+        width: 100%;
+        min-width: 0;
+        max-height: 210px;
+        border-inline-end: none;
+        border-bottom: 1px solid $book-line-strong;
+      }
+
+      .recipes-detail-panel {
+        padding: 1.25rem 1rem;
+
+        .recipe-detail-body {
+          grid-template-columns: 1fr;
+          gap: 1.5rem;
+        }
+
+        .recipe-detail-header .recipe-detail-title {
+          font-size: 1.35rem;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    .bar-book-checklists,
+    .bar-book-full-pages {
+      padding: 1rem 0.75rem;
     }
   }
 }

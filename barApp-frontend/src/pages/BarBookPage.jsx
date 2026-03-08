@@ -46,7 +46,14 @@ function getRecipeSchema(t) {
   })
 }
 
-const TAB_IDS = ['recipes', 'checklists', 'pages', 'daily']
+const TAB_IDS = ['checklists', 'pages', 'daily', 'recipes']
+
+const NAV_ITEMS = [
+  { id: 'checklists', labelKey: 'tabChecklists', symbol: '✓' },
+  { id: 'pages',      labelKey: 'tabPages',      symbol: '▤' },
+  { id: 'daily',      labelKey: 'tabDaily',       symbol: '◷' },
+  { id: 'recipes',    labelKey: 'tabRecipes',     symbol: '✦' },
+]
 
 export function BarBookPage() {
   const { t } = useTranslation()
@@ -66,6 +73,23 @@ export function BarBookPage() {
 
   const [formRecipe, setFormRecipe] = useState(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [selectedRecipeId, setSelectedRecipeId] = useState(null)
+
+  const selectedRecipe = (content?.recipes || []).find(
+    (r) => String(r._id) === String(selectedRecipeId)
+  ) || null
+
+  useEffect(() => {
+    setIsEditMode(false)
+    setEditingChecklist({ key: null, index: null, value: '' })
+    setEditingDailyTask({ dayIndex: null, value: '' })
+    setEditingStockCell({ row: null, col: null, value: '' })
+    setEditingSectionTitle({ key: null, value: '' })
+    setEditingStockTitle(null)
+    setEditingStockHeader({ index: null, value: '' })
+    setEditingDayName({ index: null, value: '' })
+  }, [activeTab])
 
   useEffect(() => {
     barBookService
@@ -106,6 +130,19 @@ export function BarBookPage() {
 
   function handleInitBarBook() {
     setBarBookShowTabs(true)
+  }
+
+  function toggleEditMode() {
+    if (isEditMode) {
+      setEditingChecklist({ key: null, index: null, value: '' })
+      setEditingDailyTask({ dayIndex: null, value: '' })
+      setEditingStockCell({ row: null, col: null, value: '' })
+      setEditingSectionTitle({ key: null, value: '' })
+      setEditingStockTitle(null)
+      setEditingStockHeader({ index: null, value: '' })
+      setEditingDayName({ index: null, value: '' })
+    }
+    setIsEditMode(prev => !prev)
   }
 
   async function clearBarBookContent() {
@@ -287,11 +324,7 @@ export function BarBookPage() {
         instructionsText: arrayToLines(formRecipe.instructions),
       }
     }
-    return {
-      title: '',
-      ingredientsText: '',
-      instructionsText: '',
-    }
+    return { title: '', ingredientsText: '', instructionsText: '' }
   }
 
   function handleSubmit(values) {
@@ -299,14 +332,9 @@ export function BarBookPage() {
     const instructions = linesToArray(values.instructionsText)
     if (ingredients.length === 0 || instructions.length === 0) return
 
-    const payload = {
-      title: values.title.trim(),
-      ingredients,
-      instructions,
-    }
+    const payload = { title: values.title.trim(), ingredients, instructions }
 
     if (formRecipe) {
-      // Edit existing recipe in local state
       setContent(prev => ({
         ...prev,
         recipes: (prev.recipes || []).map(r =>
@@ -316,7 +344,6 @@ export function BarBookPage() {
         )
       }))
     } else {
-      // Add new recipe to local state
       const newRecipe = {
         _id: Date.now().toString(),
         ...payload,
@@ -326,6 +353,7 @@ export function BarBookPage() {
         ...prev,
         recipes: [newRecipe, ...(prev.recipes || [])]
       }))
+      setSelectedRecipeId(newRecipe._id)
     }
     closeForm()
   }
@@ -338,401 +366,482 @@ export function BarBookPage() {
       recipes: (prev.recipes || []).filter(r => String(r._id) !== String(id))
     }))
     if (formRecipe && String(formRecipe._id) === String(id)) closeForm()
+    if (String(selectedRecipeId) === String(id)) setSelectedRecipeId(null)
   }
 
   return (
     <section className="bar-book-page">
-      <h1 className="page-title">{t('barBookTitle')}</h1>
+      <div className="bar-book-layout">
 
-      {barBookShowTabs && (
-        <div className="bar-book-tabs">
-          {TAB_IDS.map((tabId) => (
-            <button
-              key={tabId}
-              type="button"
-              className={`bar-book-tab ${activeTab === tabId ? 'active' : ''}`}
-              onClick={() => setActiveTab(tabId)}
-            >
-              {t(tabId === 'checklists' ? 'tabChecklists' : tabId === 'pages' ? 'tabPages' : tabId === 'daily' ? 'tabDaily' : 'tabRecipes')}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <div className="bar-book-content">
-        {isLoadingBarBook && (
-          <p className="bar-book-loading">{t('loadingBarBook')}</p>
-        )}
-        {!isLoadingBarBook && barBookError && (
-          <p className="bar-book-error">{barBookError}</p>
-        )}
-        {!isLoadingBarBook && !barBookError && content && !barBookShowTabs && (
-          <div className="empty-state">
-            <p>{t('barBookEmpty')}</p>
-            <button type="button" className="btn-add" onClick={handleInitBarBook}>
-              {t('initBarBook')}
-            </button>
-          </div>
-        )}
-        {!isLoadingBarBook && !barBookError && content && barBookShowTabs && activeTab === 'checklists' && (
-          <div className="bar-book-checklists">
-            {['opening', 'closing', 'deep'].map((key) => {
-              const list = content.checklists[key]
-              if (!list) return null
-              const isEditingTitle = editingSectionTitle.key === key
-              return (
-                <section key={key} className="checklist-section">
-                  {isEditingTitle ? (
-                    <div className="checklist-title-edit">
-                      <input
-                        type="text"
-                        value={editingSectionTitle.value}
-                        onChange={(e) => setEditingSectionTitle((p) => ({ ...p, value: e.target.value }))}
-                        onBlur={() => saveSectionTitle(key)}
-                        onKeyDown={(e) => e.key === 'Enter' && saveSectionTitle(key)}
-                        autoFocus
-                        className="edit-input title-input"
-                      />
-                    </div>
-                  ) : (
-                    <h2
-                      className="checklist-title editable"
-                      onClick={() => setEditingSectionTitle({ key, value: list.title })}
-                      title={t('clickToEdit')}
-                    >
-                      {list.title}
-                    </h2>
-                  )}
-                  <ul className="checklist-list">
-                    {(list.items || []).map((item, i) => (
-                      <li key={i} className="checklist-item">
-                        {editingChecklist.key === key && editingChecklist.index === i ? (
-                          <div className="checklist-item-edit">
-                            <input
-                              type="text"
-                              value={editingChecklist.value}
-                              onChange={(e) => setEditingChecklist((p) => ({ ...p, value: e.target.value }))}
-                              onBlur={saveEditChecklistItem}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') saveEditChecklistItem()
-                                if (e.key === 'Escape') setEditingChecklist({ key: null, index: null, value: '' })
-                              }}
-                              autoFocus
-                              className="edit-input"
-                            />
-                          </div>
-                        ) : (
-                          <label>
-                            <input type="checkbox" />
-                            <span
-                              className="editable"
-                              onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                startEditChecklistItem(key, i, item)
-                              }}
-                              title={t('clickToEdit')}
-                            >
-                              {item || t('emptyCell')}
-                            </span>
-                            <button
-                              type="button"
-                              className="btn-icon btn-delete-item"
-                              onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                removeChecklistItem(key, i)
-                              }}
-                              title={t('deleteItem')}
-                              aria-label={t('delete')}
-                            >
-                              ×
-                            </button>
-                          </label>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                  <button
-                    type="button"
-                    className="btn-add-item"
-                    onClick={() => addChecklistItem(key)}
-                  >
-                    + {t('addTask')}
-                  </button>
-                </section>
-              )
-            })}
-            <div className="bar-book-reset-wrap">
-              <button type="button" className="btn-reset-default" onClick={clearBarBookContent}>
-                {t('clearContent')}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {!isLoadingBarBook && !barBookError && content && barBookShowTabs && activeTab === 'daily' && (
-          <div className="bar-book-full-pages">
-            <section className="daily-tasks-section">
-              <h2 className="section-title">{t('dailyTasksTitle')}</h2>
-              <p className="section-intro">{t('dailyTasksIntro')}</p>
-              <div className="daily-tasks-table-wrap">
-                <table className="daily-tasks-table daily-tasks-vertical editable-table">
-                  <thead>
-                    <tr>
-                      <th>{t('dayColumn')}</th>
-                      <th>{t('dailyTaskColumn')}</th>
-                      <th className="th-actions"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(content.dailyTasks || []).map((d, i) => (
-                      <tr key={i}>
-                        <td className="daily-task-day-cell">
-                          {editingDayName.index === i ? (
-                            <input
-                              type="text"
-                              value={editingDayName.value}
-                              onChange={(e) => setEditingDayName((p) => ({ ...p, value: e.target.value }))}
-                              onBlur={() => saveDayName(i)}
-                              onKeyDown={(e) => e.key === 'Enter' && saveDayName(i)}
-                              autoFocus
-                              className="edit-input cell-input"
-                            />
-                          ) : (
-                            <span
-                              className="editable"
-                              onClick={() => setEditingDayName({ index: i, value: d.day })}
-                              title={t('clickToEdit')}
-                            >
-                              {d.day}
-                            </span>
-                          )}
-                        </td>
-                        <td className="daily-task-details-cell">
-                          {editingDailyTask.dayIndex === i ? (
-                            <textarea
-                              value={editingDailyTask.value}
-                              onChange={(e) => setEditingDailyTask((p) => ({ ...p, value: e.target.value }))}
-                              onBlur={() => saveDailyTask(i)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Escape') setEditingDailyTask({ dayIndex: null, value: '' })
-                              }}
-                              autoFocus
-                              className="edit-input daily-task-textarea"
-                              rows={6}
-                              placeholder={t('dailyTaskPlaceholder')}
-                            />
-                          ) : (
-                            <div
-                              className="daily-task-text editable"
-                              onClick={() => setEditingDailyTask({ dayIndex: i, value: d.task ?? '' })}
-                              title={t('clickToEdit')}
-                            >
-                              {(d.task ?? '').trim() || t('emptyClickEdit')}
-                            </div>
-                          )}
-                        </td>
-                        <td className="td-actions">
-                          <button
-                            type="button"
-                            className="btn-icon btn-delete-row"
-                            onClick={() => removeDailyDay(i)}
-                            title={t('deleteDay')}
-                          >
-                            {t('deleteRow')}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <button type="button" className="btn-add-item" onClick={addDailyDay}>
-                + {t('addDay')}
-              </button>
-            </section>
-            <div className="bar-book-reset-wrap">
-              <button type="button" className="btn-reset-default" onClick={clearBarBookContent}>
-                {t('clearContent')}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {!isLoadingBarBook && !barBookError && content && barBookShowTabs && activeTab === 'pages' && (
-          <div className="bar-book-full-pages">
-            <section className="stock-section">
-              {editingStockTitle !== null ? (
-                <div className="section-title-edit">
-                  <input
-                    type="text"
-                    value={editingStockTitle}
-                    onChange={(e) => setEditingStockTitle(e.target.value)}
-                    onBlur={saveStockTitle}
-                    onKeyDown={(e) => e.key === 'Enter' && saveStockTitle()}
-                    autoFocus
-                    className="edit-input title-input"
-                  />
-                </div>
-              ) : (
-                <h2
-                  className="section-title editable"
-                  onClick={() => setEditingStockTitle(content.stockTable.title)}
-                  title="לחץ לעריכה"
+        {/* ── SIDEBAR ── */}
+        <aside className="bar-book-sidebar">
+          {barBookShowTabs && (
+            <nav className="sidebar-nav">
+              {NAV_ITEMS.map(({ id, labelKey, symbol }) => (
+                <button
+                  key={id}
+                  type="button"
+                  className={`sidebar-nav-item ${activeTab === id ? 'active' : ''}`}
+                  onClick={() => setActiveTab(id)}
                 >
-                  {content.stockTable.title}
-                </h2>
+                  <span className="nav-symbol">{symbol}</span>
+                  <span className="nav-label">{t(labelKey)}</span>
+                </button>
+              ))}
+            </nav>
+          )}
+        </aside>
+
+        {/* ── MAIN CONTENT ── */}
+        <main className="bar-book-main">
+
+          {barBookShowTabs && (
+            <div className="content-topbar">
+              <span className="content-topbar-title">
+                {t(NAV_ITEMS.find(n => n.id === activeTab)?.labelKey || '')}
+              </span>
+              <button
+                type="button"
+                className={`topbar-edit-btn ${isEditMode ? 'active' : ''}`}
+                onClick={toggleEditMode}
+                title={isEditMode ? t('exitEditMode') : t('editMode')}
+              >
+                {isEditMode ? t('exitEditMode') : t('editMode')}
+              </button>
+            </div>
+          )}
+
+          {isLoadingBarBook && (
+            <p className="bar-book-loading">{t('loadingBarBook')}</p>
+          )}
+          {!isLoadingBarBook && barBookError && (
+            <p className="bar-book-error">{barBookError}</p>
+          )}
+          {!isLoadingBarBook && !barBookError && content && !barBookShowTabs && (
+            <div className="empty-state">
+              <p>{t('barBookEmpty')}</p>
+              <button type="button" className="btn-add" onClick={handleInitBarBook}>
+                {t('initBarBook')}
+              </button>
+            </div>
+          )}
+
+          {/* ── CHECKLISTS — 3-column grid ── */}
+          {!isLoadingBarBook && !barBookError && content && barBookShowTabs && activeTab === 'checklists' && (
+            <div className="bar-book-checklists">
+              <div className="checklists-grid">
+                {['opening', 'closing', 'deep'].map((key) => {
+                  const list = content.checklists[key]
+                  if (!list) return null
+                  const isEditingTitle = editingSectionTitle.key === key
+                  return (
+                    <section key={key} className="checklist-section">
+                      {isEditingTitle ? (
+                        <div className="checklist-title-edit">
+                          <input
+                            type="text"
+                            value={editingSectionTitle.value}
+                            onChange={(e) => setEditingSectionTitle((p) => ({ ...p, value: e.target.value }))}
+                            onBlur={() => saveSectionTitle(key)}
+                            onKeyDown={(e) => e.key === 'Enter' && saveSectionTitle(key)}
+                            autoFocus
+                            className="edit-input title-input"
+                          />
+                        </div>
+                      ) : (
+                        <h2
+                          className={`checklist-title ${isEditMode ? 'editable' : ''}`}
+                          onClick={() => isEditMode && setEditingSectionTitle({ key, value: list.title })}
+                          title={isEditMode ? t('clickToEdit') : ''}
+                        >
+                          {list.title}
+                        </h2>
+                      )}
+                      <ul className="checklist-list">
+                        {(list.items || []).map((item, i) => (
+                          <li key={i} className="checklist-item">
+                            {editingChecklist.key === key && editingChecklist.index === i ? (
+                              <div className="checklist-item-edit">
+                                <input
+                                  type="text"
+                                  value={editingChecklist.value}
+                                  onChange={(e) => setEditingChecklist((p) => ({ ...p, value: e.target.value }))}
+                                  onBlur={saveEditChecklistItem}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') saveEditChecklistItem()
+                                    if (e.key === 'Escape') setEditingChecklist({ key: null, index: null, value: '' })
+                                  }}
+                                  autoFocus
+                                  className="edit-input"
+                                />
+                              </div>
+                            ) : (
+                              <label>
+                                <input type="checkbox" />
+                                <span
+                                  className={isEditMode ? 'editable' : ''}
+                                  onClick={(e) => {
+                                    if (!isEditMode) return
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    startEditChecklistItem(key, i, item)
+                                  }}
+                                  title={isEditMode ? t('clickToEdit') : ''}
+                                >
+                                  {item || t('emptyCell')}
+                                </span>
+                                {isEditMode && (
+                                  <button
+                                    type="button"
+                                    className="btn-icon btn-delete-item"
+                                    onClick={(e) => {
+                                      e.preventDefault()
+                                      e.stopPropagation()
+                                      removeChecklistItem(key, i)
+                                    }}
+                                    title={t('deleteItem')}
+                                    aria-label={t('delete')}
+                                  >
+                                    ×
+                                  </button>
+                                )}
+                              </label>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                      {isEditMode && (
+                        <button
+                          type="button"
+                          className="btn-add-item"
+                          onClick={() => addChecklistItem(key)}
+                        >
+                          + {t('addTask')}
+                        </button>
+                      )}
+                    </section>
+                  )
+                })}
+              </div>
+              {isEditMode && (
+                <div className="bar-book-reset-wrap">
+                  <button type="button" className="btn-reset-default" onClick={clearBarBookContent}>
+                    {t('clearContent')}
+                  </button>
+                </div>
               )}
-              <div className="stock-table-wrap">
-                <table className="stock-table editable-table">
-                  <thead>
-                    <tr>
-                      {(content.stockTable.headers || []).map((h, i) => (
-                        <th key={i}>
-                          {editingStockHeader.index === i ? (
-                            <input
-                              type="text"
-                              value={editingStockHeader.value}
-                              onChange={(e) => setEditingStockHeader((p) => ({ ...p, value: e.target.value }))}
-                              onBlur={() => saveStockHeader(i)}
-                              onKeyDown={(e) => e.key === 'Enter' && saveStockHeader(i)}
-                              autoFocus
-                              className="edit-input cell-input"
-                            />
-                          ) : (
-                            <span
-                              className="editable"
-                              onClick={() => setEditingStockHeader({ index: i, value: h })}
-                              title="לחץ לעריכה"
-                            >
-                              {h}
-                            </span>
-                          )}
-                        </th>
-                      ))}
-                      <th className="th-actions"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(content.stockTable.rows || []).map((row, rowIndex) => (
-                      <tr key={rowIndex}>
-                        {(row || []).map((cell, colIndex) => (
-                          <td key={colIndex}>
-                            {editingStockCell.row === rowIndex && editingStockCell.col === colIndex ? (
+            </div>
+          )}
+
+          {/* ── DAILY TASKS ── */}
+          {!isLoadingBarBook && !barBookError && content && barBookShowTabs && activeTab === 'daily' && (
+            <div className="bar-book-full-pages">
+              <section className="daily-tasks-section">
+                <h2 className="section-title">{t('dailyTasksTitle')}</h2>
+                <p className="section-intro">{t('dailyTasksIntro')}</p>
+                <div className="daily-tasks-table-wrap">
+                  <table className="daily-tasks-table daily-tasks-vertical editable-table">
+                    <thead>
+                      <tr>
+                        <th>{t('dayColumn')}</th>
+                        <th>{t('dailyTaskColumn')}</th>
+                        {isEditMode && <th className="th-actions"></th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(content.dailyTasks || []).map((d, i) => (
+                        <tr key={i}>
+                          <td className="daily-task-day-cell">
+                            {editingDayName.index === i ? (
                               <input
                                 type="text"
-                                value={editingStockCell.value}
-                                onChange={(e) => setEditingStockCell((p) => ({ ...p, value: e.target.value }))}
-                                onBlur={saveStockCell}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') saveStockCell()
-                                  if (e.key === 'Escape') setEditingStockCell({ row: null, col: null, value: '' })
-                                }}
+                                value={editingDayName.value}
+                                onChange={(e) => setEditingDayName((p) => ({ ...p, value: e.target.value }))}
+                                onBlur={() => saveDayName(i)}
+                                onKeyDown={(e) => e.key === 'Enter' && saveDayName(i)}
                                 autoFocus
                                 className="edit-input cell-input"
                               />
                             ) : (
                               <span
-                                className="editable"
-                                onClick={() =>
-                                  setEditingStockCell({ row: rowIndex, col: colIndex, value: cell ?? '' })
-                                }
-                                title="לחץ לעריכה"
+                                className={isEditMode ? 'editable' : ''}
+                                onClick={() => isEditMode && setEditingDayName({ index: i, value: d.day })}
+                                title={isEditMode ? t('clickToEdit') : ''}
                               >
-                                {cell ?? ''}
+                                {d.day}
                               </span>
                             )}
                           </td>
-                        ))}
-                        <td className="td-actions">
-                          <button
-                            type="button"
-                            className="btn-icon btn-delete-row"
-                            onClick={() => removeStockRow(rowIndex)}
-                            title="מחק שורה"
-                          >
-                            מחק
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <button type="button" className="btn-add-item" onClick={addStockRow}>
-                + הוסף שורה
-              </button>
-            </section>
-            <div className="bar-book-reset-wrap">
-              <button type="button" className="btn-reset-default" onClick={clearBarBookContent}>
-                {t('clearContent')}
-              </button>
+                          <td className="daily-task-details-cell">
+                            {editingDailyTask.dayIndex === i ? (
+                              <textarea
+                                value={editingDailyTask.value}
+                                onChange={(e) => setEditingDailyTask((p) => ({ ...p, value: e.target.value }))}
+                                onBlur={() => saveDailyTask(i)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Escape') setEditingDailyTask({ dayIndex: null, value: '' })
+                                }}
+                                autoFocus
+                                className="edit-input daily-task-textarea"
+                                rows={6}
+                                placeholder={t('dailyTaskPlaceholder')}
+                              />
+                            ) : (
+                              <div
+                                className={`daily-task-text ${isEditMode ? 'editable' : ''}`}
+                                onClick={() => isEditMode && setEditingDailyTask({ dayIndex: i, value: d.task ?? '' })}
+                                title={isEditMode ? t('clickToEdit') : ''}
+                              >
+                                {(d.task ?? '').trim() || t('emptyClickEdit')}
+                              </div>
+                            )}
+                          </td>
+                          {isEditMode && (
+                            <td className="td-actions">
+                              <button
+                                type="button"
+                                className="btn-icon btn-delete-row"
+                                onClick={() => removeDailyDay(i)}
+                                title={t('deleteDay')}
+                              >
+                                {t('deleteRow')}
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {isEditMode && (
+                  <button type="button" className="btn-add-item" onClick={addDailyDay}>
+                    + {t('addDay')}
+                  </button>
+                )}
+              </section>
+              {isEditMode && (
+                <div className="bar-book-reset-wrap">
+                  <button type="button" className="btn-reset-default" onClick={clearBarBookContent}>
+                    {t('clearContent')}
+                  </button>
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          )}
 
-        {barBookShowTabs && activeTab === 'recipes' && (
-          <div className="recipes-page bar-book-recipes">
-            <h2 className="section-title">{t('recipesTitle')}</h2>
-            <div className="recipes-content">
-              <div className="recipes-header-actions">
-                <button type="button" className="btn-add-recipe" onClick={openAddForm}>
-                  + {t('addRecipe')}
-                </button>
-              </div>
-              <div className="recipes-grid">
-                {(content?.recipes || []).length === 0 ? (
-                  <p className="recipes-empty">{t('noRecipes')}</p>
+          {/* ── STOCK / PAGES ── */}
+          {!isLoadingBarBook && !barBookError && content && barBookShowTabs && activeTab === 'pages' && (
+            <div className="bar-book-full-pages">
+              <section className="stock-section">
+                {editingStockTitle !== null ? (
+                  <div className="section-title-edit">
+                    <input
+                      type="text"
+                      value={editingStockTitle}
+                      onChange={(e) => setEditingStockTitle(e.target.value)}
+                      onBlur={saveStockTitle}
+                      onKeyDown={(e) => e.key === 'Enter' && saveStockTitle()}
+                      autoFocus
+                      className="edit-input title-input"
+                    />
+                  </div>
                 ) : (
-                  (content?.recipes || []).map((recipe) => (
-                    <article key={recipe._id} className="recipe-card">
-                      <div className="recipe-card-header">
-                        <h2 className="recipe-title">{recipe.title}</h2>
-                        <div className="recipe-card-actions">
-                          <button
-                            type="button"
-                            className="btn-edit-recipe"
-                            onClick={() => openEditForm(recipe)}
-                            title={t('editRecipe')}
-                          >
-                            {t('edit')}
-                          </button>
-                          <button
-                            type="button"
-                            className="btn-delete-recipe"
-                            onClick={() => handleDelete(recipe)}
-                            title={t('deleteRecipe')}
-                          >
-                            {t('delete')}
-                          </button>
+                  <h2
+                    className={`section-title ${isEditMode ? 'editable' : ''}`}
+                    onClick={() => isEditMode && setEditingStockTitle(content.stockTable.title)}
+                    title={isEditMode ? t('clickToEdit') : ''}
+                  >
+                    {content.stockTable.title}
+                  </h2>
+                )}
+                <div className="stock-table-wrap">
+                  <table className="stock-table editable-table">
+                    <thead>
+                      <tr>
+                        {(content.stockTable.headers || []).map((h, i) => (
+                          <th key={i}>
+                            {editingStockHeader.index === i ? (
+                              <input
+                                type="text"
+                                value={editingStockHeader.value}
+                                onChange={(e) => setEditingStockHeader((p) => ({ ...p, value: e.target.value }))}
+                                onBlur={() => saveStockHeader(i)}
+                                onKeyDown={(e) => e.key === 'Enter' && saveStockHeader(i)}
+                                autoFocus
+                                className="edit-input cell-input"
+                              />
+                            ) : (
+                              <span
+                                className={isEditMode ? 'editable' : ''}
+                                onClick={() => isEditMode && setEditingStockHeader({ index: i, value: h })}
+                                title={isEditMode ? t('clickToEdit') : ''}
+                              >
+                                {h}
+                              </span>
+                            )}
+                          </th>
+                        ))}
+                        {isEditMode && <th className="th-actions"></th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(content.stockTable.rows || []).map((row, rowIndex) => (
+                        <tr key={rowIndex}>
+                          {(row || []).map((cell, colIndex) => (
+                            <td key={colIndex}>
+                              {editingStockCell.row === rowIndex && editingStockCell.col === colIndex ? (
+                                <input
+                                  type="text"
+                                  value={editingStockCell.value}
+                                  onChange={(e) => setEditingStockCell((p) => ({ ...p, value: e.target.value }))}
+                                  onBlur={saveStockCell}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') saveStockCell()
+                                    if (e.key === 'Escape') setEditingStockCell({ row: null, col: null, value: '' })
+                                  }}
+                                  autoFocus
+                                  className="edit-input cell-input"
+                                />
+                              ) : (
+                                <span
+                                  className={isEditMode ? 'editable' : ''}
+                                  onClick={() =>
+                                    isEditMode && setEditingStockCell({ row: rowIndex, col: colIndex, value: cell ?? '' })
+                                  }
+                                  title={isEditMode ? t('clickToEdit') : ''}
+                                >
+                                  {cell ?? ''}
+                                </span>
+                              )}
+                            </td>
+                          ))}
+                          {isEditMode && (
+                            <td className="td-actions">
+                              <button
+                                type="button"
+                                className="btn-icon btn-delete-row"
+                                onClick={() => removeStockRow(rowIndex)}
+                                title="מחק שורה"
+                              >
+                                מחק
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {isEditMode && (
+                  <button type="button" className="btn-add-item" onClick={addStockRow}>
+                    + הוסף שורה
+                  </button>
+                )}
+              </section>
+              {isEditMode && (
+                <div className="bar-book-reset-wrap">
+                  <button type="button" className="btn-reset-default" onClick={clearBarBookContent}>
+                    {t('clearContent')}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── RECIPES — Master / Detail ── */}
+          {barBookShowTabs && activeTab === 'recipes' && (
+            <div className="bar-book-recipes">
+              <div className="recipes-layout">
+
+                {/* Recipe index list */}
+                <div className="recipes-list-panel">
+                  {isEditMode && (
+                    <div className="recipes-panel-header">
+                      <button type="button" className="btn-add-recipe" onClick={openAddForm}>
+                        + {t('addRecipe')}
+                      </button>
+                    </div>
+                  )}
+                  <div className="recipes-index">
+                    {(content?.recipes || []).length === 0 ? (
+                      <p className="recipes-empty">{t('noRecipes')}</p>
+                    ) : (
+                      (content?.recipes || []).map((recipe) => (
+                        <button
+                          key={recipe._id}
+                          type="button"
+                          className={`recipe-index-item ${selectedRecipeId === recipe._id ? 'active' : ''}`}
+                          onClick={() => setSelectedRecipeId(recipe._id)}
+                        >
+                          <span className="recipe-index-title">{recipe.title}</span>
+                          <span className="recipe-index-meta">
+                            {recipe.ingredients?.length} {t('ingredients')}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Recipe detail */}
+                <div className="recipes-detail-panel">
+                  {selectedRecipe ? (
+                    <article className="recipe-detail">
+                      <div className="recipe-detail-header">
+                        <h2 className="recipe-detail-title">{selectedRecipe.title}</h2>
+                        {isEditMode && (
+                          <div className="recipe-detail-actions">
+                            <button
+                              type="button"
+                              className="btn-edit-recipe"
+                              onClick={() => openEditForm(selectedRecipe)}
+                            >
+                              {t('edit')}
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-delete-recipe"
+                              onClick={() => handleDelete(selectedRecipe)}
+                            >
+                              {t('delete')}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <div className="recipe-detail-body">
+                        <div className="recipe-detail-section ingredients-section">
+                          <h3>{t('ingredients')}</h3>
+                          <ul>
+                            {(selectedRecipe.ingredients || []).map((item, i) => (
+                              <li key={i}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="recipe-detail-section instructions-section">
+                          <h3>{t('instructions')}</h3>
+                          <ol>
+                            {(selectedRecipe.instructions || []).map((step, i) => (
+                              <li key={i}>{step}</li>
+                            ))}
+                          </ol>
                         </div>
                       </div>
-                      <div className="recipe-section">
-                        <h3>{t('ingredients')}</h3>
-                        <ul>
-                          {(recipe.ingredients || []).map((item, i) => (
-                            <li key={i}>{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className="recipe-section">
-                        <h3>{t('instructions')}</h3>
-                        <ol>
-                          {(recipe.instructions || []).map((step, i) => (
-                            <li key={i}>{step}</li>
-                          ))}
-                        </ol>
-                      </div>
                     </article>
-                  ))
-                )}
+                  ) : (
+                    <div className="recipe-detail-placeholder">
+                      <p>{t('selectRecipePrompt')}</p>
+                    </div>
+                  )}
+                </div>
+
               </div>
             </div>
-          </div>
-        )}
+          )}
+
+        </main>
       </div>
 
+      {/* Recipe Form Modal */}
       {isFormOpen && (
         <div className="recipe-form-overlay" onClick={(e) => e.target === e.currentTarget && closeForm()}>
           <div className="recipe-form-container" onClick={(e) => e.stopPropagation()}>

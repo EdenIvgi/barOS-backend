@@ -1,7 +1,6 @@
 import { userService } from '../../services/user.service.js'
 import { setUser, setUsers } from '../slices/user.slice'
 import { setItems, setMaxPage } from '../slices/item.slice'
-import { setRecipes } from '../slices/recipe.slice'
 import { setOrders, setCart } from '../slices/order.slice'
 import { setCategories } from '../slices/category.slice'
 import { store } from '../store.js'
@@ -32,7 +31,6 @@ export async function logout() {
     store.dispatch(setUser(null))
     store.dispatch(setItems([]))
     store.dispatch(setMaxPage(0))
-    store.dispatch(setRecipes([]))
     store.dispatch(setOrders([]))
     store.dispatch(setCart([]))
     store.dispatch(setCategories([]))

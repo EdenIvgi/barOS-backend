@@ -16,11 +16,6 @@
 
   &:hover {
     @include accent-glow-hover;
-    transform: translateY(-4px);
-
-    .item-image {
-      transform: scale(1.05);
-    }
 
     .btn-add-to-cart {
       background: $accent-hover;
@@ -124,8 +119,6 @@
     align-items: center;
     justify-content: center;
     gap: 0.4rem;
-    box-shadow: $shadow-sm;
-
     svg {
       width: 14px;
       height: 14px;
@@ -133,12 +126,6 @@
 
     &:hover {
       background: $accent-hover;
-      transform: translateY(-1px);
-      box-shadow: $shadow-glow-accent;
-    }
-
-    &:active {
-      transform: translateY(0);
     }
   }
 }

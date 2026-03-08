@@ -2,7 +2,7 @@
 @import '../setup/mixins';
 
 .home-page {
-  padding: 2rem;
+  padding: 3rem 7rem;
   max-width: 1400px;
   margin: 0 auto;
   background: transparent;
@@ -22,14 +22,17 @@
     }
   }
 
-  // === Daily task — spans full width as a thin banner ===
+  // === Daily task — standalone banner above chart ===
   .daily-task-card {
-    grid-column: 1 / -1;
     padding: 1rem 2rem;
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    border-left: 3px solid $accent-primary;
+    background: $bg-deepest;
+    border: 1px solid $glass-border;
+    border-inline-start: 3px solid $accent-primary;
+    margin-top: 2.5rem;
+    margin-bottom: 2rem;
 
     .daily-task-header {
       display: flex;
@@ -68,6 +71,11 @@
 
     .stat-card {
       padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
       transition: border-color 0.3s ease;
 
       &:hover {
@@ -97,24 +105,31 @@
   // === Chart — full width ===
   .orders-growth-chart {
     margin-bottom: 2rem;
-    margin-top: 2rem;
-    padding: 1.5rem;
+    margin-top: 1px;
+    padding: 1.5rem 1.5rem 1rem;
+    background: $bg-deepest;
     border: 1px solid $glass-border;
 
     &.empty {
       text-align: center;
       padding: 3rem 1.5rem;
+      background: $bg-deepest;
+      border: 1px solid $glass-border;
 
       h2 {
         margin: 0 0 0.5rem 0;
-        font-size: 1.25rem;
+        font-size: 1.1rem;
         color: $text-primary;
         font-weight: 600;
+        font-family: $font-body;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
       }
 
       p {
         margin: 0;
         color: $text-muted;
+        font-size: 0.85rem;
       }
     }
 
@@ -125,7 +140,7 @@
       overflow-y: hidden;
 
       &::-webkit-scrollbar {
-        height: 4px;
+        height: 3px;
       }
       &::-webkit-scrollbar-track {
         background: transparent;
@@ -333,6 +348,8 @@
       flex-direction: column;
       align-items: flex-start;
       gap: 0.5rem;
+      margin-top: 1.5rem;
+      margin-bottom: 1rem;
     }
 
     .home-bottom-grid {

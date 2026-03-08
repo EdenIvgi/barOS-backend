@@ -2,7 +2,7 @@
 @import '../setup/mixins';
 
 .products-page {
-  padding: 2rem;
+  padding: 3rem 7rem;
   max-width: 1400px;
   margin: 0 auto;
   background: transparent;
@@ -23,5 +23,9 @@
   .item-search,
   .category-filter {
     margin-bottom: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
   }
 }

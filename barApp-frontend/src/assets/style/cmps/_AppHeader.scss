@@ -95,6 +95,7 @@
     align-items: center;
     gap: 0.75rem;
     flex-shrink: 0;
+    margin-bottom: 4px;
 
     .cart-icon {
       color: $text-primary;
@@ -106,61 +107,166 @@
   }
 
   .language-toggle-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    @include glass-surface;
-    color: $text-primary;
+    background: transparent;
+    border: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    color: $text-secondary;
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: color 0.25s ease;
     font-size: 0.7rem;
     font-weight: 600;
     font-family: $font-body;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     flex-shrink: 0;
+    padding: 0;
 
     &:hover {
-      @include glass-surface-hover;
-      transform: scale(1.05);
-    }
-
-    &:active {
-      transform: scale(0.95);
+      background: transparent;
+      border-color: transparent;
+      color: $text-primary;
     }
   }
 
-  .user-section {
+  .user-avatar-wrapper {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
 
-    .user-greeting {
+    .header-company-name {
+      font-family: $font-body;
+      font-size: 0.78rem;
+      font-weight: 500;
       color: $text-secondary;
-      text-decoration: none;
-      font-size: 0.85rem;
-      transition: color 0.25s ease;
+      opacity: 0.8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
+    }
+
+    .user-avatar-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: $accent-primary;
+      border: none;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      font-family: $font-body;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s ease;
+      flex-shrink: 0;
+      letter-spacing: 0.02em;
 
       &:hover {
-        color: $text-primary;
+        background: $accent-hover;
       }
     }
 
-    .logout-btn {
-      padding: 0.4rem 0.85rem;
-      @include glass-surface;
-      color: $text-primary;
-      border-radius: $border-radius;
-      cursor: pointer;
-      transition: all 0.25s ease;
-      font-size: 0.8rem;
-      font-family: $font-body;
+    .user-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      min-width: 160px;
+      @include glass-surface($glass-blur-heavy);
+      border: 1px solid $glass-border-hover;
+      box-shadow: $shadow-lg;
+      z-index: 1010;
+      overflow: hidden;
+      animation: fadeSlideUp 0.15s ease;
 
-      &:hover {
-        @include accent-glow-hover;
-        background: $accent-subtle;
-        color: $accent-text;
+      .user-dropdown-header {
+        padding: 0.75rem 1rem 0.6rem;
+        border-bottom: 1px solid $glass-border;
+
+        .user-dropdown-name {
+          display: block;
+          font-size: 0.82rem;
+          font-weight: 700;
+          color: $text-primary;
+          font-family: $font-body;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .user-dropdown-company {
+          display: block;
+          font-size: 0.72rem;
+          font-weight: 400;
+          color: $text-secondary;
+          font-family: $font-body;
+          margin-top: 0.15rem;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+
+      .user-dropdown-link {
+        display: block;
+        padding: 0.65rem 1rem;
+        color: $text-secondary;
+        text-decoration: none;
+        font-size: 0.82rem;
+        font-weight: 500;
+        font-family: $font-body;
+        border-bottom: 1px solid $glass-border;
+        transition: background 0.15s ease, color 0.15s ease;
+
+        &:hover {
+          background: $glass-bg-hover;
+          color: $text-primary;
+        }
+      }
+
+      .user-dropdown-switch {
+        display: block;
+        width: 100%;
+        padding: 0.65rem 1rem;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid $glass-border;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        border-radius: 0;
+        color: $text-secondary;
+        font-size: 0.82rem;
+        font-weight: 500;
+        font-family: $font-body;
+        cursor: pointer;
+        text-align: start;
+        transition: background 0.15s ease, color 0.15s ease;
+
+        &:hover {
+          background: $glass-bg-hover;
+          border-color: transparent;
+          color: $text-primary;
+        }
+      }
+
+      .user-dropdown-logout {
+        display: block;
+        width: 100%;
+        padding: 0.7rem 1rem;
+        background: none;
+        border: none;
+        color: $text-secondary;
+        font-size: 0.8rem;
+        font-family: $font-body;
+        cursor: pointer;
+        text-align: start;
+        transition: all 0.15s ease;
+
+        &:hover {
+          background: rgba($color-error, 0.1);
+          color: $color-error;
+        }
       }
     }
   }
@@ -218,6 +324,10 @@
 
   // === MOBILE ===
   @media (max-width: 768px) {
+    .header-company-name {
+      display: none;
+    }
+
     .hamburger-btn {
       display: flex;
     }
@@ -258,10 +368,8 @@
       }
     }
 
-    .header-actions {
-      .user-greeting {
-        display: none;
-      }
+    .user-avatar-wrapper .user-dropdown {
+      right: 0;
     }
   }
 }

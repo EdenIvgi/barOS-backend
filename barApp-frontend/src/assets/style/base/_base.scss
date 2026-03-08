@@ -61,7 +61,6 @@ a.active {
   padding: 40px;
   width: 40vw;
   align-items: center;
-  height: auto;
   @include glass-card;
   background: rgba(20, 20, 20, 0.95);
   backdrop-filter: blur($glass-blur-heavy);
@@ -69,6 +68,7 @@ a.active {
   inset: 0;
   margin: auto;
   height: fit-content;
+  z-index: 1100;
   animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

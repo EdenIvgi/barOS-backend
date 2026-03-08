@@ -2,7 +2,7 @@
 @import '../setup/mixins';
 
 .order-page {
-  padding: 2rem;
+  padding: 3rem 7rem;
   max-width: 1200px;
   margin: 0 auto;
   background: transparent;
@@ -82,7 +82,6 @@
 
         &:hover {
           background: rgba($color-error, 0.25);
-          transform: translateY(-2px);
         }
       }
     }
@@ -114,12 +113,8 @@
       &:first-of-type {
         background: $accent-primary;
         color: $text-primary;
-        box-shadow: $shadow-glow-accent;
-
         &:hover:not(:disabled) {
           background: $accent-hover;
-          transform: translateY(-2px);
-          box-shadow: $shadow-xl;
         }
       }
 
@@ -144,5 +139,9 @@
     padding: 2rem;
     color: $text-muted;
     font-size: 1.2rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
   }
 }

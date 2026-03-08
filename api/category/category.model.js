@@ -13,7 +13,9 @@ export const categoryModel = {
 
 async function getAll(dbName) {
     const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
-    return collection.find({ isActive: { $ne: false } }).sort({ order: 1, name: 1 }).toArray()
+    return collection.find({ isActive: { $ne: false } })
+        .sort({ order: 1, name: 1 })
+        .toArray()
 }
 
 async function getById(categoryId, dbName) {
@@ -25,15 +27,18 @@ async function getById(categoryId, dbName) {
 
 async function create(categoryData, dbName) {
     const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
+    const now = Date.now()
+
     const categoryToAdd = {
         name: categoryData.name || '',
         nameEn: categoryData.nameEn || categoryData.name || '',
         icon: categoryData.icon || '',
         order: categoryData.order !== undefined ? categoryData.order : 0,
         isActive: categoryData.isActive !== undefined ? categoryData.isActive : true,
-        createdAt: Date.now(),
-        updatedAt: Date.now()
+        createdAt: now,
+        updatedAt: now
     }
+
     const result = await collection.insertOne(categoryToAdd)
     categoryToAdd._id = result.insertedId
     return categoryToAdd
@@ -44,7 +49,7 @@ async function update(categoryId, updateData, dbName) {
     const objId = toObjectId(categoryId)
     const filter = objId ? { _id: objId } : { _id: categoryId }
 
-    const categoryToUpdate = {
+    const dataToUpdate = {
         name: updateData.name,
         nameEn: updateData.nameEn || updateData.name,
         icon: updateData.icon || '',
@@ -53,7 +58,7 @@ async function update(categoryId, updateData, dbName) {
         updatedAt: Date.now()
     }
 
-    const result = await collection.updateOne(filter, { $set: categoryToUpdate })
+    const result = await collection.updateOne(filter, { $set: dataToUpdate })
     if (result.matchedCount === 0) return null
     return getById(categoryId, dbName)
 }

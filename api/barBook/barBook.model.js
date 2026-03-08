@@ -1,7 +1,6 @@
 import { dbService } from '../../services/mongo.service.js'
 
 const COLLECTION_NAME = 'barBook'
-const DEFAULT_SLUG = 'default'
 
 function emptyContent() {
   return {
@@ -22,17 +21,18 @@ export const barBookModel = {
   clear,
 }
 
-/** Returns the single bar book document (slug: default), or null if none. */
+/** Returns the bar book content (single document in barBook collection) */
 async function get(dbName) {
   const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
-  const doc = await collection.findOne({ slug: DEFAULT_SLUG })
-  if (!doc) return null
-  const { _id, slug, createdAt, updatedAt, ...content } = doc
+  const doc = await collection.findOne({})
+
+  if (!doc) return { _id: 'barBook', ...emptyContent(), createdAt: Date.now(), updatedAt: Date.now() }
+
+  const { _id, slug, ...content } = doc
   return {
-    _id: doc._id?.toString?.(),
+    _id: _id?.toString?.() || 'barBook',
+    ...emptyContent(),
     ...content,
-    createdAt: doc.createdAt,
-    updatedAt: doc.updatedAt,
   }
 }
 
@@ -43,7 +43,6 @@ async function save(content, dbName) {
   const now = Date.now()
 
   const dataToSave = {
-    slug: DEFAULT_SLUG,
     checklists: payload.checklists ?? emptyContent().checklists,
     dailyTasks: Array.isArray(payload.dailyTasks) ? payload.dailyTasks : [],
     stockTable: payload.stockTable ?? emptyContent().stockTable,
@@ -51,21 +50,22 @@ async function save(content, dbName) {
     updatedAt: now,
   }
 
-  const doc = await collection.findOne({ slug: DEFAULT_SLUG })
-  if (doc) {
+  const existing = await collection.findOne({})
+
+  if (existing) {
     await collection.updateOne(
-      { slug: DEFAULT_SLUG },
+      { _id: existing._id },
       { $set: dataToSave }
     )
-    return get(dbName)
+  } else {
+    dataToSave.createdAt = now
+    await collection.insertOne(dataToSave)
   }
 
-  dataToSave.createdAt = now
-  await collection.insertOne(dataToSave)
   return get(dbName)
 }
 
-/** Clears content to empty structure (no demo data). */
+/** Clears content to empty structure. */
 async function clear(dbName) {
   return save(emptyContent(), dbName)
 }

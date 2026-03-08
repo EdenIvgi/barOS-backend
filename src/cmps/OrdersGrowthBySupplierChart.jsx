@@ -33,6 +33,14 @@ const SUPPLIER_COLORS = [
   { main: 'rgb(20, 184, 166)', fill: 'rgba(20, 184, 166, 0.85)' },   // cyan
 ]
 
+// Dark-mode chart theme — module-level constants (stable references for useMemo)
+const CHART_FONT    = "'Inter', 'Gisha', 'Arial', sans-serif"
+const C_TEXT        = 'rgba(255, 255, 255, 0.85)'
+const C_MUTED       = 'rgba(255, 255, 255, 0.45)'
+const C_GRID        = 'rgba(255, 255, 255, 0.07)'
+const C_TOOLTIP_BG  = 'rgba(18, 18, 18, 0.97)'
+const C_TOOLTIP_BD  = 'rgba(255, 255, 255, 0.12)'
+
 const EMPTY_SUPPLIER_LABEL = NO_SUPPLIER_KEY
 
 function getDateKey(ts) {
@@ -162,22 +170,28 @@ export function OrdersGrowthBySupplierChart({ orders, items = [] }) {
         align: 'end',
         labels: {
           boxWidth: 12,
-          padding: 12,
-          font: { size: 11, weight: '600' },
+          padding: 14,
+          color: C_TEXT,
+          font: { size: 11, weight: '600', family: CHART_FONT },
           usePointStyle: true,
         },
       },
       title: {
         display: true,
         text: t('chartTitle'),
-        font: { size: 15, weight: '600' },
+        color: C_TEXT,
+        font: { size: 14, weight: '600', family: CHART_FONT },
         padding: { bottom: 14 },
       },
       tooltip: {
-        backgroundColor: 'rgba(40, 40, 40, 0.95)',
-        padding: 8,
-        titleFont: { size: 11 },
-        bodyFont: { size: 12 },
+        backgroundColor: C_TOOLTIP_BG,
+        borderColor: C_TOOLTIP_BD,
+        borderWidth: 1,
+        padding: 10,
+        titleColor: C_TEXT,
+        bodyColor: C_MUTED,
+        titleFont: { size: 11, family: CHART_FONT },
+        bodyFont: { size: 12, family: CHART_FONT },
         callbacks: {
           label: (context) => ` ${context.dataset.label}: ${context.raw} ${t('chartItemsSuffix')}`,
         },
@@ -189,14 +203,16 @@ export function OrdersGrowthBySupplierChart({ orders, items = [] }) {
         beginAtZero: true,
         ticks: {
           stepSize: 1,
-          font: { size: 10 },
+          color: C_MUTED,
+          font: { size: 10, family: CHART_FONT },
         },
         title: {
           display: true,
           text: t('chartItemsAxis'),
-          font: { size: 11, weight: '600' },
+          color: C_MUTED,
+          font: { size: 11, weight: '600', family: CHART_FONT },
         },
-        grid: { color: 'rgba(0, 0, 0, 0.08)' },
+        grid: { color: C_GRID },
         border: { display: false },
       },
       x: {
@@ -205,12 +221,14 @@ export function OrdersGrowthBySupplierChart({ orders, items = [] }) {
         title: {
           display: true,
           text: t('chartDateAxis'),
-          font: { size: 11, weight: '600' },
+          color: C_MUTED,
+          font: { size: 11, weight: '600', family: CHART_FONT },
         },
         ticks: {
           maxRotation: 0,
           minRotation: 0,
-          font: { size: 10 },
+          color: C_MUTED,
+          font: { size: 10, family: CHART_FONT },
         },
         grid: { display: false },
         border: { display: false },

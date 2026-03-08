@@ -86,18 +86,8 @@ export function HomePage() {
   return (
     <section className="home-page">
 
-      {/* Bento grid: daily task + stats */}
+      {/* Bento grid: stats */}
       <div className="home-top-grid">
-        {todayTask && (
-          <div className="daily-task-card">
-            <div className="daily-task-header">
-              <span className="daily-task-badge">{t('dailyTask')}</span>
-              <span className="daily-task-day">{displayDayName}</span>
-            </div>
-            <p className="daily-task-text">{todayTask}</p>
-          </div>
-        )}
-
         <div className="dashboard-stats">
           <div className="stat-card">
             <h3>{stats.totalItems}</h3>
@@ -126,49 +116,22 @@ export function HomePage() {
         </div>
       </div>
 
+      {/* Daily Task */}
+      {todayTask && (
+        <div className="daily-task-card">
+          <div className="daily-task-header">
+            <span className="daily-task-badge">{t('dailyTask')}</span>
+            <span className="daily-task-day">{displayDayName}</span>
+          </div>
+          <p className="daily-task-text">{todayTask}</p>
+        </div>
+      )}
+
       {/* Chart */}
       <OrdersGrowthBySupplierChart orders={orders} items={items} />
 
-      {/* Bottom split: alerts + orders */}
+      {/* Bottom split: orders + alerts */}
       <div className="home-bottom-grid">
-        {/* Low Stock Alerts */}
-        {stats.lowStockItems > 0 && (
-          <div className="low-stock-alerts">
-            <h2>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              {t('lowStockAlerts')} ({stats.lowStockItems})
-            </h2>
-            <div className="alerts-grid">
-              {lowStockItems
-                .slice(0, 6)
-                .map(item => (
-                  <Link
-                    key={item._id}
-                    to="/items-management"
-                    className="alert-item"
-                  >
-                    <div className="item-name">{item.name}</div>
-                    <div className="item-details">
-                      {t('stockLabel')}: {item.stockQuantity || 0} | {t('alertThresholdLabel')}: {item.minStockLevel || 0}
-                    </div>
-                  </Link>
-                ))}
-            </div>
-            {stats.lowStockItems > 6 && (
-              <div style={{ textAlign: 'center' }}>
-                <Link
-                  to="/items-management"
-                  className="view-all-link"
-                >
-                  {t('viewAllLowStock')} ({stats.lowStockItems})
-                </Link>
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Recent Orders */}
         {orders && orders.length > 0 && (
           <div className="recent-orders">
@@ -219,6 +182,45 @@ export function HomePage() {
             </div>
           </div>
         )}
+
+        {/* Low Stock Alerts */}
+        {stats.lowStockItems > 0 && (
+          <div className="low-stock-alerts">
+            <h2>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              {t('lowStockAlerts')} ({stats.lowStockItems})
+            </h2>
+            <div className="alerts-grid">
+              {lowStockItems
+                .slice(0, 6)
+                .map(item => (
+                  <Link
+                    key={item._id}
+                    to="/items-management"
+                    className="alert-item"
+                  >
+                    <div className="item-name">{item.name}</div>
+                    <div className="item-details">
+                      {t('stockLabel')}: {item.stockQuantity || 0} | {t('alertThresholdLabel')}: {item.minStockLevel || 0}
+                    </div>
+                  </Link>
+                ))}
+            </div>
+            {stats.lowStockItems > 6 && (
+              <div style={{ textAlign: 'center' }}>
+                <Link
+                  to="/items-management"
+                  className="view-all-link"
+                >
+                  {t('viewAllLowStock')} ({stats.lowStockItems})
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </section>
   )

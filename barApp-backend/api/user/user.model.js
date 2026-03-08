@@ -6,10 +6,10 @@ export const userModel = {
     getAll
 }
 
-async function getAll(filterBy = {}) {
+async function getAll(filterBy = {}, dbName) {
     try {
-        const collection = await dbService.getMasterCollection(COLLECTION_NAME)
-        
+        const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
+
         const criteria = {}
         if (filterBy.username) {
             criteria.username = filterBy.username
@@ -17,7 +17,6 @@ async function getAll(filterBy = {}) {
 
         const users = await collection
             .find(criteria)
-            .project({ password: 0 })
             .toArray()
 
         return users

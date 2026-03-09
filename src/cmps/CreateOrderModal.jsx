@@ -15,7 +15,7 @@ export function CreateOrderModal({
   if (!isOpen || !bySupplier) return null
 
   return (
-    <div className="form-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="form-overlay create-order-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="form-container create-order-modal" onClick={(e) => e.stopPropagation()}>
         <h2>{t('selectOrdersToCreate')}</h2>
         <p className="create-order-modal-desc">{t('createOrderModalDesc')}</p>

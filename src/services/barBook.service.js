@@ -2,17 +2,27 @@ import { httpService } from './http.service'
 
 const BASE_URL = 'barBook/'
 
-/** Empty bar book content structure (no demo data). */
 export function getEmptyContent() {
+  return { pages: [] }
+}
+
+export function createPage(type, title) {
   return {
-    checklists: {
-      opening: { title: '', items: [] },
-      closing: { title: '', items: [] },
-      deep: { title: '', items: [] },
-    },
-    dailyTasks: [],
-    stockTable: { title: '', headers: [], rows: [] },
-    recipes: [],
+    _id: crypto.randomUUID(),
+    type,
+    title,
+    ...defaultPageData(type),
+  }
+}
+
+function defaultPageData(type) {
+  switch (type) {
+    case 'checklists': return { lists: [] }
+    case 'checklist':  return { items: [] }
+    case 'daily':      return { tasks: [] }
+    case 'stock':      return { headers: [], rows: [] }
+    case 'recipes':    return { items: [] }
+    default:           return {}
   }
 }
 
@@ -21,6 +31,7 @@ export const barBookService = {
   saveContent,
   clear,
   getEmptyContent,
+  createPage,
 }
 
 async function getContent() {
@@ -31,8 +42,7 @@ async function saveContent(content) {
   return httpService.put(BASE_URL, content)
 }
 
-/** Clears all bar book content in DB (empty structure). */
 async function clear() {
   const res = await httpService.post(BASE_URL + 'clear')
-  return res.content
+  return res.content ?? res
 }

@@ -72,14 +72,16 @@ export function HomePage() {
 
   // Daily task
   const dayIndex = new Date().getDay()
-  const hebrewDays = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת']
-  const englishDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-  const todayEntry = barBookDailyTasks.find(
-    (entry) => {
-      const day = entry?.day || ''
-      return day.includes(hebrewDays[dayIndex]) || day.includes(englishDays[dayIndex])
-    }
-  )
+  const todayEntry = barBookDailyTasks.find((entry) => {
+    const day = entry?.day || ''
+    // Match against both he and en day names via i18n keys
+    return [0,1,2,3,4,5,6].some(i =>
+      i === dayIndex && (
+        day.includes(t('day_' + i, { lng: 'he' })) ||
+        day.includes(t('day_' + i, { lng: 'en' }))
+      )
+    )
+  })
   const todayTask = todayEntry?.task?.trim() || null
   const displayDayName = t('dayPrefix') ? `${t('dayPrefix')} ${t('day_' + dayIndex)}` : t('day_' + dayIndex)
 

@@ -234,8 +234,6 @@ export function OrdersListPage() {
 
   return (
     <div className="orders-list-page orders-grid-page">
-      <h1>{t('ordersListTitle')}</h1>
-
       {uniqueDates.length === 0 || uniqueSuppliers.length === 0 ? (
         <p className="empty-message">{t('noOrders')}</p>
       ) : (

@@ -1,0 +1,86 @@
+.switch-user-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-end: 0;
+  z-index: 500;
+
+  width: 200px;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 1rem;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    inset-inline-end: 14px;
+    width: 10px;
+    height: 10px;
+    background: #111;
+    border-inline-start: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    transform: rotate(45deg);
+  }
+
+  .sud-title {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: rgba(255, 255, 255, 0.35);
+    margin: 0 0 0.25rem;
+  }
+
+  .sud-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    input {
+      width: 100%;
+      padding: 0.45rem 0.65rem;
+      background: #f0f0f0;
+      border: none;
+      font-size: 0.8rem;
+      color: #111;
+      outline: none;
+      transition: box-shadow 0.2s;
+
+      &::placeholder {
+        color: #aaa;
+      }
+
+      &:focus {
+        box-shadow: 0 0 0 2px rgba(200, 50, 50, 0.5);
+      }
+    }
+  }
+
+  .sud-btn-login {
+    width: 100%;
+    margin-top: 0.15rem;
+    padding: 0.5rem;
+    background: #c0392b;
+    border: none;
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover:not(:disabled) {
+      background: #a93226;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}

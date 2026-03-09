@@ -5,8 +5,8 @@
   @include glass-surface($glass-blur-heavy);
   position: fixed;
   top: 0;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   z-index: 1001;
   height: $header-height;
   display: flex;
@@ -19,8 +19,8 @@
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    padding: 0 1.5rem;
-    direction: ltr;
+    padding: 0 2rem;
+    // No direction override — inherits document RTL/LTR so layout mirrors with language
   }
 
   .header-brand {
@@ -45,14 +45,16 @@
   .header-nav {
     display: flex;
     align-items: center;
-    flex: 1;
-    justify-content: center;
+    flex: none;
+    justify-content: flex-start;
     gap: 0;
-    margin: 0 2.5rem;
+    margin-block: 0;
+    margin-inline-start: 2rem;
+    margin-inline-end: auto;
 
     .nav-link {
       position: relative;
-      padding: 0.85rem 0.2rem;
+      padding: 0.85rem 1.5rem;
       color: $text-secondary;
       text-decoration: none;
       font-size: 1rem;
@@ -61,7 +63,6 @@
       transition: color 0.25s ease, background 0.25s ease;
       white-space: nowrap;
       text-align: center;
-      flex: 1;
 
       &::after {
         content: '';
@@ -93,7 +94,7 @@
   .header-actions {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1.75rem;
     flex-shrink: 0;
     margin-bottom: 4px;
 
@@ -171,7 +172,7 @@
     .user-dropdown {
       position: absolute;
       top: calc(100% + 8px);
-      right: 0;
+      inset-inline-end: 0;
       min-width: 160px;
       @include glass-surface($glass-blur-heavy);
       border: 1px solid $glass-border-hover;
@@ -335,8 +336,8 @@
     .header-nav {
       position: fixed;
       top: $header-height;
-      left: 0;
-      right: 0;
+      inset-inline-start: 0;
+      inset-inline-end: 0;
       flex-direction: column;
       @include glass-surface($glass-blur-heavy);
       border-bottom: 1px solid $glass-border;
@@ -369,7 +370,7 @@
     }
 
     .user-avatar-wrapper .user-dropdown {
-      right: 0;
+      inset-inline-end: 0;
     }
   }
 }

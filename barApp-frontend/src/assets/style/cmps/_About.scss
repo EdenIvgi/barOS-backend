@@ -2,7 +2,7 @@
 @import '../setup/mixins';
 
 .about-page {
-  padding: 3rem 7rem;
+  padding: 0rem 7rem;
   max-width: 1000px;
   margin: 0 auto;
   @include cinematic-enter;

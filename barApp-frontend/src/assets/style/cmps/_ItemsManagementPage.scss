@@ -595,6 +595,21 @@
   backdrop-filter: blur(4px);
 }
 
+// Create order modal — anchored to top-right (near action buttons)
+.create-order-overlay {
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding-top: calc(#{$header-height} + 4rem);
+  padding-inline-end: 7rem;
+  background: transparent;
+  backdrop-filter: none;
+
+  .create-order-modal {
+    margin: 0;
+    max-height: calc(100vh - #{$header-height} - 6rem);
+  }
+}
+
 .form-container {
   background: $bg-elevated;
   border: 1px solid $glass-border;

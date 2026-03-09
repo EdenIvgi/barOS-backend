@@ -5,6 +5,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { showErrorMsg, showSuccessMsg } from '../services/event-bus.service'
 import { logout } from '../store/actions/user.actions'
 import { CartIcon } from './CartIcon'
+import { SwitchUserModal } from './SwitchUserModal'
 
 export function AppHeader() {
   const user = useSelector(storeState => storeState.userModule.loggedInUser)
@@ -12,19 +13,21 @@ export function AppHeader() {
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
+  const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false)
   const avatarRef = useRef(null)
 
   useEffect(() => {
     function handleClickOutside(e) {
       if (avatarRef.current && !avatarRef.current.contains(e.target)) {
         setIsUserDropdownOpen(false)
+        setIsSwitchModalOpen(false)
       }
     }
-    if (isUserDropdownOpen) {
+    if (isUserDropdownOpen || isSwitchModalOpen) {
       document.addEventListener('mousedown', handleClickOutside)
     }
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [isUserDropdownOpen])
+  }, [isUserDropdownOpen, isSwitchModalOpen])
 
   function getInitials(name) {
     if (!name) return '?'
@@ -59,6 +62,7 @@ export function AppHeader() {
   }
 
   return (
+    <>
     <header className="app-header">
       <div className="header-content">
         <NavLink to="/home" className="header-brand">
@@ -89,7 +93,7 @@ export function AppHeader() {
             <div className="user-avatar-wrapper" ref={avatarRef}>
               <button
                 className="user-avatar-btn"
-                onClick={() => setIsUserDropdownOpen(prev => !prev)}
+                onClick={() => { setIsUserDropdownOpen(prev => !prev); setIsSwitchModalOpen(false) }}
                 title={user.fullname}
               >
                 {getInitials(user.fullname)}
@@ -108,13 +112,16 @@ export function AppHeader() {
                   <Link to="/user" className="user-dropdown-link" onClick={() => setIsUserDropdownOpen(false)}>
                     {t('profileNavLink')}
                   </Link>
-                  <button className="user-dropdown-switch" onClick={() => { setIsUserDropdownOpen(false); onLogout() }}>
+                  <button className="user-dropdown-switch" onClick={() => { setIsUserDropdownOpen(false); setIsSwitchModalOpen(true) }}>
                     {t('switchUser')}
                   </button>
                   <button className="user-dropdown-logout" onClick={() => { setIsUserDropdownOpen(false); onLogout() }}>
                     {t('logout')}
                   </button>
                 </div>
+              )}
+              {isSwitchModalOpen && (
+                <SwitchUserModal onClose={() => setIsSwitchModalOpen(false)} />
               )}
             </div>
           ) : (
@@ -131,5 +138,6 @@ export function AppHeader() {
         </div>
       </div>
     </header>
+    </>
   )
 }

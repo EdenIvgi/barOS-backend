@@ -2,61 +2,100 @@ import { dbService } from '../../services/mongo.service.js'
 
 const COLLECTION_NAME = 'barBook'
 
-function emptyContent() {
-  return {
-    checklists: {
-      opening: { title: '', items: [] },
-      closing: { title: '', items: [] },
-      deep: { title: '', items: [] },
-    },
-    dailyTasks: [],
-    stockTable: { title: '', headers: [], rows: [] },
-    recipes: [],
+export const barBookModel = { get, save, clear }
+
+// ─── Migration: old fixed-schema → dynamic pages ───────
+function migrateOldFormat(doc) {
+  // Already in new format and has content — skip
+  if (Array.isArray(doc.pages) && doc.pages.length > 0) return doc.pages
+
+  const pages = []
+  const ts = Date.now()
+
+  // Checklists — merge all into a single 'checklists' page with sub-lists
+  const checklistMap = { opening: 'פתיחה', closing: 'סגירה', deep: 'ניקיון עמוק' }
+  const subLists = []
+  for (const [key, fallbackTitle] of Object.entries(checklistMap)) {
+    const list = doc.checklists?.[key]
+    if (!list) continue
+    const items = (list.items || []).filter(Boolean)
+    if (!list.title && items.length === 0) continue
+    subLists.push({
+      _id: `migrated-${key}-${ts}`,
+      title: list.title || fallbackTitle,
+      items: items.map(text => ({ text: String(text), checked: false })),
+    })
   }
+  if (subLists.length > 0) {
+    pages.push({ _id: `migrated-checklists-${ts}`, type: 'checklists', title: "צ'קליסטים", lists: subLists })
+  }
+
+  // Daily tasks
+  if (Array.isArray(doc.dailyTasks) && doc.dailyTasks.length > 0) {
+    pages.push({
+      _id: `migrated-daily-${ts}`,
+      type: 'daily',
+      title: 'משימות יומיות',
+      tasks: doc.dailyTasks.map(d => ({ day: d.day || '', task: d.task || '' })),
+    })
+  }
+
+  // Stock table
+  const st = doc.stockTable
+  if (st && (st.headers?.length > 0 || st.rows?.length > 0)) {
+    pages.push({
+      _id: `migrated-stock-${ts}`,
+      type: 'stock',
+      title: st.title || 'מלאי',
+      headers: st.headers || [],
+      rows: st.rows || [],
+    })
+  }
+
+  // Recipes
+  if (Array.isArray(doc.recipes) && doc.recipes.length > 0) {
+    pages.push({
+      _id: `migrated-recipes-${ts}`,
+      type: 'recipes',
+      title: 'מתכונים',
+      items: doc.recipes,
+    })
+  }
+
+  return pages
 }
 
-export const barBookModel = {
-  get,
-  save,
-  clear,
-}
-
-/** Returns the bar book content (single document in barBook collection) */
 async function get(dbName) {
   const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
   const doc = await collection.findOne({})
+  if (!doc) return { _id: 'barBook', pages: [], createdAt: Date.now(), updatedAt: Date.now() }
 
-  if (!doc) return { _id: 'barBook', ...emptyContent(), createdAt: Date.now(), updatedAt: Date.now() }
+  const { _id, ...rest } = doc
+  const pages = migrateOldFormat(rest)
 
-  const { _id, slug, ...content } = doc
-  return {
-    _id: _id?.toString?.() || 'barBook',
-    ...emptyContent(),
-    ...content,
+  // Persist migration if old format (no pages field, or pages was empty but old data exists)
+  const hasOldData = rest.checklists || rest.dailyTasks || rest.stockTable || rest.recipes
+  const needsMigration = !Array.isArray(rest.pages) || (rest.pages.length === 0 && hasOldData)
+  if (needsMigration && pages.length > 0) {
+    await collection.updateOne({ _id }, { $set: { pages, updatedAt: Date.now() } })
   }
+
+  return { _id: _id?.toString?.() || 'barBook', ...rest, pages }
 }
 
-/** Saves full bar book content; creates document if missing, otherwise updates. */
 async function save(content, dbName) {
   const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
   const { _id, createdAt, updatedAt, ...payload } = content || {}
   const now = Date.now()
 
   const dataToSave = {
-    checklists: payload.checklists ?? emptyContent().checklists,
-    dailyTasks: Array.isArray(payload.dailyTasks) ? payload.dailyTasks : [],
-    stockTable: payload.stockTable ?? emptyContent().stockTable,
-    recipes: Array.isArray(payload.recipes) ? payload.recipes : [],
+    pages: Array.isArray(payload.pages) ? payload.pages : [],
     updatedAt: now,
   }
 
   const existing = await collection.findOne({})
-
   if (existing) {
-    await collection.updateOne(
-      { _id: existing._id },
-      { $set: dataToSave }
-    )
+    await collection.updateOne({ _id: existing._id }, { $set: dataToSave })
   } else {
     dataToSave.createdAt = now
     await collection.insertOne(dataToSave)
@@ -65,7 +104,6 @@ async function save(content, dbName) {
   return get(dbName)
 }
 
-/** Clears content to empty structure. */
 async function clear(dbName) {
-  return save(emptyContent(), dbName)
+  return save({ pages: [] }, dbName)
 }

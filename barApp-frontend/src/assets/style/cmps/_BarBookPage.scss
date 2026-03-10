@@ -1508,6 +1508,29 @@ $book-page-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
       padding: 1.25rem 1rem;
     }
 
+    .daily-tasks-section,
+    .stock-section {
+      padding: 1rem;
+    }
+
+    .daily-tasks-table.daily-tasks-vertical {
+      .daily-task-details-cell {
+        min-width: 0;
+      }
+
+      .daily-task-day-cell {
+        white-space: normal;
+      }
+    }
+
+    .stock-table {
+      font-size: 0.8rem;
+
+      th, td {
+        padding: 0.4rem 0.5rem;
+      }
+    }
+
     .checklists-grid {
       grid-template-columns: 1fr;
     }

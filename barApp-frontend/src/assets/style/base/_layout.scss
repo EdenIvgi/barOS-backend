@@ -13,6 +13,7 @@
     margin-top: $header-height;
     min-height: calc(100vh - #{$header-height});
     background: $bg-deepest;
+    overflow-x: hidden;
 
     main {
       flex: 1;

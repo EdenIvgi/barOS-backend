@@ -344,23 +344,54 @@
       grid-template-columns: 1fr 1fr;
     }
 
+    .dashboard-stats .stat-card {
+      padding: 0.75rem 0.5rem;
+
+      h3 {
+        font-size: 1.6rem;
+        margin-bottom: 0.15rem;
+      }
+
+      p {
+        font-size: 0.65rem;
+        letter-spacing: 0.02em;
+      }
+    }
+
     .daily-task-card {
       flex-direction: column;
       align-items: flex-start;
       gap: 0.5rem;
-      margin-top: 1.5rem;
+      margin-top: 1rem;
       margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
     }
 
     .home-bottom-grid {
       grid-template-columns: 1fr;
       gap: 2rem;
     }
+
+    .orders-growth-chart .chart-container {
+      min-width: 0 !important;
+    }
   }
 
   @media (max-width: 480px) {
     .home-top-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .dashboard-stats .stat-card {
+      padding: 0.6rem 0.4rem;
+
+      h3 {
+        font-size: 1.4rem;
+      }
+
+      p {
+        font-size: 0.6rem;
+      }
     }
   }
 }

@@ -11,7 +11,7 @@ const loginSchema = {
 
 const signupSchema = {
     username: { required: true, minLength: 3, maxLength: 30 },
-    password: { required: true, minLength: 4 },
+    password: { required: true, minLength: 12, requireComplexity: true },
     companyName: { required: true, minLength: 1 },
 }
 

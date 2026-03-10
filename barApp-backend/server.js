@@ -4,6 +4,8 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import rateLimit from 'express-rate-limit'
 import morgan from 'morgan'
+import helmet from 'helmet'
+import csrf from 'csurf'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 
@@ -25,13 +27,64 @@ const PORT = process.env.PORT || 3031
 
 // ==================== MIDDLEWARE ====================
 
+// Security headers
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", 'data:', 'https:'],
+            fontSrc: ["'self'", 'data:'],
+            connectSrc: ["'self'"],
+            frameSrc: ["'none'"],
+            objectSrc: ["'none'"],
+            upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : [],
+        }
+    },
+    hsts: {
+        maxAge: 31536000, // 1 year
+        includeSubDomains: true,
+        preload: true
+    },
+    referrerPolicy: { policy: 'strict-no-referrer' },
+    noSniff: true,
+    xssFilter: true,
+    frameguard: { action: 'deny' }
+}))
+
 if (process.env.NODE_ENV !== 'production') {
     app.use(morgan('dev'))
 } else {
     app.use(morgan('combined'))
 }
 
+// Enforce HTTPS in production
+app.use((req, res, next) => {
+    if (process.env.NODE_ENV === 'production') {
+        if (req.header('x-forwarded-proto') !== 'https') {
+            return res.redirect(`https://${req.header('host')}${req.url}`)
+        }
+    }
+    next()
+})
+
 app.use(cookieParser())
+
+// CSRF Protection - must be after cookieParser
+const csrfProtection = csrf({ 
+    cookie: {
+        httpOnly: true,
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        ...(process.env.NODE_ENV === 'production' && { secure: true }),
+    }
+})
+
+// Provide CSRF token via /api/csrf endpoint (before general routes)
+app.get('/api/csrf-token', csrfProtection, (req, res) => {
+    res.json({ csrfToken: req.csrfToken() })
+})
 
 const devOrigins = [
     'http://127.0.0.1:3000',
@@ -64,23 +117,34 @@ app.use((req, _res, next) => {
 // Rate limiting — strict on auth, general on all API
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 10,
-    message: { error: 'Too many requests, please try again later' },
+    max: 5,  // 5 attempts per 15 minutes = 1 attempt every 3 minutes
+    message: { error: 'Too many login attempts, please try again later' },
     standardHeaders: true,
     legacyHeaders: false,
+    skip: (req) => process.env.NODE_ENV !== 'production', // Disable in development
 })
 
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 500,
+    max: 100,  // Reduced from 500: 100 requests per 15 minutes (~7 req/min)
     message: { error: 'Too many requests, please try again later' },
     standardHeaders: true,
     legacyHeaders: false,
+    skip: (req) => process.env.NODE_ENV !== 'production', // Disable in development
 })
 
 app.use('/api/auth/login', authLimiter)
 app.use('/api/auth/signup', authLimiter)
 app.use('/api', apiLimiter)
+
+// CSRF protection for state-changing requests (POST, PUT, DELETE)
+const csrfForMutations = (req, res, next) => {
+    if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+        return next()
+    }
+    csrfProtection(req, res, next)
+}
+app.use('/api', csrfForMutations)
 
 // ==================== ROUTES ====================
 

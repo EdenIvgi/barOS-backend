@@ -2,6 +2,8 @@
 
 Bar management application - Backend API
 
+🔗 **[Live Demo](https://baros.onrender.com)**
+
 ## 🛠️ Technologies
 
 - Node.js

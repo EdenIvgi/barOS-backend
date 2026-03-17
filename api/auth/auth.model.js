@@ -5,7 +5,8 @@ const COLLECTION_NAME = 'user'
 
 export const authModel = {
     getByUsername,
-    create
+    create,
+    updatePassword
 }
 
 /**
@@ -33,6 +34,16 @@ async function getByUsername(username) {
         return user
     } catch (error) {
         console.error('[AuthModel] Error getting user by username:', error)
+        throw error
+    }
+}
+
+async function updatePassword(userId, hashedPassword) {
+    try {
+        const collection = await dbService.getMasterCollection(COLLECTION_NAME)
+        await collection.updateOne({ _id: userId }, { $set: { password: hashedPassword } })
+    } catch (error) {
+        console.error('[AuthModel] Error updating password:', error)
         throw error
     }
 }

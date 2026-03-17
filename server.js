@@ -117,6 +117,18 @@ app.use(errorHandler)
 const server = app.listen(PORT, () => {
     console.log(`Server running on port: ${PORT}`)
     console.log(`API: http://localhost:${PORT}/api`)
+
+    // Keep-alive: ping self every 14 min to prevent Render free tier spin-down
+    const RENDER_URL = process.env.RENDER_EXTERNAL_URL
+    if (RENDER_URL) {
+        const INTERVAL = 14 * 60 * 1000
+        setInterval(async () => {
+            try {
+                await fetch(`${RENDER_URL}/health`)
+            } catch { /* ignore */ }
+        }, INTERVAL)
+        console.log(`Keep-alive enabled: pinging ${RENDER_URL}/health every 14m`)
+    }
 })
 
 server.on('error', (err) => {

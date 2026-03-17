@@ -1,10 +1,21 @@
 import jwt from 'jsonwebtoken'
 
 const JWT_SECRET = process.env.JWT_SECRET
-if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
-    throw new Error('JWT_SECRET environment variable is required in production')
+if (!JWT_SECRET) {
+    const message = 'SECURITY ERROR: JWT_SECRET environment variable is required'
+    if (process.env.NODE_ENV === 'production') {
+        throw new Error(message)
+    }
+    console.warn(message + ' - using development default (NOT FOR PRODUCTION)')
 }
-const secret = JWT_SECRET || 'baros_dev_secret_change_in_production'
+
+// Never use a default secret - force explicit configuration
+const secret = JWT_SECRET || (() => {
+    if (process.env.NODE_ENV === 'production') {
+        throw new Error('JWT_SECRET must be set in production environment')
+    }
+    return 'dev_secret_this_must_be_changed_in_production_env'
+})()
 
 export function signToken(payload) {
     return jwt.sign(payload, secret, { expiresIn: '7d' })

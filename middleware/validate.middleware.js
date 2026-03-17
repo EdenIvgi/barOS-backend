@@ -2,7 +2,7 @@
  * Returns an Express middleware that validates req.body fields.
  *
  * Schema example:
- *   { username: { required: true }, password: { required: true, minLength: 4 } }
+ *   { username: { required: true }, password: { required: true, minLength: 12, requireComplexity: true } }
  */
 export function validate(schema) {
     return (req, res, next) => {
@@ -29,6 +29,18 @@ export function validate(schema) {
                 }
                 if (rules.isArray && !Array.isArray(val)) {
                     errors.push(`${field} must be an array`)
+                }
+                // Password complexity check
+                if (field === 'password' && rules.requireComplexity) {
+                    const strVal = String(val)
+                    const hasUpperCase = /[A-Z]/.test(strVal)
+                    const hasLowerCase = /[a-z]/.test(strVal)
+                    const hasNumbers = /\d/.test(strVal)
+                    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(strVal)
+
+                    if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
+                        errors.push(`password must contain uppercase, lowercase, numbers, and special characters (!@#$%^&* etc)`)
+                    }
                 }
             }
         }

@@ -15,7 +15,14 @@ export const orderModel = {
 }
 
 function normalizeOrder(o) {
-    return { ...o, supplier: o.supplier != null ? String(o.supplier) : '' }
+    const { totalAmount, ...rest } = o
+    return {
+        ...rest,
+        supplier: o.supplier != null ? String(o.supplier) : '',
+        // Orders written before the money fields were dropped carry no totalUnits,
+        // so derive it from the line quantities rather than returning undefined.
+        totalUnits: o.totalUnits ?? (o.items || []).reduce((sum, i) => sum + (Number(i.quantity) || 0), 0),
+    }
 }
 
 async function getAll(filterBy = {}, dbName) {
@@ -59,16 +66,17 @@ async function getById(orderId, dbName) {
 async function create(orderData, dbName) {
     const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
 
-    const totalAmount = orderData.items.reduce((sum, item) => sum + (item.subtotal || 0), 0)
+    const items = orderData.items || []
     const supplier = orderData.supplier != null ? String(orderData.supplier).trim() : ''
 
     const orderToAdd = {
-        items: orderData.items || [],
+        items,
         userId: orderData.userId || null,
         status: orderData.status || 'pending',
         type: orderData.type || 'stock_order',
         supplier,
-        totalAmount,
+        // An order is measured in units ordered, not money — BarOS tracks operations.
+        totalUnits: items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0),
         createdAt: Date.now(),
         updatedAt: Date.now()
     }
@@ -90,7 +98,7 @@ async function update(orderId, updateData, dbName) {
     }
 
     if (dataToUpdate.items) {
-        dataToUpdate.totalAmount = dataToUpdate.items.reduce((sum, item) => sum + (item.subtotal || 0), 0)
+        dataToUpdate.totalUnits = dataToUpdate.items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)
     }
     dataToUpdate.updatedAt = Date.now()
 

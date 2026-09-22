@@ -39,12 +39,6 @@ async function getAll(filterBy = {}, dbName) {
             criteria.isAvailable = filterBy.isAvailable === 'true' || filterBy.isAvailable === true
         }
 
-        if (filterBy.minPrice || filterBy.maxPrice) {
-            criteria.price = {}
-            if (filterBy.minPrice) criteria.price.$gte = Number(filterBy.minPrice)
-            if (filterBy.maxPrice) criteria.price.$lte = Number(filterBy.maxPrice)
-        }
-
         return collection.find(criteria).sort({ name: 1 }).toArray()
     } catch (error) {
         console.error('[ItemModel] Error getting items:', error)
@@ -74,7 +68,9 @@ async function create(itemData, dbName) {
             nameEn: itemData.nameEn || itemData.name || '',
             description: itemData.description || '',
             supplier: itemData.supplier || '',
-            price: itemData.price !== undefined ? Number(itemData.price) : 0,
+            // Bottle/container volume in millilitres. Groundwork for deducting stock
+            // from external sales data; nothing computes against it yet.
+            volumeMl: itemData.volumeMl !== undefined ? Number(itemData.volumeMl) : 0,
             category: itemData.category || itemData.categoryId || '',
             imageUrl: itemData.imageUrl || '',
             isAvailable: itemData.isAvailable !== undefined ? itemData.isAvailable : true,
@@ -107,7 +103,7 @@ async function update(itemId, updateData, dbName) {
             nameEn: updateData.nameEn || updateData.name,
             description: updateData.description || '',
             supplier: updateData.supplier || '',
-            price: updateData.price !== undefined ? Number(updateData.price) : 0,
+            volumeMl: updateData.volumeMl !== undefined ? Number(updateData.volumeMl) : 0,
             category: updateData.category || updateData.categoryId || '',
             imageUrl: updateData.imageUrl || '',
             isAvailable: updateData.isAvailable !== undefined ? updateData.isAvailable : true,

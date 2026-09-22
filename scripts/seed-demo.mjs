@@ -33,35 +33,35 @@ const SUP = {
     coca: 'קוקה קולה',
 }
 
-// [name, nameEn, categoryEn, supplier, price, stock, minStock, optimalStock]
+// [name, nameEn, categoryEn, supplier, volumeMl, stock, minStock, optimalStock]
 const itemDefs = [
-    ['גוני ווקר בלאק', 'Johnnie Walker Black', 'Whiskey', SUP.diplomat, 180, 12, 4, 15],
-    ['גיימסון', 'Jameson', 'Whiskey', SUP.diplomat, 150, 3, 4, 12],
-    ['ג׳ק דניאלס', 'Jack Daniels', 'Whiskey', SUP.bandit, 165, 8, 4, 12],
-    ['שיבאס ריגל 12', 'Chivas Regal 12', 'Whiskey', SUP.diplomat, 190, 2, 3, 10],
-    ['מקאלן 12', 'Macallan 12', 'Whiskey', SUP.bandit, 420, 1, 2, 6],
-    ['אבסולוט', 'Absolut', 'Vodka', SUP.diplomat, 110, 20, 6, 24],
-    ['גריי גוס', 'Grey Goose', 'Vodka', SUP.bandit, 230, 5, 3, 10],
-    ['בלוודר', 'Belvedere', 'Vodka', SUP.bandit, 210, 0, 2, 8],
-    ['סמירנוף', 'Smirnoff', 'Vodka', SUP.tempo, 85, 18, 6, 20],
-    ['בומביי ספייר', 'Bombay Sapphire', 'Gin', SUP.diplomat, 145, 9, 4, 12],
-    ['הנדריקס', 'Hendricks', 'Gin', SUP.bandit, 240, 3, 3, 8],
-    ['טנקרי', 'Tanqueray', 'Gin', SUP.diplomat, 155, 11, 4, 12],
-    ['כרמל אדום יבש', 'Carmel Dry Red', 'Wine', SUP.carmel, 65, 24, 10, 36],
-    ['רקנאטי שרדונה', 'Recanati Chardonnay', 'Wine', SUP.carmel, 95, 14, 8, 24],
-    ['יתיר קברנה', 'Yatir Cabernet', 'Wine', SUP.carmel, 130, 6, 6, 18],
-    ['גולדסטאר חבית', 'Goldstar Draft', 'Beer', SUP.tempo, 28, 48, 24, 72],
-    ['טובורג', 'Tuborg', 'Beer', SUP.tempo, 26, 36, 24, 72],
-    ['הייניקן', 'Heineken', 'Beer', SUP.tempo, 32, 12, 24, 60],
-    ['קורונה', 'Corona', 'Beer', SUP.bandit, 35, 30, 18, 48],
-    ['קוקה קולה', 'Coca Cola', 'Soft Drinks', SUP.coca, 12, 90, 40, 120],
-    ['ספרייט', 'Sprite', 'Soft Drinks', SUP.coca, 12, 22, 40, 120],
-    ['סודה', 'Soda', 'Soft Drinks', SUP.coca, 8, 60, 30, 90],
-    ['מיץ תפוזים', 'Orange Juice', 'Soft Drinks', SUP.coca, 18, 15, 12, 36],
-    ['קמפרי', 'Campari', 'Liqueur', SUP.diplomat, 125, 7, 3, 10],
-    ['בייליס', 'Baileys', 'Liqueur', SUP.diplomat, 135, 4, 3, 10],
-    ['אפרול', 'Aperol', 'Liqueur', SUP.bandit, 115, 2, 3, 10],
-    ['קואנטרו', 'Cointreau', 'Liqueur', SUP.bandit, 160, 6, 3, 8],
+    ['גוני ווקר בלאק', 'Johnnie Walker Black', 'Whiskey', SUP.diplomat, 700, 12, 4, 15],
+    ['גיימסון', 'Jameson', 'Whiskey', SUP.diplomat, 700, 3, 4, 12],
+    ['ג׳ק דניאלס', 'Jack Daniels', 'Whiskey', SUP.bandit, 700, 8, 4, 12],
+    ['שיבאס ריגל 12', 'Chivas Regal 12', 'Whiskey', SUP.diplomat, 700, 2, 3, 10],
+    ['מקאלן 12', 'Macallan 12', 'Whiskey', SUP.bandit, 700, 1, 2, 6],
+    ['אבסולוט', 'Absolut', 'Vodka', SUP.diplomat, 700, 20, 6, 24],
+    ['גריי גוס', 'Grey Goose', 'Vodka', SUP.bandit, 700, 5, 3, 10],
+    ['בלוודר', 'Belvedere', 'Vodka', SUP.bandit, 700, 0, 2, 8],
+    ['סמירנוף', 'Smirnoff', 'Vodka', SUP.tempo, 700, 18, 6, 20],
+    ['בומביי ספייר', 'Bombay Sapphire', 'Gin', SUP.diplomat, 700, 9, 4, 12],
+    ['הנדריקס', 'Hendricks', 'Gin', SUP.bandit, 700, 3, 3, 8],
+    ['טנקרי', 'Tanqueray', 'Gin', SUP.diplomat, 700, 11, 4, 12],
+    ['כרמל אדום יבש', 'Carmel Dry Red', 'Wine', SUP.carmel, 750, 24, 10, 36],
+    ['רקנאטי שרדונה', 'Recanati Chardonnay', 'Wine', SUP.carmel, 750, 14, 8, 24],
+    ['יתיר קברנה', 'Yatir Cabernet', 'Wine', SUP.carmel, 750, 6, 6, 18],
+    ['גולדסטאר חבית', 'Goldstar Draft', 'Beer', SUP.tempo, 30000, 48, 24, 72],
+    ['טובורג', 'Tuborg', 'Beer', SUP.tempo, 330, 36, 24, 72],
+    ['הייניקן', 'Heineken', 'Beer', SUP.tempo, 330, 12, 24, 60],
+    ['קורונה', 'Corona', 'Beer', SUP.bandit, 330, 30, 18, 48],
+    ['קוקה קולה', 'Coca Cola', 'Soft Drinks', SUP.coca, 1500, 90, 40, 120],
+    ['ספרייט', 'Sprite', 'Soft Drinks', SUP.coca, 1500, 22, 40, 120],
+    ['סודה', 'Soda', 'Soft Drinks', SUP.coca, 1500, 60, 30, 90],
+    ['מיץ תפוזים', 'Orange Juice', 'Soft Drinks', SUP.coca, 1000, 15, 12, 36],
+    ['קמפרי', 'Campari', 'Liqueur', SUP.diplomat, 700, 7, 3, 10],
+    ['בייליס', 'Baileys', 'Liqueur', SUP.diplomat, 700, 4, 3, 10],
+    ['אפרול', 'Aperol', 'Liqueur', SUP.bandit, 700, 2, 3, 10],
+    ['קואנטרו', 'Cointreau', 'Liqueur', SUP.bandit, 700, 6, 3, 8],
 ]
 
 const client = await MongoClient.connect(process.env.DB_URL)
@@ -77,12 +77,12 @@ const catDocs = categories.map(c => ({ ...c, isActive: true, createdAt: now, upd
 await db.collection('category').insertMany(catDocs)
 console.log(`  categories: ${catDocs.length}`)
 
-const itemDocs = itemDefs.map(([name, nameEn, catEn, supplier, price, stock, minS, optS]) => ({
+const itemDocs = itemDefs.map(([name, nameEn, catEn, supplier, volumeMl, stock, minS, optS]) => ({
     name,
     nameEn,
     description: '',
     supplier,
-    price,
+    volumeMl,
     category: categories.find(c => c.nameEn === catEn).name,
     imageUrl: '',
     isAvailable: stock > 0,
@@ -108,9 +108,8 @@ function orderFor(supplier, daysAgo, hour, names, status) {
             name: it.name,
             nameEn: it.nameEn,
             supplier: it.supplier,
-            price: it.price,
+            volumeMl: it.volumeMl,
             quantity,
-            subtotal: it.price * quantity,
         }
     })
     const d = new Date(now - daysAgo * DAY)
@@ -121,7 +120,7 @@ function orderFor(supplier, daysAgo, hour, names, status) {
         status,
         type: 'stock_order',
         supplier,
-        totalAmount: items.reduce((s, i) => s + i.subtotal, 0),
+        totalUnits: items.reduce((s, i) => s + i.quantity, 0),
         createdAt: d.getTime(),
         updatedAt: d.getTime(),
     }

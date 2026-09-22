@@ -31,6 +31,26 @@ export async function signup(req, res, next) {
     }
 }
 
+export async function getInviteCode(req, res, next) {
+    try {
+        const { dbName, companyDisplayName } = req.loggedInUser
+        const inviteCode = await authService.getInviteCode(dbName, companyDisplayName)
+        res.json({ inviteCode })
+    } catch (error) {
+        next(error)
+    }
+}
+
+export async function regenerateInviteCode(req, res, next) {
+    try {
+        const { dbName, companyDisplayName } = req.loggedInUser
+        const inviteCode = await authService.regenerateInviteCode(dbName, companyDisplayName)
+        res.json({ inviteCode })
+    } catch (error) {
+        next(error)
+    }
+}
+
 export async function logout(req, res, next) {
     try {
         res.clearCookie('baros_token')

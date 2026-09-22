@@ -27,6 +27,14 @@ export function requireAuth(req, res, next) {
 
     try {
         req.loggedInUser = jwt.verify(token, secret)
+
+        // Tokens issued before the multi-tenant migration carry no dbName. Without it
+        // the driver would silently fall back to the connection string's default
+        // database, so reject the token and force a fresh login instead.
+        if (!req.loggedInUser.dbName) {
+            return res.status(401).json({ error: 'Session is outdated, please log in again' })
+        }
+
         req.userDbName = req.loggedInUser.dbName
         next()
     } catch {

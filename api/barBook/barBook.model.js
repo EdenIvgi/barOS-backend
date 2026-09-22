@@ -85,7 +85,7 @@ async function get(dbName) {
 
 async function save(content, dbName) {
   const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
-  const { _id, createdAt, updatedAt, ...payload } = content || {}
+  const { _id, createdAt, updatedAt, baseUpdatedAt, ...payload } = content || {}
   const now = Date.now()
 
   const dataToSave = {
@@ -95,6 +95,14 @@ async function save(content, dbName) {
 
   const existing = await collection.findOne({})
   if (existing) {
+    // Optimistic concurrency: this save replaces the whole document, so a client
+    // working from a stale copy would silently wipe another user's edits.
+    // baseUpdatedAt is the version the client loaded — refuse if it has moved on.
+    if (baseUpdatedAt !== undefined && existing.updatedAt && baseUpdatedAt !== existing.updatedAt) {
+      const err = new Error('Bar book was modified by someone else')
+      err.status = 409
+      throw err
+    }
     await collection.updateOne({ _id: existing._id }, { $set: dataToSave })
   } else {
     dataToSave.createdAt = now

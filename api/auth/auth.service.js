@@ -5,6 +5,18 @@ import { createError } from '../../middleware/error.middleware.js'
 export const authService = {
     login,
     signup,
+    getInviteCode,
+    regenerateInviteCode,
+}
+
+async function getInviteCode(dbName, companyDisplayName) {
+    const company = await authModel.ensureCompany(dbName, companyDisplayName)
+    return company.inviteCode
+}
+
+async function regenerateInviteCode(dbName, companyDisplayName) {
+    await authModel.ensureCompany(dbName, companyDisplayName)
+    return authModel.regenerateInviteCode(dbName)
 }
 
 async function login(username, password) {

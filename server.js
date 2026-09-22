@@ -104,6 +104,12 @@ app.get('/health', async (req, res) => {
     res.json({ status: 'OK', database: dbStatus })
 })
 
+// Unknown API routes must not fall through to the SPA catch-all below,
+// which would answer with index.html and a misleading 200.
+app.use('/api', (req, res) => {
+    res.status(404).json({ error: 'Endpoint not found', code: 'ERROR_404' })
+})
+
 // ==================== STATIC FILES (React build) ====================
 app.use(express.static(join(__dirname, 'public')))
 app.get('*', (req, res) => {

@@ -1,12 +1,57 @@
 import { dbService } from '../../services/mongo.service.js'
 import bcrypt from 'bcrypt'
+import crypto from 'crypto'
 
 const COLLECTION_NAME = 'user'
+const COMPANY_COLLECTION = 'company'
 
 export const authModel = {
     getByUsername,
     create,
-    updatePassword
+    updatePassword,
+    getCompanyByDbName,
+    ensureCompany,
+    regenerateInviteCode
+}
+
+// Unambiguous alphabet: no O/0, I/1, so codes can be read aloud across a noisy bar.
+const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+
+function generateInviteCode() {
+    const bytes = crypto.randomBytes(8)
+    return Array.from(bytes, b => CODE_ALPHABET[b % CODE_ALPHABET.length]).join('')
+}
+
+async function getCompanyByDbName(dbName) {
+    const collection = await dbService.getMasterCollection(COMPANY_COLLECTION)
+    return collection.findOne({ dbName })
+}
+
+/**
+ * Fetch a company record, creating it if missing.
+ * Companies that pre-date invite codes have no record yet, so their admin gets one
+ * generated on first access rather than needing a separate migration.
+ */
+async function ensureCompany(dbName, companyDisplayName) {
+    const collection = await dbService.getMasterCollection(COMPANY_COLLECTION)
+    const existing = await collection.findOne({ dbName })
+    if (existing) return existing
+
+    const company = {
+        dbName,
+        companyDisplayName: companyDisplayName || dbName,
+        inviteCode: generateInviteCode(),
+        createdAt: Date.now(),
+    }
+    await collection.insertOne(company)
+    return company
+}
+
+async function regenerateInviteCode(dbName) {
+    const collection = await dbService.getMasterCollection(COMPANY_COLLECTION)
+    const inviteCode = generateInviteCode()
+    await collection.updateOne({ dbName }, { $set: { inviteCode, updatedAt: Date.now() } })
+    return inviteCode
 }
 
 /**
@@ -64,12 +109,27 @@ async function create(userData) {
 
         const companyName = companySegment
         const dbName = `${companySegment}_db`
-
-        // Check if this company already has users (first user = admin)
-        const existingCompanyUser = await collection.findOne({ dbName })
-        const role = existingCompanyUser ? 'bartender' : 'admin'
-
         const companyDisplayName = rawCompanyName.trim()
+
+        // Joining an existing company must be authorised by that company, otherwise
+        // anyone who guesses a company name lands inside its database. The first user
+        // creates the company and becomes its admin; everyone after needs its code.
+        const existingCompanyUser = await collection.findOne({ dbName })
+        let role = 'admin'
+
+        if (existingCompanyUser) {
+            const company = await ensureCompany(dbName, companyDisplayName)
+            const supplied = (userData.inviteCode || '').trim().toUpperCase()
+            if (!supplied || supplied !== company.inviteCode) {
+                const err = new Error('This company name is taken. Ask its admin for an invite code to join.')
+                err.status = 403
+                throw err
+            }
+            role = 'bartender'
+        } else {
+            // New company — create its record now so the admin has an invite code to share.
+            await ensureCompany(dbName, companyDisplayName)
+        }
 
         const userToAdd = {
             username: userData.username,

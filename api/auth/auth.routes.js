@@ -1,6 +1,7 @@
 import express from 'express'
-import { login, signup, logout } from './auth.controller.js'
+import { login, signup, logout, getInviteCode, regenerateInviteCode } from './auth.controller.js'
 import { validate } from '../../middleware/validate.middleware.js'
+import { requireAuth, requireAdmin } from '../../middleware/auth.middleware.js'
 
 const router = express.Router()
 
@@ -18,5 +19,7 @@ const signupSchema = {
 router.post('/login', validate(loginSchema), login)
 router.post('/signup', validate(signupSchema), signup)
 router.post('/logout', logout)
+router.get('/invite-code', requireAuth, requireAdmin, getInviteCode)
+router.post('/invite-code/regenerate', requireAuth, requireAdmin, regenerateInviteCode)
 
 export const authRoutes = router

@@ -151,7 +151,7 @@ function similarityScore(aRaw, bRaw) {
     return 0.6 * jaccard + 0.4 * lev
 }
 
-async function importStock(rows, { dryRun = true, mode = 'set' } = {}, dbName) {
+async function importStock(rows, { dryRun = true, mode = 'set', createMissing = false } = {}, dbName) {
     const collection = await dbService.getCollection('items', dbName)
     const items = await collection
         .find({}, { projection: { name: 1, nameEn: 1, stockQuantity: 1, supplier: 1, category: 1 } })
@@ -227,7 +227,12 @@ async function importStock(rows, { dryRun = true, mode = 'set' } = {}, dbName) {
         }
 
         if (!best || bestScore < threshold) {
-            unmatched.push({ rowIndex: idx, inputName, quantity, bestGuess: best?.name || null, score: bestScore })
+            unmatched.push({
+                rowIndex: idx, inputName, quantity,
+                supplier: inputSupplier, category: inputCategory,
+                bestGuess: best?.name || null, score: bestScore,
+                canCreate: true,
+            })
             return
         }
 
@@ -272,8 +277,13 @@ async function importStock(rows, { dryRun = true, mode = 'set' } = {}, dbName) {
         matchedRows: matches.length,
         uniqueMatchedItems: updates.length,
         unmatchedRows: unmatched.length,
+        // Rows that named a product and a quantity but matched nothing in stock.
+        // These are the ones that can become new items; rows missing a name or a
+        // number cannot.
+        creatableRows: unmatched.filter(u => u.canCreate).length,
         dryRun: !!dryRun,
-        mode
+        mode,
+        createMissing: !!createMissing
     }
 
     if (dryRun) return { summary, matches, unmatched }
@@ -319,8 +329,45 @@ async function importStock(rows, { dryRun = true, mode = 'set' } = {}, dbName) {
     })
 
     const bulkRes = bulkOps.length ? await collection.bulkWrite(bulkOps, { ordered: false }) : null
+
+    // Rows that matched nothing are new products. Without this the import could
+    // only ever adjust what was already in stock, so a sheet of new bottles
+    // reported "unmatched" and changed nothing.
+    let createdCount = 0
+    if (createMissing) {
+        const now = Date.now()
+        const toCreate = unmatched
+            .filter(u => u.canCreate)
+            .map(u => ({
+                name: u.inputName,
+                nameEn: u.inputName,
+                description: '',
+                supplier: u.supplier || '',
+                volumeMl: 0,
+                category: u.category || '',
+                imageUrl: '',
+                isAvailable: (Number(u.quantity) || 0) > 0,
+                stockQuantity: Math.max(0, Number(u.quantity) || 0),
+                minStockLevel: 0,
+                optimalStockLevel: 0,
+                tags: [],
+                quantity: null,
+                createdAt: now,
+                updatedAt: now,
+            }))
+        if (toCreate.length) {
+            const insertRes = await collection.insertMany(toCreate, { ordered: false })
+            createdCount = insertRes.insertedCount || 0
+        }
+    }
+
     return {
-        summary: { ...summary, modifiedCount: bulkRes?.modifiedCount || 0, matchedCount: bulkRes?.matchedCount || 0 },
+        summary: {
+            ...summary,
+            modifiedCount: bulkRes?.modifiedCount || 0,
+            matchedCount: bulkRes?.matchedCount || 0,
+            createdCount,
+        },
         matches,
         unmatched
     }

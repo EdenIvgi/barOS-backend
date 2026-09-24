@@ -18,6 +18,13 @@ export function validate(schema) {
             }
 
             if (!isEmpty) {
+                if (rules.isString && typeof val !== 'string') {
+                    errors.push(`${field} must be a string`)
+                    continue
+                }
+                if (rules.oneOf && !rules.oneOf.includes(val)) {
+                    errors.push(`${field} must be one of: ${rules.oneOf.join(', ')}`)
+                }
                 if (rules.minLength && String(val).trim().length < rules.minLength) {
                     errors.push(`${field} must be at least ${rules.minLength} characters`)
                 }

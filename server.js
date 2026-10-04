@@ -17,6 +17,7 @@ import { authRoutes } from './api/auth/auth.routes.js'
 import { userRoutes } from './api/user/user.routes.js'
 import { orderRoutes } from './api/order/order.routes.js'
 import { barBookRoutes } from './api/barBook/barBook.routes.js'
+import { setupRoutes } from './api/setup/setup.routes.js'
 import { translateRoutes } from './api/translate/translate.routes.js'
 import mongoSanitize from 'mongo-sanitize'
 
@@ -90,6 +91,7 @@ app.use('/api/category', categoryRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/order', orderRoutes)
 app.use('/api/barBook', barBookRoutes)
+app.use('/api/setup', setupRoutes)
 app.use('/api/translate', translateRoutes)
 
 // Health check

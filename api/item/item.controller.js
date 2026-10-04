@@ -62,13 +62,13 @@ export async function updateItemStock(req, res, next) {
 
 export async function importItemStock(req, res, next) {
     try {
-        const { rows, dryRun = true, mode = 'set', createMissing = false } = req.body || {}
+        const { rows, dryRun = true, mode = 'set', createMissing = false, confirmedMatches = null } = req.body || {}
         if (!Array.isArray(rows) || rows.length === 0) {
             return res.status(400).json({ error: 'rows array is required' })
         }
         const result = await itemService.importStock(
             rows,
-            { dryRun: !!dryRun, mode, createMissing: !!createMissing },
+            { dryRun: !!dryRun, mode, createMissing: !!createMissing, confirmedMatches },
             req.userDbName
         )
         res.json(result)

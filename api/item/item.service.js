@@ -134,7 +134,16 @@ function similarityScore(aRaw, bRaw) {
     const b = normalizeName(bRaw)
     if (!a || !b) return 0
     if (a === b) return 1
-    if (a.includes(b) || b.includes(a)) return 0.92
+
+    // Containment used to score a flat 0.92 regardless of how much of the longer
+    // name the shorter one actually covered, so a two-letter row name matched any
+    // product containing it and overwrote that product's stock. Scale the score by
+    // the coverage instead: a near-complete prefix still scores high, a fragment
+    // falls through to token and edit-distance scoring like anything else.
+    if (a.includes(b) || b.includes(a)) {
+        const coverage = Math.min(a.length, b.length) / Math.max(a.length, b.length)
+        if (coverage >= 0.6) return 0.75 + 0.22 * coverage
+    }
 
     const aTokens = tokenize(a)
     const bTokens = tokenize(b)
@@ -151,7 +160,11 @@ function similarityScore(aRaw, bRaw) {
     return 0.6 * jaccard + 0.4 * lev
 }
 
-async function importStock(rows, { dryRun = true, mode = 'set', createMissing = false } = {}, dbName) {
+async function importStock(
+    rows,
+    { dryRun = true, mode = 'set', createMissing = false, confirmedMatches = null } = {},
+    dbName
+) {
     const collection = await dbService.getCollection('items', dbName)
     const items = await collection
         .find({}, { projection: { name: 1, nameEn: 1, stockQuantity: 1, supplier: 1, category: 1 } })
@@ -208,19 +221,24 @@ async function importStock(rows, { dryRun = true, mode = 'set', createMissing = 
         }
         const candidates = candidateSet.size ? Array.from(candidateSet.values()) : all
 
+        // A matching supplier breaks ties between candidates; it must not decide
+        // whether something is a match at all. Adding it to the score let a 0.65
+        // name similarity clear the 0.72 threshold and overwrite the wrong item's
+        // stock, so the threshold is applied to the name score alone.
         let best = null
         let bestScore = 0
+        let bestRank = -1
         for (const it of candidates) {
             const s1 = similarityScore(inputName, it.name)
             const s2 = it.nameEn ? similarityScore(inputName, it.nameEn) : 0
-            let s = Math.max(s1, s2)
+            const s = Math.max(s1, s2)
 
-            // Boost score if supplier matches
-            if (inputSupplier && it.supplier && normalizeName(inputSupplier) === normalizeName(it.supplier)) {
-                s += 0.1
-            }
+            const supplierMatches = !!(inputSupplier && it.supplier &&
+                normalizeName(inputSupplier) === normalizeName(it.supplier))
+            const rank = s + (supplierMatches ? 0.1 : 0)
 
-            if (s > bestScore) {
+            if (rank > bestRank) {
+                bestRank = rank
                 bestScore = s
                 best = it
             }
@@ -287,6 +305,31 @@ async function importStock(rows, { dryRun = true, mode = 'set', createMissing = 
     }
 
     if (dryRun) return { summary, matches, unmatched }
+
+    // Apply exactly what the preview showed. The preview and this call are separate
+    // requests, so re-deriving the matches here would silently apply a different
+    // result whenever stock changed in between — another device counting, or a
+    // second import landing. When the client returns the decisions it displayed,
+    // those are what run; rows whose item has since been deleted are dropped and
+    // reported rather than guessed at again.
+    let staleMatches = 0
+    if (Array.isArray(confirmedMatches)) {
+        const byId = new Map(all.map(it => [it.idStr, it]))
+        const confirmed = confirmedMatches.filter(m => {
+            if (!m || !m.matchedItemId || !byId.has(m.matchedItemId)) {
+                staleMatches++
+                return false
+            }
+            return true
+        })
+        updates.length = 0
+        const seen = new Set()
+        for (const m of confirmed) {
+            if (seen.has(m.matchedItemId)) continue
+            seen.add(m.matchedItemId)
+            updates.push(m)
+        }
+    }
 
     const bulkOps = updates.map(m => {
         const id = ObjectId.createFromHexString(m.matchedItemId)
@@ -367,6 +410,8 @@ async function importStock(rows, { dryRun = true, mode = 'set', createMissing = 
             modifiedCount: bulkRes?.modifiedCount || 0,
             matchedCount: bulkRes?.matchedCount || 0,
             createdCount,
+            // Non-zero means the preview referred to items that no longer exist.
+            staleMatches,
         },
         matches,
         unmatched

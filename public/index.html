@@ -10,8 +10,22 @@
       href="/src/assets/img/toys-favicon.png"
     />
     <title>BarOS</title>
-    <script type="module" crossorigin src="/assets/index-e32ef2d1.js"></script>
-    <link rel="stylesheet" href="/assets/index-48643f55.css">
+    <script>
+      // Runs before the stylesheet paints, so a light-set device never flashes
+      // dark first. Deliberately duplicates a little of theme.service.js: by the
+      // time a module could load, the wrong theme has already been seen.
+      (function () {
+        try {
+          var c = localStorage.getItem('baros_theme')
+          if (c === 'light' || c === 'dark') document.documentElement.setAttribute('data-theme', c)
+        } catch (e) { /* storage refused; fall through to the device setting */ }
+        var light = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches
+        var resolved = document.documentElement.getAttribute('data-theme') || (light ? 'light' : 'dark')
+        document.documentElement.style.colorScheme = resolved
+      })()
+    </script>
+    <script type="module" crossorigin src="/assets/index-2358658b.js"></script>
+    <link rel="stylesheet" href="/assets/index-51cd75fb.css">
   </head>
 
   <body>

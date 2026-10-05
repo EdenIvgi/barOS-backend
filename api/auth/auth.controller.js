@@ -1,5 +1,6 @@
 import { authService } from './auth.service.js'
 import { signToken } from '../../middleware/auth.middleware.js'
+import { demoTenantService } from '../../services/demoTenant.service.js'
 
 const COOKIE_OPTIONS = {
     httpOnly: true,
@@ -24,6 +25,31 @@ export async function signup(req, res, next) {
     try {
         const user = await authService.signup(req.body)
         const token = signToken({ _id: user._id, username: user.username, role: user.role || 'bartender', dbName: user.dbName, companyName: user.companyName, companyDisplayName: user.companyDisplayName })
+        res.cookie('baros_token', token, COOKIE_OPTIONS)
+        res.status(201).json(user)
+    } catch (error) {
+        next(error)
+    }
+}
+
+/**
+ * Starts a demo: builds a disposable bar and signs the caller into it.
+ *
+ * The token is the ordinary one, carrying the demo's own dbName, so every model
+ * scopes the session to that tenant exactly as it would any other account. The
+ * demo needs no special case anywhere else, and cannot reach a real bar.
+ */
+export async function startDemo(req, res, next) {
+    try {
+        const user = await demoTenantService.createDemoSession()
+        const token = signToken({
+            _id: user._id,
+            username: user.username,
+            role: user.role,
+            dbName: user.dbName,
+            companyName: user.companyName,
+            companyDisplayName: user.companyDisplayName,
+        })
         res.cookie('baros_token', token, COOKIE_OPTIONS)
         res.status(201).json(user)
     } catch (error) {

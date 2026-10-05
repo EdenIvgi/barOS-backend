@@ -1,5 +1,5 @@
 import express from 'express'
-import { login, signup, logout, getInviteCode, regenerateInviteCode } from './auth.controller.js'
+import { login, signup, logout, startDemo, getInviteCode, regenerateInviteCode } from './auth.controller.js'
 import { validate } from '../../middleware/validate.middleware.js'
 import { requireAuth, requireAdmin } from '../../middleware/auth.middleware.js'
 
@@ -19,6 +19,9 @@ const signupSchema = {
 router.post('/login', validate(loginSchema), login)
 router.post('/signup', validate(signupSchema), signup)
 router.post('/logout', logout)
+// Unauthenticated by design: a demo is how someone sees the app before having an
+// account. The tenant it creates is disposable and bounded by demoTenantService.
+router.post('/demo', startDemo)
 router.get('/invite-code', requireAuth, requireAdmin, getInviteCode)
 router.post('/invite-code/regenerate', requireAuth, requireAdmin, regenerateInviteCode)
 

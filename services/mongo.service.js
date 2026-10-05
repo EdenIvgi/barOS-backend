@@ -4,7 +4,7 @@ import { logger } from './logger.service.js'
 
 const MASTER_DB = 'barapp_master'
 
-export const dbService = { getCollection, getMasterCollection, close }
+export const dbService = { getCollection, getMasterCollection, getDb, getClient, close }
 
 var dbClient = null
 
@@ -33,6 +33,12 @@ async function getCollection(collectionName, dbName) {
 
 async function getMasterCollection(collectionName) {
     return getCollection(collectionName, MASTER_DB)
+}
+
+/** A database handle, for work that spans collections rather than sitting in one. */
+async function getDb(dbName) {
+    const client = await getClient()
+    return client.db(dbName)
 }
 
 async function close() {

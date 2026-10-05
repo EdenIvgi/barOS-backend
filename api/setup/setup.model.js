@@ -41,8 +41,15 @@ async function save(patch, dbName) {
         if (patch?.steps && step in patch.steps) steps[step] = !!patch.steps[step]
     }
 
+    // Honour whichever status was asked for. The route already restricts it to
+    // 'pending' or 'done', and quietly keeping the old one meant a request to
+    // reopen setup returned 200 while changing nothing.
+    const status = patch?.status === 'done' || patch?.status === 'pending'
+        ? patch.status
+        : current.status
+
     const next = {
-        status: patch?.status === 'done' ? 'done' : current.status,
+        status,
         steps,
         updatedAt: Date.now(),
     }

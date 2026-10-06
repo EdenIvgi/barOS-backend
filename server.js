@@ -21,6 +21,8 @@ import { setupRoutes } from './api/setup/setup.routes.js'
 import { imageRoutes } from './api/image/image.routes.js'
 import { translateRoutes } from './api/translate/translate.routes.js'
 import { scanRoutes } from './api/scan/scan.routes.js'
+import { recipeRoutes } from './api/recipe/recipe.routes.js'
+import { recipeLibraryService } from './services/recipeLibrary.service.js'
 import mongoSanitize from 'mongo-sanitize'
 
 const app = express()
@@ -110,6 +112,7 @@ app.use('/api/setup', setupRoutes)
 app.use('/api/image', imageRoutes)
 app.use('/api/translate', translateRoutes)
 app.use('/api/scan', scanRoutes)
+app.use('/api/recipe', recipeRoutes)
 
 // Health check
 app.get('/health', async (req, res) => {
@@ -142,6 +145,10 @@ app.use(errorHandler)
 const server = app.listen(PORT, () => {
     console.log(`Server running on port: ${PORT}`)
     console.log(`API: http://localhost:${PORT}/api`)
+
+    // The shared recipe library is one copy for every bar, so it is written on
+    // start rather than per tenant. It never blocks the server coming up.
+    recipeLibraryService.ensureLibrary()
 
     // Keep-alive: ping self every 14 min to prevent Render free tier spin-down
     const RENDER_URL = process.env.RENDER_EXTERNAL_URL

@@ -1,0 +1,26 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "start"
+      ],
+      "port": 3031
+    },
+    {
+      "name": "frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "C:/barApp/barApp-frontend",
+        "run",
+        "dev",
+        "--",
+        "C:/barApp/barApp-frontend"
+      ],
+      "port": 5173
+    }
+  ]
+}

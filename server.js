@@ -18,6 +18,7 @@ import { userRoutes } from './api/user/user.routes.js'
 import { orderRoutes } from './api/order/order.routes.js'
 import { barBookRoutes } from './api/barBook/barBook.routes.js'
 import { setupRoutes } from './api/setup/setup.routes.js'
+import { imageRoutes } from './api/image/image.routes.js'
 import { translateRoutes } from './api/translate/translate.routes.js'
 import mongoSanitize from 'mongo-sanitize'
 
@@ -81,6 +82,9 @@ const apiLimiter = rateLimit({
 
 app.use('/api/auth/login', authLimiter)
 app.use('/api/auth/signup', authLimiter)
+// Starting a demo builds a database and seeds it, so it belongs with the strict
+// limiter rather than the general one.
+app.use('/api/auth/demo', authLimiter)
 app.use('/api', apiLimiter)
 
 // ==================== ROUTES ====================
@@ -92,6 +96,7 @@ app.use('/api/user', userRoutes)
 app.use('/api/order', orderRoutes)
 app.use('/api/barBook', barBookRoutes)
 app.use('/api/setup', setupRoutes)
+app.use('/api/image', imageRoutes)
 app.use('/api/translate', translateRoutes)
 
 // Health check

@@ -1,4 +1,5 @@
 import { dbService } from '../../services/mongo.service.js'
+import { imageStore } from '../../services/imageStore.service.js'
 import { ObjectId } from 'mongodb'
 import { toObjectId } from '../../services/objectId.service.js'
 
@@ -92,6 +93,15 @@ async function create(itemData, dbName) {
     }
 }
 
+// An uploaded product photo is a file in this bar's bucket; a pasted address is
+// somebody else's and is left alone.
+const UPLOADED_IMAGE = /^\/api\/image\/([a-f0-9]{24})$/i
+
+function uploadedImageId(imageUrl) {
+    const match = UPLOADED_IMAGE.exec(imageUrl || '')
+    return match ? match[1] : null
+}
+
 async function update(itemId, updateData, dbName) {
     try {
         const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
@@ -118,8 +128,18 @@ async function update(itemId, updateData, dbName) {
             dataToUpdate.optimalStockLevel = Number(updateData.optimalStockLevel)
         }
 
+        // Swapping or clearing a photo leaves the old file pointing at nothing,
+        // and storage here is the database.
+        const previous = await collection.findOne(filter, { projection: { imageUrl: 1 } })
+        const oldId = uploadedImageId(previous?.imageUrl)
+
         const result = await collection.updateOne(filter, { $set: dataToUpdate })
         if (result.matchedCount === 0) return null
+
+        if (oldId && oldId !== uploadedImageId(dataToUpdate.imageUrl)) {
+            imageStore.deleteImages(dbName, [oldId])
+                .catch(err => console.error('[ItemModel] failed to remove replaced image:', err?.message))
+        }
         return getById(itemId, dbName)
     } catch (error) {
         console.error('[ItemModel] Error updating item:', error)
@@ -149,7 +169,14 @@ async function remove(itemId, dbName) {
         const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
         const objId = toObjectId(itemId)
         const filter = objId ? { _id: objId } : { _id: itemId }
+        const doomed = await collection.findOne(filter, { projection: { imageUrl: 1 } })
         const result = await collection.deleteOne(filter)
+
+        const imageId = uploadedImageId(doomed?.imageUrl)
+        if (result.deletedCount > 0 && imageId) {
+            imageStore.deleteImages(dbName, [imageId])
+                .catch(err => console.error('[ItemModel] failed to remove image of deleted item:', err?.message))
+        }
         return result.deletedCount
     } catch (error) {
         console.error('[ItemModel] Error removing item:', error)

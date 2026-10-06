@@ -1,4 +1,5 @@
 import { dbService } from '../../services/mongo.service.js'
+import { imageStore } from '../../services/imageStore.service.js'
 
 const COLLECTION_NAME = 'barBook'
 
@@ -65,6 +66,25 @@ function migrateOldFormat(doc) {
   return pages
 }
 
+/**
+ * Every image this book points at.
+ *
+ * Gallery pages hold uploads; other formats may carry a pasted external address,
+ * which is not ours to delete and is skipped by the id match.
+ */
+function collectImageIds(pages) {
+  const ids = new Set()
+  const ID_IN_URL = /^\/api\/image\/([a-f0-9]{24})$/i
+
+  for (const page of pages || []) {
+    for (const photo of page.photos || []) {
+      const match = ID_IN_URL.exec(photo.imageUrl || '')
+      if (match) ids.add(match[1])
+    }
+  }
+  return ids
+}
+
 async function get(dbName) {
   const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
   const doc = await collection.findOne({})
@@ -94,6 +114,20 @@ async function save(content, dbName) {
   }
 
   const existing = await collection.findOne({})
+
+  // Storage here is the database, so a photo nothing points at is wasted quota.
+  // The document being replaced is already in hand for the conflict check, and
+  // the difference between the two is exactly what was removed.
+  if (existing) {
+    const before = collectImageIds(existing.pages)
+    const after = collectImageIds(dataToSave.pages)
+    const dropped = [...before].filter(id => !after.has(id))
+    if (dropped.length > 0) {
+      imageStore.deleteImages(dbName, dropped)
+        .catch(err => console.error('failed to remove unused bar book images', err?.message))
+    }
+  }
+
   if (existing) {
     // Optimistic concurrency: this save replaces the whole document, so a client
     // working from a stale copy would silently wipe another user's edits.

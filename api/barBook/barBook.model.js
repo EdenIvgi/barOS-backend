@@ -69,17 +69,26 @@ function migrateOldFormat(doc) {
 /**
  * Every image this book points at.
  *
- * Gallery pages hold uploads; other formats may carry a pasted external address,
- * which is not ours to delete and is skipped by the id match.
+ * Uploads live on gallery photos and on recipes. Any format may instead carry a
+ * pasted external address, which is not ours to delete and is skipped by the id
+ * match.
+ *
+ * Anything that gains an image has to be added here, or deleting it leaks the
+ * file into the database for good.
  */
 function collectImageIds(pages) {
   const ids = new Set()
   const ID_IN_URL = /^\/api\/image\/([a-f0-9]{24})$/i
 
+  const add = imageUrl => {
+    const match = ID_IN_URL.exec(imageUrl || '')
+    if (match) ids.add(match[1])
+  }
+
   for (const page of pages || []) {
-    for (const photo of page.photos || []) {
-      const match = ID_IN_URL.exec(photo.imageUrl || '')
-      if (match) ids.add(match[1])
+    for (const photo of page.photos || []) add(photo.imageUrl)
+    if (page.type === 'recipes') {
+      for (const recipe of page.items || []) add(recipe.imageUrl)
     }
   }
   return ids

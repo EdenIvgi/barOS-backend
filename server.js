@@ -20,6 +20,7 @@ import { barBookRoutes } from './api/barBook/barBook.routes.js'
 import { setupRoutes } from './api/setup/setup.routes.js'
 import { imageRoutes } from './api/image/image.routes.js'
 import { translateRoutes } from './api/translate/translate.routes.js'
+import { scanRoutes } from './api/scan/scan.routes.js'
 import mongoSanitize from 'mongo-sanitize'
 
 const app = express()
@@ -85,6 +86,16 @@ app.use('/api/auth/signup', authLimiter)
 // Starting a demo builds a database and seeds it, so it belongs with the strict
 // limiter rather than the general one.
 app.use('/api/auth/demo', authLimiter)
+// Every scan is a paid call to a vision model, so it gets a ceiling of its own.
+// Generous for someone photographing a shelf, far short of what a loop could spend.
+const scanLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 40,
+    message: { error: 'Too many scans, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false,
+})
+app.use('/api/scan/product', scanLimiter)
 app.use('/api', apiLimiter)
 
 // ==================== ROUTES ====================
@@ -98,6 +109,7 @@ app.use('/api/barBook', barBookRoutes)
 app.use('/api/setup', setupRoutes)
 app.use('/api/image', imageRoutes)
 app.use('/api/translate', translateRoutes)
+app.use('/api/scan', scanRoutes)
 
 // Health check
 app.get('/health', async (req, res) => {

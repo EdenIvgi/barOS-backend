@@ -22,6 +22,7 @@ import { imageRoutes } from './api/image/image.routes.js'
 import { translateRoutes } from './api/translate/translate.routes.js'
 import { scanRoutes } from './api/scan/scan.routes.js'
 import { recipeRoutes } from './api/recipe/recipe.routes.js'
+import { ingredientRoutes } from './api/ingredient/ingredient.routes.js'
 import { recipeLibraryService } from './services/recipeLibrary.service.js'
 import mongoSanitize from 'mongo-sanitize'
 
@@ -98,6 +99,8 @@ const scanLimiter = rateLimit({
     legacyHeaders: false,
 })
 app.use('/api/scan/product', scanLimiter)
+// Reading a pasted page of recipes is the same kind of spend as a scan.
+app.use('/api/recipe/parse', scanLimiter)
 app.use('/api', apiLimiter)
 
 // ==================== ROUTES ====================
@@ -113,6 +116,7 @@ app.use('/api/image', imageRoutes)
 app.use('/api/translate', translateRoutes)
 app.use('/api/scan', scanRoutes)
 app.use('/api/recipe', recipeRoutes)
+app.use('/api/ingredient', ingredientRoutes)
 
 // Health check
 app.get('/health', async (req, res) => {

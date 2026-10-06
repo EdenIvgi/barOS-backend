@@ -2,6 +2,7 @@ import { dbService } from '../../services/mongo.service.js'
 import { imageStore } from '../../services/imageStore.service.js'
 import { ObjectId } from 'mongodb'
 import { toObjectId } from '../../services/objectId.service.js'
+import { barCatalog } from '../../services/barCatalog.service.js'
 
 const COLLECTION_NAME = 'items'
 
@@ -62,6 +63,7 @@ async function getById(itemId, dbName) {
 async function create(itemData, dbName) {
     try {
         const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
+        const catalog = await barCatalog.get(dbName)
         const now = Date.now()
 
         const itemToAdd = {
@@ -79,6 +81,11 @@ async function create(itemData, dbName) {
             minStockLevel: itemData.minStockLevel !== undefined ? itemData.minStockLevel : 0,
             optimalStockLevel: itemData.optimalStockLevel !== undefined ? Number(itemData.optimalStockLevel) : 0,
             tags: itemData.tags || [],
+            // Which canonical ingredient this bottle counts as, so recipes can ask
+            // whether the bar has gin without knowing it owns Tanqueray. Worked out
+            // once here rather than on every recipe query; a choice made by hand
+            // wins, because the catalogue cannot know the bar's own shorthand.
+            ingredientId: catalog.matchItem(itemData) || '',
             quantity: itemData.quantity !== undefined ? itemData.quantity : null,
             createdAt: now,
             updatedAt: now
@@ -105,6 +112,7 @@ function uploadedImageId(imageUrl) {
 async function update(itemId, updateData, dbName) {
     try {
         const collection = await dbService.getCollection(COLLECTION_NAME, dbName)
+        const catalog = await barCatalog.get(dbName)
         const objId = toObjectId(itemId)
         const filter = objId ? { _id: objId } : { _id: itemId }
 
@@ -120,6 +128,7 @@ async function update(itemId, updateData, dbName) {
             stockQuantity: updateData.stockQuantity !== undefined ? updateData.stockQuantity : 0,
             minStockLevel: updateData.minStockLevel !== undefined ? updateData.minStockLevel : 0,
             tags: updateData.tags || [],
+            ingredientId: catalog.matchItem(updateData) || '',
             quantity: updateData.quantity !== undefined ? updateData.quantity : null,
             updatedAt: Date.now()
         }

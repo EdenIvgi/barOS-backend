@@ -1,6 +1,6 @@
 import { recipeModel } from './recipe.model.js'
 import { recipeLibraryService } from '../../services/recipeLibrary.service.js'
-import { ingredientCatalog } from '../../services/ingredientCatalog.service.js'
+import { barCatalog } from '../../services/barCatalog.service.js'
 import { serializeDoc } from '../../services/serialize.service.js'
 
 const DEFAULT_LIMIT = 60
@@ -16,10 +16,12 @@ const DEFAULT_LIMIT = 60
  * feature: "you can make this" is useful, and "you are one bottle away" is what
  * someone acts on.
  */
-export const recipeService = { query, getById, create, update, remove, ingredients }
+export const recipeService = { query, getById, create, update, remove, createMany, ingredients }
 
-function ingredients() {
-    return ingredientCatalog.all()
+/** The shared vocabulary plus whatever this bar added to it. */
+async function ingredients(dbName) {
+    const catalog = await barCatalog.get(dbName)
+    return catalog.all()
 }
 
 /** A recipe plus what this bar is short of for it. */
@@ -39,19 +41,19 @@ function annotate(recipe, available) {
     }
 }
 
-function matchesText(recipe, needle) {
+function matchesText(recipe, needle, catalog) {
     if (!needle) return true
-    const key = ingredientCatalog.normalise(needle)
+    const key = catalog.normalise(needle)
     if (!key) return true
 
     const haystack = [
         recipe.title?.he, recipe.title?.en, recipe.slug,
         ...(recipe.ingredientIds || []).flatMap(id => {
-            const ing = ingredientCatalog.get(id)
+            const ing = catalog.get(id)
             return ing ? [ing.he, ing.en] : []
         }),
     ]
-    return haystack.some(text => ingredientCatalog.normalise(text).includes(key))
+    return haystack.some(text => catalog.normalise(text).includes(key))
 }
 
 /**
@@ -59,10 +61,11 @@ function matchesText(recipe, needle) {
  * `availability` canMake|missingOne — the two questions worth asking a shelf.
  */
 async function query(dbName, filterBy = {}) {
-    const [library, own, available] = await Promise.all([
+    const [library, own, available, catalog] = await Promise.all([
         recipeLibraryService.listLibrary(),
         recipeModel.getAll(dbName),
         recipeModel.getAvailableIngredients(dbName),
+        barCatalog.get(dbName),
     ])
 
     const scope = filterBy.scope
@@ -71,7 +74,7 @@ async function query(dbName, filterBy = {}) {
     if (scope !== 'library') all = all.concat(own)
 
     let recipes = all
-        .filter(recipe => matchesText(recipe, filterBy.q))
+        .filter(recipe => matchesText(recipe, filterBy.q, catalog))
         .filter(recipe => {
             if (filterBy.kind === 'syrup') return Boolean(recipe.produces)
             if (filterBy.kind === 'cocktail') return !recipe.produces
@@ -126,6 +129,10 @@ async function update(id, recipe, dbName) {
     if (!updated) return null
     const available = await recipeModel.getAvailableIngredients(dbName)
     return annotate(updated, available)
+}
+
+async function createMany(list, dbName) {
+    return recipeModel.createMany(Array.isArray(list) ? list : [], dbName)
 }
 
 async function remove(id, dbName) {

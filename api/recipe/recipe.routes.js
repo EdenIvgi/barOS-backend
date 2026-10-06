@@ -3,7 +3,9 @@ import {
     getRecipes,
     getRecipeById,
     getIngredients,
+    parseRecipes,
     addRecipe,
+    addRecipes,
     updateRecipe,
     deleteRecipe,
 } from './recipe.controller.js'
@@ -20,6 +22,12 @@ const recipeSchema = {
 router.get('/ingredients', requireAuth, getIngredients)
 
 router.get('/', requireAuth, getRecipes)
+
+// Reading pasted text costs a model call and writes nothing, so it sits before
+// the id routes and answers only managers.
+router.post('/parse', requireAuth, requireManager, parseRecipes)
+router.post('/bulk', requireAuth, requireManager, addRecipes)
+
 router.get('/:id', requireAuth, getRecipeById)
 
 // Writing a recipe is a manager's job, same as changing what the bar stocks.

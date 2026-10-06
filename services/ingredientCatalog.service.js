@@ -8,8 +8,13 @@ import { INGREDIENTS } from '../data/ingredients.mjs'
  * product resolves to a canonical ingredient, every recipe line points at one,
  * and the question becomes whether one set contains another.
  *
- * Matching runs in memory off a prepared index - it is called for every product
- * on every availability check, so it must not touch the database.
+ * The shared list below covers what most bars pour, and no list ever covers one
+ * bar's falernum or its own date syrup - so a catalogue is an index built from
+ * the shared ingredients plus whatever that bar added. Building one is pure and
+ * cheap; `barCatalog.service.js` is what caches them per tenant.
+ *
+ * Matching runs entirely in memory. It is called for every product on every
+ * availability check and must never touch the database.
  */
 
 const UNIT_ALIASES = {
@@ -33,100 +38,120 @@ export function normalise(text) {
         .trim()
 }
 
-const BY_SLUG = new Map(INGREDIENTS.map(ing => [ing.slug, ing]))
-
-// One alias can only mean one ingredient; the first entry to claim it keeps it,
-// so the list's own order is the tie-breaker rather than something invisible.
-const BY_ALIAS = new Map()
-for (const ing of INGREDIENTS) {
-    for (const alias of [ing.slug, ing.he, ing.en, ...(ing.aliases || [])]) {
-        const key = normalise(alias)
-        if (key && !BY_ALIAS.has(key)) BY_ALIAS.set(key, ing.slug)
-    }
-}
-
-// Longest first: "ג׳ין" must not win over "bombay sapphire" inside one name.
-const ALIAS_KEYS = [...BY_ALIAS.keys()].sort((a, b) => b.length - a.length)
-
-export const ingredientCatalog = {
-    all: () => INGREDIENTS,
-    get: slug => BY_SLUG.get(slug) || null,
-    has: slug => BY_SLUG.has(slug),
-    match,
-    matchItem,
-    parseLine,
-    normalise,
-}
-
-/**
- * The ingredient a piece of text refers to, or null.
- *
- * An exact name wins outright. Failing that a known alias appearing inside the
- * text is taken, which is what catches "Absolut Vodka 700ml" and "ג׳ין טנקרי".
- */
-export function match(text) {
-    const key = normalise(text)
-    if (!key) return null
-
-    const exact = BY_ALIAS.get(key)
-    if (exact) return exact
-
-    for (const alias of ALIAS_KEYS) {
-        // Word boundaries, so "gin" does not match inside "ginger".
-        if (key === alias) return BY_ALIAS.get(alias)
-        if (new RegExp(`(^|\\s)${escapeRegExp(alias)}($|\\s)`).test(key)) {
-            return BY_ALIAS.get(alias)
-        }
-    }
-    return null
-}
-
 function escapeRegExp(text) {
     return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
 /**
- * What a product on the shelf counts as.
+ * Builds a matcher over one list of ingredients.
  *
- * A mapping someone set by hand is the answer, full stop - it is the only one a
- * person actually chose. Otherwise the name is tried, then the category, which
- * is how a bar that sorts its products sensibly gets most of this for free.
+ * A bar's own entries are passed after the shared ones, so a bar can add to the
+ * vocabulary but cannot quietly redefine what "gin" means for its recipes: the
+ * first entry to claim an alias keeps it.
  */
-export function matchItem(item) {
-    if (item?.ingredientId && BY_SLUG.has(item.ingredientId)) return item.ingredientId
-    return match(item?.name)
-        || match(item?.nameEn)
-        || match(typeof item?.category === 'string' ? item.category : item?.category?.name)
-        || null
+export function createCatalog(ingredients) {
+    const bySlug = new Map()
+    const byAlias = new Map()
+
+    for (const ing of ingredients) {
+        if (!ing?.slug || bySlug.has(ing.slug)) continue
+        bySlug.set(ing.slug, ing)
+        for (const alias of [ing.slug, ing.he, ing.en, ...(ing.aliases || [])]) {
+            const key = normalise(alias)
+            if (key && !byAlias.has(key)) byAlias.set(key, ing.slug)
+        }
+    }
+
+    // Longest first: "ג׳ין" must not win over "bombay sapphire" inside one name.
+    const aliasKeys = [...byAlias.keys()].sort((a, b) => b.length - a.length)
+
+    /**
+     * The ingredient a piece of text refers to, or null.
+     *
+     * An exact name wins outright. Failing that a known alias appearing inside the
+     * text is taken, which is what catches "Absolut Vodka 700ml" and "ג׳ין טנקרי".
+     */
+    function match(text) {
+        const key = normalise(text)
+        if (!key) return null
+
+        const exact = byAlias.get(key)
+        if (exact) return exact
+
+        for (const alias of aliasKeys) {
+            // Word boundaries, so "gin" does not match inside "ginger".
+            if (new RegExp(`(^|\\s)${escapeRegExp(alias)}($|\\s)`).test(key)) {
+                return byAlias.get(alias)
+            }
+        }
+        return null
+    }
+
+    /**
+     * What a product on the shelf counts as.
+     *
+     * A mapping someone set by hand is the answer, full stop - it is the only one a
+     * person actually chose. Otherwise the name is tried, then the category, which
+     * is how a bar that sorts its products sensibly gets most of this for free.
+     */
+    function matchItem(item) {
+        if (item?.ingredientId && bySlug.has(item.ingredientId)) return item.ingredientId
+        return match(item?.name)
+            || match(item?.nameEn)
+            || match(typeof item?.category === 'string' ? item.category : item?.category?.name)
+            || null
+    }
+
+    /**
+     * Reads one line of a library recipe: "gin 60", "angostura 2 dash",
+     * "mint 8 leaf", "egg_white 1 piece ?" (optional), "orange_peel 1 piece *"
+     * (garnish).
+     *
+     * Returns null for a line naming an ingredient the catalogue does not have, so
+     * a typo in the library becomes a missing line rather than a broken recipe.
+     */
+    function parseLine(line) {
+        const parts = String(line || '').trim().split(/\s+/)
+        if (!parts.length) return null
+
+        let isOptional = false
+        let isGarnish = false
+        while (parts.length && (parts[parts.length - 1] === '?' || parts[parts.length - 1] === '*')) {
+            if (parts.pop() === '?') isOptional = true
+            else isGarnish = true
+        }
+
+        const [slug, rawAmount, rawUnit] = parts
+        if (!bySlug.has(slug)) return null
+
+        const amount = Number(rawAmount)
+        return {
+            ingredientId: slug,
+            amount: Number.isFinite(amount) && amount > 0 ? amount : null,
+            unit: UNIT_ALIASES[rawUnit] || 'ml',
+            isOptional,
+            isGarnish,
+        }
+    }
+
+    return {
+        all: () => [...bySlug.values()],
+        get: slug => bySlug.get(slug) || null,
+        has: slug => bySlug.has(slug),
+        match,
+        matchItem,
+        parseLine,
+        normalise,
+    }
 }
 
 /**
- * Reads one line of a library recipe: "gin 60", "angostura 2 dash", "mint 8 leaf",
- * "egg_white 1 piece ?" (optional), "orange_peel 1 piece *" (garnish).
+ * The shared catalogue alone.
  *
- * Returns null for a line naming an ingredient the catalogue does not have, so a
- * typo in the library becomes a missing line rather than an unmatchable recipe.
+ * Used where there is no tenant to speak of - seeding the shared library, and
+ * reading the units a line can be written in.
  */
-export function parseLine(line) {
-    const parts = String(line || '').trim().split(/\s+/)
-    if (!parts.length) return null
+export const ingredientCatalog = createCatalog(INGREDIENTS)
 
-    let isOptional = false
-    let isGarnish = false
-    while (parts.length && (parts[parts.length - 1] === '?' || parts[parts.length - 1] === '*')) {
-        if (parts.pop() === '?') isOptional = true
-        else isGarnish = true
-    }
-
-    const [slug, rawAmount, rawUnit] = parts
-    if (!BY_SLUG.has(slug)) return null
-
-    const amount = Number(rawAmount)
-    return {
-        ingredientId: slug,
-        amount: Number.isFinite(amount) && amount > 0 ? amount : null,
-        unit: UNIT_ALIASES[rawUnit] || 'ml',
-        isOptional,
-        isGarnish,
-    }
-}
+export const SHARED_INGREDIENTS = INGREDIENTS
+export const UNITS = Object.keys(UNIT_ALIASES)

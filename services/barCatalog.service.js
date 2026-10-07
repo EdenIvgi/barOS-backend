@@ -66,7 +66,11 @@ async function addIngredient({ he, en, kind, aliases }, dbName) {
         throw err
     }
 
-    const slug = 'bar_' + (normalise(en || he).replace(/\s+/g, '_') || Date.now().toString(36))
+    // ASCII only: the slug is a key and a URL segment, and a Hebrew one works
+    // until something along the way does not encode it. A name with no Latin
+    // letters simply gets an opaque id - nobody reads a slug anyway.
+    const ascii = normalise(en || he).replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+    const slug = 'bar_' + (ascii || Math.random().toString(36).slice(2, 9))
     const doc = {
         slug,
         he: String(he || en || '').trim(),

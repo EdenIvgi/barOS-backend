@@ -88,10 +88,14 @@ async function remove(id, dbName) {
  * ingredients actually stored.
  */
 function withDerived(recipe, catalog) {
+    // A line nobody could map is kept, not dropped: the recipe is what someone
+    // wrote, and losing a measure silently is worse than not counting it. It
+    // simply never reaches requiredIds, so it cannot make a drink look possible.
     const ingredients = (recipe.ingredients || [])
-        .filter(line => line && catalog.has(line.ingredientId))
+        .filter(line => line && (catalog.has(line.ingredientId) || String(line.rawText || '').trim()))
         .map(line => ({
-            ingredientId: line.ingredientId,
+            ingredientId: catalog.has(line.ingredientId) ? line.ingredientId : '',
+            rawText: String(line.rawText || '').trim(),
             amount: Number.isFinite(Number(line.amount)) && Number(line.amount) > 0 ? Number(line.amount) : null,
             unit: line.unit || 'ml',
             isOptional: Boolean(line.isOptional),
@@ -101,9 +105,11 @@ function withDerived(recipe, catalog) {
     return {
         ...recipe,
         ingredients,
-        ingredientIds: [...new Set(ingredients.map(i => i.ingredientId))],
+        ingredientIds: [...new Set(ingredients.map(i => i.ingredientId).filter(Boolean))],
         requiredIds: [...new Set(
-            ingredients.filter(i => !i.isOptional && !i.isGarnish).map(i => i.ingredientId)
+            ingredients
+                .filter(i => i.ingredientId && !i.isOptional && !i.isGarnish)
+                .map(i => i.ingredientId)
         )],
         isLibrary: false,
     }

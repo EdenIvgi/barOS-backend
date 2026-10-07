@@ -76,6 +76,27 @@ try {
     await barBookModel.get(dbName)
     assert.equal((await rawDoc()).updatedAt, before)
 
+    // Two recipes pages without _id, items sharing indices: nothing may collapse.
+    await seedBook([
+        { type: 'recipes', items: [{ title: T('א1') }, { title: T('א2') }] },
+        { type: 'recipes', items: [{ title: T('ב1') }, { title: T('ב2') }] },
+    ])
+    await (await dbService.getCollection('recipes', dbName)).deleteMany({})
+    await barBookModel.get(dbName)
+    assert.equal((await recipes()).length, 4, 'recipes from id-less pages collided')
+
+    // A genuinely old-format document: returned updatedAt must be what was stored.
+    await (await dbService.getCollection('barBook', dbName)).deleteMany({})
+    await (await dbService.getCollection('barBook', dbName)).insertOne({
+        checklists: { opening: { title: 'פתיחה', items: ['a'] } },
+        dailyTasks: [{ day: 'Sun', task: 't' }],
+        createdAt: 1, updatedAt: 1,
+    })
+    const old = await barBookModel.get(dbName)
+    assert.equal(old.updatedAt, (await rawDoc()).updatedAt)
+    assert.notEqual(old.updatedAt, 1)
+    await barBookModel.save({ pages: old.pages, baseUpdatedAt: old.updatedAt }, dbName)
+
     console.log('PASS: all recipe migration assertions held')
 } catch (err) {
     failed = true

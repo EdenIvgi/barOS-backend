@@ -127,13 +127,14 @@ async function doMigrate(pages, dbName) {
   try {
     const catalog = await barCatalog.get(dbName)
     const docs = []
-    for (const page of pages.filter(p => p?.type === 'recipes')) {
+    for (const [pageIndex, page] of pages.entries()) {
+      if (page?.type !== 'recipes') continue
       ;(page.items || []).forEach((item, i) => {
         if (!getLangText(item?.title).trim()) {
           logger.warn(`bar book migration: skipped untitled recipe (page ${page._id}, item ${i})`)
           return
         }
-        const key = item._id ? String(item._id) : `${page._id}:${i}`
+        const key = item._id ? String(item._id) : `${page._id ?? 'page'}@${pageIndex}:${i}`
         docs.push(toRecipeDoc(item, catalog, key))
       })
     }
@@ -186,7 +187,8 @@ async function get(dbName) {
   const hasOldData = rest.checklists || rest.dailyTasks || rest.stockTable || rest.recipes
   const needsMigration = !Array.isArray(rest.pages) || (rest.pages.length === 0 && hasOldData)
   if (needsMigration && pages.length > 0) {
-    await collection.updateOne({ _id }, { $set: { pages, updatedAt: Date.now() } })
+    updatedAt = Date.now()
+    await collection.updateOne({ _id }, { $set: { pages, updatedAt } })
   }
 
   const migrated = await migrateRecipePages(pages, dbName)

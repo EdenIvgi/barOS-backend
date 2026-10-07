@@ -50,3 +50,30 @@ test('reads a non-volume unit and keeps the name clean', () => {
   assert.equal(line.rawText, 'lime')
   assert.equal(line.amount, 1)
 })
+
+test('leaves a digit that belongs to a name alone', () => {
+  const line = catalog.parseFreeText('7up 20 ml')
+  assert.equal(line.amount, 20)
+  assert.equal(line.unit, 'ml')
+  assert.equal(line.rawText, '7up')
+})
+
+test('does not read a fraction as an amount', () => {
+  const line = catalog.parseFreeText('1/2 oz lime')
+  assert.equal(line.amount, null)
+  assert.equal(line.unit, 'oz')
+  assert.equal(line.rawText, '1/2 lime')
+})
+
+test('reads a unit stuck to its number', () => {
+  const line = catalog.parseFreeText('60ml gin')
+  assert.equal(line.amount, 60)
+  assert.equal(line.unit, 'ml')
+  assert.equal(line.rawText, 'gin')
+})
+
+test('does not take a unit off the prototype chain', () => {
+  const line = catalog.parseFreeText('2 constructor gin')
+  assert.equal(line.unit, 'ml')
+  assert.equal(line.rawText, 'constructor gin')
+})

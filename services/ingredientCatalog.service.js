@@ -24,6 +24,11 @@ const UNIT_ALIASES = {
     rim: 'rim', pinch: 'pinch', wedge: 'wedge',
 }
 
+// Hebrew unit words people write by hand, folded to the unit they mean. Both
+// spellings of the ml abbreviation are listed because keyboards produce either
+// a straight quote or the Hebrew gershayim.
+const HEBREW_UNITS = { 'מ"ל': 'ml', 'מ״ל': 'ml', 'גרם': 'g' }
+
 /**
  * Folds away everything two spellings of the same word can differ by: case, the
  * three apostrophes Hebrew uses interchangeably, punctuation and extra spaces.
@@ -134,6 +139,47 @@ export function createCatalog(ingredients) {
         }
     }
 
+    /**
+     * Reads one line a person wrote: "60 ml gin", "2,5 ml absinthe", "60 מ״ל ג׳ין".
+     *
+     * The first number is the amount, unit words are recognised by token (a word
+     * boundary regex does not work on Hebrew), and what remains is the name. An
+     * unmatched name is kept as rawText so nothing a person typed is lost.
+     * Returns null only for a blank line.
+     */
+    function parseFreeText(line) {
+        const text = String(line || '').trim()
+        if (!text) return null
+
+        let amount = null
+        let rest = text
+        const amountMatch = text.match(/\d+(?:[.,]\d+)?/)
+        if (amountMatch) {
+            const value = Number(amountMatch[0].replace(',', '.'))
+            amount = Number.isFinite(value) ? value : null
+            rest = text.replace(amountMatch[0], ' ')
+        }
+
+        let unit = ''
+        const nameTokens = []
+        for (const token of rest.split(/\s+/).filter(Boolean)) {
+            const key = token.toLowerCase()
+            const found = UNIT_ALIASES[key] || HEBREW_UNITS[token]
+            if (found) unit ||= found
+            else nameTokens.push(token)
+        }
+
+        const rawText = nameTokens.join(' ') || text
+        return {
+            ingredientId: nameTokens.length ? match(rawText) || '' : '',
+            rawText,
+            amount,
+            unit: unit || 'ml',
+            isOptional: false,
+            isGarnish: false,
+        }
+    }
+
     return {
         all: () => [...bySlug.values()],
         get: slug => bySlug.get(slug) || null,
@@ -141,6 +187,7 @@ export function createCatalog(ingredients) {
         match,
         matchItem,
         parseLine,
+        parseFreeText,
         normalise,
     }
 }

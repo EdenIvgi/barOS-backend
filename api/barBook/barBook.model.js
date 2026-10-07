@@ -88,14 +88,18 @@ function toRecipeDoc(item, catalog, migratedFrom) {
   const title = getLangText(item.title) || '(untitled)'
   const lines = asList(item.ingredients, 'ingredients', title)
   const steps = asList(item.instructions, 'instructions', title)
+  const he = steps.map(s => (typeof s === 'string' ? s : s?.he || ''))
+  const en = steps.map(s => (typeof s === 'string' ? '' : s?.en || ''))
   return {
     title: item.title,
     imageUrl: item.imageUrl,
     librarySlug: item.librarySlug,
     migratedFrom,
+    // A language nobody wrote a step in is left empty rather than padded with
+    // blanks, so a reader of that language falls back to the one that has words.
     instructions: {
-      he: steps.map(s => (typeof s === 'string' ? s : s?.he || '')),
-      en: steps.map(s => (typeof s === 'string' ? '' : s?.en || '')),
+      he: he.some(s => s.trim()) ? he : [],
+      en: en.some(s => s.trim()) ? en : [],
     },
     ingredients: lines.map(line => catalog.parseFreeText(getLangText(line))).filter(Boolean),
   }
@@ -108,7 +112,7 @@ const inFlight = new Map()
  *
  * Insert first, remove second: if the insert rejects the pages come back
  * untouched and the next read retries. Each recipe is keyed by migratedFrom (the
- * item's _id, or pageId:index), so a retry skips what landed and two recipes
+ * item's _id, or pageId@pageIndex:itemIndex), so a retry skips what landed and two recipes
  * sharing a title are both kept. Callers must persist the result with a direct
  * update, never through save(), whose image garbage collection would delete the
  * photos this just carried over.
@@ -117,6 +121,9 @@ const inFlight = new Map()
  */
 function migrateRecipePages(pages, dbName) {
   if (!(pages || []).some(p => p?.type === 'recipes')) return Promise.resolve({ pages, changed: false })
+  // Sharing one run hands the first caller's result to the second. Sound because
+  // both read the same single bar book document, so their `pages` are equal: the
+  // migrated set the first computed is the one the second would have computed.
   if (inFlight.has(dbName)) return inFlight.get(dbName)
   const run = doMigrate(pages, dbName).finally(() => inFlight.delete(dbName))
   inFlight.set(dbName, run)

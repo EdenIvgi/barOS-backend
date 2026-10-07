@@ -12,7 +12,7 @@ const ITEMS = 'items'
  * holds what one bar wrote itself, including its own version of a classic it
  * copied out of the library.
  */
-export const recipeModel = { getAll, getById, create, update, remove, createMany, getAvailableIngredients, withDerived }
+export const recipeModel = { getAll, getById, create, update, remove, createMany, createMigrated, getAvailableIngredients, withDerived }
 
 async function collection(dbName) {
     return dbService.getCollection(COLLECTION, dbName)
@@ -73,6 +73,28 @@ async function createMany(list, dbName) {
 
     if (toInsert.length) await recipes.insertMany(toInsert)
     return { added: toInsert.length, skipped }
+}
+
+/**
+ * Saves recipes carried over from another store, whose source is deleted right
+ * after. Titles are NOT deduped here: two differently-written recipes sharing a
+ * name are both real, and dropping one would destroy it. Idempotence comes from
+ * migratedFrom, so a retry skips exactly what already landed.
+ */
+async function createMigrated(list, dbName) {
+    const recipes = await collection(dbName)
+    const catalog = await barCatalog.get(dbName)
+    const now = Date.now()
+
+    const keys = list.map(r => r.migratedFrom).filter(Boolean)
+    const done = await recipes.find({ migratedFrom: { $in: keys } }, { projection: { migratedFrom: 1 } }).toArray()
+    const landed = new Set(done.map(r => r.migratedFrom))
+
+    const toInsert = list
+        .filter(r => !landed.has(r.migratedFrom))
+        .map(r => ({ ...withDerived(r, catalog), createdAt: now, updatedAt: now }))
+    if (toInsert.length) await recipes.insertMany(toInsert)
+    return { added: toInsert.length }
 }
 
 async function remove(id, dbName) {

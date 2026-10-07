@@ -43,3 +43,10 @@ test('returns null for a blank line', () => {
 test('falls back to the whole line when stripping leaves nothing', () => {
   assert.equal(catalog.parseFreeText('60 ml').rawText, '60 ml')
 })
+
+test('reads a non-volume unit and keeps the name clean', () => {
+  const line = catalog.parseFreeText('1 wedge lime')
+  assert.equal(line.unit, 'wedge')
+  assert.equal(line.rawText, 'lime')
+  assert.equal(line.amount, 1)
+})

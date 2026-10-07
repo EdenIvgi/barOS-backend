@@ -1,5 +1,7 @@
 import { dbService } from '../../services/mongo.service.js'
 import { imageStore } from '../../services/imageStore.service.js'
+import { recipeModel } from '../recipe/recipe.model.js'
+import { barCatalog } from '../../services/barCatalog.service.js'
 
 const COLLECTION_NAME = 'barBook'
 
@@ -66,6 +68,51 @@ function migrateOldFormat(doc) {
   return pages
 }
 
+/** A bilingual line reads as Hebrew first, the way the rest of the app does. */
+function getLangText(line) {
+  if (typeof line === 'string') return line
+  return String(line?.he || line?.en || '')
+}
+
+function toRecipeDoc(item, catalog) {
+  const lines = Array.isArray(item.ingredients) ? item.ingredients : []
+  const steps = Array.isArray(item.instructions) ? item.instructions : []
+  return {
+    title: item.title,
+    imageUrl: item.imageUrl,
+    librarySlug: item.librarySlug,
+    instructions: {
+      he: steps.map(s => (typeof s === 'string' ? s : s?.he || '')),
+      en: steps.map(s => (typeof s === 'string' ? '' : s?.en || '')),
+    },
+    ingredients: lines.map(line => catalog.parseFreeText(getLangText(line))).filter(Boolean),
+  }
+}
+
+/**
+ * Moves every `recipes` page into the recipes collection.
+ *
+ * Insert first, remove second: if the insert rejects the pages come back
+ * untouched and the next read retries (createMany skips titles already held, so
+ * a retry cannot duplicate). Callers must persist the result with a direct
+ * update, never through save(), whose image garbage collection would delete the
+ * photos this just carried over.
+ */
+async function migrateRecipePages(pages, dbName) {
+  const recipePages = (pages || []).filter(p => p?.type === 'recipes')
+  if (recipePages.length === 0) return { pages, changed: false }
+
+  try {
+    const catalog = await barCatalog.get(dbName)
+    const docs = recipePages.flatMap(p => (p.items || []).map(item => toRecipeDoc(item, catalog)))
+    if (docs.length > 0) await recipeModel.createMany(docs, dbName)
+  } catch (err) {
+    console.error('bar book recipe migration failed, will retry on next read', err?.message)
+    return { pages, changed: false }
+  }
+  return { pages: pages.filter(p => p?.type !== 'recipes'), changed: true }
+}
+
 /**
  * Every image this book points at.
  *
@@ -100,12 +147,19 @@ async function get(dbName) {
   if (!doc) return { _id: 'barBook', pages: [], createdAt: Date.now(), updatedAt: Date.now() }
 
   const { _id, ...rest } = doc
-  const pages = migrateOldFormat(rest)
+  let pages = migrateOldFormat(rest)
 
   // Persist migration if old format (no pages field, or pages was empty but old data exists)
   const hasOldData = rest.checklists || rest.dailyTasks || rest.stockTable || rest.recipes
   const needsMigration = !Array.isArray(rest.pages) || (rest.pages.length === 0 && hasOldData)
   if (needsMigration && pages.length > 0) {
+    await collection.updateOne({ _id }, { $set: { pages, updatedAt: Date.now() } })
+  }
+
+  const migrated = await migrateRecipePages(pages, dbName)
+  if (migrated.changed) {
+    pages = migrated.pages
+    // Direct write on purpose: save() would garbage-collect the migrated photos.
     await collection.updateOne({ _id }, { $set: { pages, updatedAt: Date.now() } })
   }
 

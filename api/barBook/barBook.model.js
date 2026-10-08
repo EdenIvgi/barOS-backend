@@ -1,5 +1,8 @@
 import { dbService } from '../../services/mongo.service.js'
 import { imageStore } from '../../services/imageStore.service.js'
+import { recipeModel } from '../recipe/recipe.model.js'
+import { logger } from '../../services/logger.service.js'
+import { barCatalog } from '../../services/barCatalog.service.js'
 
 const COLLECTION_NAME = 'barBook'
 
@@ -66,6 +69,90 @@ function migrateOldFormat(doc) {
   return pages
 }
 
+/** A bilingual line reads as Hebrew first, the way the rest of the app does. */
+function getLangText(line) {
+  if (typeof line === 'string') return line
+  return String(line?.he || line?.en || '')
+}
+
+/** Legacy items may hold a newline-delimited string where a list belongs. */
+function asList(value, what, title) {
+  if (Array.isArray(value)) return value
+  if (value == null || value === '') return []
+  if (typeof value === 'string') return value.split(/\r?\n/).filter(l => l.trim())
+  logger.warn(`bar book migration: unreadable ${what} on recipe "${title}" (${typeof value}), left empty`)
+  return []
+}
+
+function toRecipeDoc(item, catalog, migratedFrom) {
+  const title = getLangText(item.title) || '(untitled)'
+  const lines = asList(item.ingredients, 'ingredients', title)
+  const steps = asList(item.instructions, 'instructions', title)
+  const he = steps.map(s => (typeof s === 'string' ? s : s?.he || ''))
+  const en = steps.map(s => (typeof s === 'string' ? '' : s?.en || ''))
+  return {
+    title: item.title,
+    imageUrl: item.imageUrl,
+    librarySlug: item.librarySlug,
+    migratedFrom,
+    // A language nobody wrote a step in is left empty rather than padded with
+    // blanks, so a reader of that language falls back to the one that has words.
+    instructions: {
+      he: he.some(s => s.trim()) ? he : [],
+      en: en.some(s => s.trim()) ? en : [],
+    },
+    ingredients: lines.map(line => catalog.parseFreeText(getLangText(line))).filter(Boolean),
+  }
+}
+
+const inFlight = new Map()
+
+/**
+ * Moves every `recipes` page into the recipes collection.
+ *
+ * Insert first, remove second: if the insert rejects the pages come back
+ * untouched and the next read retries. Each recipe is keyed by migratedFrom (the
+ * item's _id, or pageId@pageIndex:itemIndex), so a retry skips what landed and two recipes
+ * sharing a title are both kept. Callers must persist the result with a direct
+ * update, never through save(), whose image garbage collection would delete the
+ * photos this just carried over.
+ *
+ * Concurrent reads of one tenant share a single run.
+ */
+function migrateRecipePages(pages, dbName) {
+  if (!(pages || []).some(p => p?.type === 'recipes')) return Promise.resolve({ pages, changed: false })
+  // Sharing one run hands the first caller's result to the second. Sound because
+  // both read the same single bar book document, so their `pages` are equal: the
+  // migrated set the first computed is the one the second would have computed.
+  if (inFlight.has(dbName)) return inFlight.get(dbName)
+  const run = doMigrate(pages, dbName).finally(() => inFlight.delete(dbName))
+  inFlight.set(dbName, run)
+  return run
+}
+
+async function doMigrate(pages, dbName) {
+  try {
+    const catalog = await barCatalog.get(dbName)
+    const docs = []
+    for (const [pageIndex, page] of pages.entries()) {
+      if (page?.type !== 'recipes') continue
+      ;(page.items || []).forEach((item, i) => {
+        if (!getLangText(item?.title).trim()) {
+          logger.warn(`bar book migration: skipped untitled recipe (page ${page._id}, item ${i})`)
+          return
+        }
+        const key = item._id ? String(item._id) : `${page._id ?? 'page'}@${pageIndex}:${i}`
+        docs.push(toRecipeDoc(item, catalog, key))
+      })
+    }
+    if (docs.length > 0) await recipeModel.createMigrated(docs, dbName)
+  } catch (err) {
+    logger.error('bar book recipe migration failed, will retry on next read', err)
+    return { pages, changed: false }
+  }
+  return { pages: pages.filter(p => p?.type !== 'recipes'), changed: true }
+}
+
 /**
  * Every image this book points at.
  *
@@ -100,16 +187,27 @@ async function get(dbName) {
   if (!doc) return { _id: 'barBook', pages: [], createdAt: Date.now(), updatedAt: Date.now() }
 
   const { _id, ...rest } = doc
-  const pages = migrateOldFormat(rest)
+  let pages = migrateOldFormat(rest)
+  let updatedAt = rest.updatedAt
 
   // Persist migration if old format (no pages field, or pages was empty but old data exists)
   const hasOldData = rest.checklists || rest.dailyTasks || rest.stockTable || rest.recipes
   const needsMigration = !Array.isArray(rest.pages) || (rest.pages.length === 0 && hasOldData)
   if (needsMigration && pages.length > 0) {
-    await collection.updateOne({ _id }, { $set: { pages, updatedAt: Date.now() } })
+    updatedAt = Date.now()
+    await collection.updateOne({ _id }, { $set: { pages, updatedAt } })
   }
 
-  return { _id: _id?.toString?.() || 'barBook', ...rest, pages }
+  const migrated = await migrateRecipePages(pages, dbName)
+  if (migrated.changed) {
+    pages = migrated.pages
+    // Direct write on purpose: save() would garbage-collect the migrated photos.
+    updatedAt = Date.now()
+    await collection.updateOne({ _id }, { $set: { pages, updatedAt } })
+  }
+
+  // The bumped stamp, or the client's first save would 409 against it.
+  return { _id: _id?.toString?.() || 'barBook', ...rest, updatedAt, pages }
 }
 
 async function save(content, dbName) {

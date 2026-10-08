@@ -24,6 +24,11 @@ const UNIT_ALIASES = {
     rim: 'rim', pinch: 'pinch', wedge: 'wedge',
 }
 
+// Hebrew unit words people write by hand, folded to the unit they mean. Both
+// spellings of the ml abbreviation are listed because keyboards produce either
+// a straight quote or the Hebrew gershayim.
+const HEBREW_UNITS = { 'מ"ל': 'ml', 'מ״ל': 'ml', 'גרם': 'g' }
+
 /**
  * Folds away everything two spellings of the same word can differ by: case, the
  * three apostrophes Hebrew uses interchangeably, punctuation and extra spaces.
@@ -36,6 +41,20 @@ export function normalise(text) {
         .replace(/[^\p{Letter}\p{Number}\s]/gu, ' ')
         .replace(/\s+/g, ' ')
         .trim()
+}
+
+/**
+ * The unit a written token means, or ''.
+ *
+ * Own-property lookups only: a line reading "constructor" would otherwise pick a
+ * function off the prototype chain and fail the insert, which on the bar book
+ * migration path means retrying forever.
+ */
+function lookupUnit(token) {
+    const key = String(token || '').toLowerCase()
+    if (Object.hasOwn(UNIT_ALIASES, key)) return UNIT_ALIASES[key]
+    if (Object.hasOwn(HEBREW_UNITS, token)) return HEBREW_UNITS[token]
+    return ''
 }
 
 function escapeRegExp(text) {
@@ -128,9 +147,66 @@ export function createCatalog(ingredients) {
         return {
             ingredientId: slug,
             amount: Number.isFinite(amount) && amount > 0 ? amount : null,
-            unit: UNIT_ALIASES[rawUnit] || 'ml',
+            unit: lookupUnit(rawUnit) || 'ml',
             isOptional,
             isGarnish,
+        }
+    }
+
+    /**
+     * Reads one line a person wrote: "60 ml gin", "2,5 ml absinthe", "60 מ״ל ג׳ין".
+     *
+     * The first standalone number is the amount, unit words are recognised by
+     * token (a word boundary regex does not work on Hebrew), and what remains is
+     * the name. An unmatched name is kept as rawText so nothing a person typed is
+     * lost. Returns null only for a blank line.
+     *
+     * The amount has to be a token of its own: a digit inside "7up" or "1/2" is
+     * part of what the bar wrote, and the migration deletes the source, so taking
+     * it as the amount would mangle the only surviving record of the line.
+     *
+     * Mirrored by rowsToRecipes in the frontend's RecipeImportModal.jsx and by the
+     * unit list in RecipeEditor.jsx; the three live in two repos, so change them
+     * together.
+     */
+    function parseFreeText(line) {
+        const text = String(line || '').trim()
+        if (!text) return null
+
+        let amount = null
+        let unit = ''
+        const nameTokens = []
+        for (const token of text.split(/\s+/).filter(Boolean)) {
+            // A number alone, or a number with a unit stuck to it ("60ml"). The
+            // trailing part has to be a unit we know, which is what keeps "7up"
+            // a name and "1/2" a fraction rather than an amount.
+            const numeric = amount === null && /^\d+(?:[.,]\d+)?/.test(token)
+                ? token.match(/^(\d+(?:[.,]\d+)?)(.*)$/)
+                : null
+            if (numeric) {
+                const suffix = lookupUnit(numeric[2])
+                if (!numeric[2] || suffix) {
+                    const value = Number(numeric[1].replace(',', '.'))
+                    if (Number.isFinite(value)) {
+                        amount = value
+                        if (suffix) unit ||= suffix
+                        continue
+                    }
+                }
+            }
+            const found = lookupUnit(token)
+            if (found) unit ||= found
+            else nameTokens.push(token)
+        }
+
+        const rawText = nameTokens.join(' ') || text
+        return {
+            ingredientId: nameTokens.length ? match(rawText) || '' : '',
+            rawText,
+            amount,
+            unit: unit || 'ml',
+            isOptional: false,
+            isGarnish: false,
         }
     }
 
@@ -141,6 +217,7 @@ export function createCatalog(ingredients) {
         match,
         matchItem,
         parseLine,
+        parseFreeText,
         normalise,
     }
 }
